@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/sidebar"
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
+import DrawerComponent from '@/components/ui/Drawer/Drawercomponent'
 
 export function SidebarComponent() {
     return (
@@ -51,8 +53,9 @@ export function SidebarComponent() {
 
                     {/* RIGHT SECTION */}
                     <div>
-                        <Button>
-                            New Project
+                        <Button className=' cursor-pointer'>
+                            {/* <Plus/>  */}
+                            <DrawerComponent />
                         </Button>
                     </div>
                 </header>
