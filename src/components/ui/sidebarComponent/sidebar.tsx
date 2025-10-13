@@ -37,11 +37,9 @@ export function SidebarComponent() {
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem className="hidden md:block">
-                                    <Link href="sign-in">
-                                        <BreadcrumbLink>
-                                            Get Started
-                                        </BreadcrumbLink>
-                                    </Link>
+                                    <BreadcrumbLink asChild>
+                                        <Link href="sign-in"> Get Started</Link>
+                                    </BreadcrumbLink>
                                 </BreadcrumbItem>
                                 <BreadcrumbSeparator className="hidden md:block" />
                                 <BreadcrumbItem>
