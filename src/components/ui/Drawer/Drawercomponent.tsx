@@ -13,20 +13,19 @@ import {
     DrawerClose,
 } from "@/components/ui/Drawer" // 👈 adjust path if needed
 import { useRouter } from "next/router"
-// import { plusSign as Plus } from "@/components/ui/lucide-react/plusSign"
 export default function NewProjectDrawer() {
-    const router = useRouter()
     const [projectName, setProjectName] = useState("")
     const [description, setDescription] = useState("")
 
     const handleSubmit = (e: React.FormEvent) => {
+        const router = useRouter()
         e.preventDefault()
         console.log({
             projectName,
             description
         })
-        router.push('/(protected)/workspace')
-        // 🧠 Here you can add your logic — e.g. Supabase insert or API call
+        router.push('/workspace')
+        // TODO: Supabase insert and API call
     }
 
     return (
@@ -73,9 +72,7 @@ export default function NewProjectDrawer() {
                             className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
-
                     <DrawerFooter>
-
                         <Button type="submit">
                             Create Project
                         </Button>
