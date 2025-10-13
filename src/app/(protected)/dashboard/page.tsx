@@ -1,9 +1,7 @@
 'use client'
-import { supabase } from '@/lib/supabaseclient'
-import React from 'react'
-
 import { useEffect, useState } from 'react'
-
+import { supabase } from '@/lib/supabaseclient'
+import { SidebarComponent } from '@/components/ui/sidebarComponent/sidebar'
 const page = () => {
   const [user, setUser] = useState<any>(null)
 
@@ -16,7 +14,7 @@ const page = () => {
   }, [])
 
   return (
-    <div>Dashboard welcome {user ? user.email : 'Loading...'}</div>
+    <SidebarComponent />
   )
 }
 
