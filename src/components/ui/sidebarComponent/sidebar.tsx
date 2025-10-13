@@ -17,14 +17,16 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar"
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export function SidebarComponent() {
     return (
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-                    <div className="flex items-center gap-2 px-4">
+                <header className="flex h-16 items-center justify-between px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+                    {/* LEFT SECTION */}
+                    <div className="flex items-center gap-2">
                         <SidebarTrigger className="-ml-1" />
                         <Separator
                             orientation="vertical"
@@ -33,8 +35,8 @@ export function SidebarComponent() {
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem className="hidden md:block">
-                                    <Link href="sign-in" >
-                                        <BreadcrumbLink >
+                                    <Link href="sign-in">
+                                        <BreadcrumbLink>
                                             Get Started
                                         </BreadcrumbLink>
                                     </Link>
@@ -46,7 +48,15 @@ export function SidebarComponent() {
                             </BreadcrumbList>
                         </Breadcrumb>
                     </div>
+
+                    {/* RIGHT SECTION */}
+                    <div>
+                        <Button>
+                            New Project
+                        </Button>
+                    </div>
                 </header>
+
                 <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
                     <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                         <div className="bg-muted/50 aspect-video rounded-xl" />
