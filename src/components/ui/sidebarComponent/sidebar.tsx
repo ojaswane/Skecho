@@ -12,7 +12,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { supabase } from '@/lib/supabaseclient' // adjust path to your client
 import DrawerComponent from '@/components/ui/Drawer/Drawercomponent'
 import {ThemeToggleButton } from '@/components/ui/skiper-ui/Skiper26'
-
+import { Plus } from 'lucide-react'
 
 export function SidebarComponent() {
     const [user, setUser] = useState<{ name: string | null; email: string | null } | null>(null)
@@ -55,10 +55,11 @@ export function SidebarComponent() {
 
                     <div className="flex items-center gap-4">
                         {/* theme toggler */}
-                        <ThemeToggleButton variant="circle-blur" start="top-right" blur />
+                        <ThemeToggleButton variant="circle-blur" start="top-right" blur  className='w-7 h-7'/>
 
                         {/* Drawer or Add button */}
                         <Button className=' bg-transparent hover:bg-transparent'>
+                            {/* <Plus /> */}
                             <DrawerComponent />
                         </Button>
 

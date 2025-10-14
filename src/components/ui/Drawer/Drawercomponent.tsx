@@ -3,86 +3,85 @@
 import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
-    Drawer,
-    DrawerTrigger,
-    DrawerContent,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerClose,
-} from "@/components/ui/Drawer" // 👈 adjust path if needed
-import { useRouter } from "next/router"
+  Drawer,
+  DrawerTrigger,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
+} from "@/components/ui/Drawer"
+import { useRouter } from "next/navigation" // ✅ correct hook for app router
+import { Plus } from "lucide-react"
+
 export default function NewProjectDrawer() {
-    const [projectName, setProjectName] = useState("")
-    const [description, setDescription] = useState("")
+  const router = useRouter() // ✅ move here
 
-    const handleSubmit = (e: React.FormEvent) => {
-        const router = useRouter()
-        e.preventDefault()
-        console.log({
-            projectName,
-            description
-        })
-        router.push('/workspace')
-        // TODO: Supabase insert and API call
-    }
+  const [projectName, setProjectName] = useState("")
+  const [description, setDescription] = useState("")
 
-    return (
-        <Drawer>
-            {/* Trigger Button */}
-            <DrawerTrigger asChild>
-                {/* <Plus /> */}
-                <Button>New Project</Button>
-            </DrawerTrigger>
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    console.log({ projectName, description })
+    router.push("/workspace") // ✅ works now
+  }
 
-            {/* Drawer Content */}
-            <DrawerContent>
-                <DrawerHeader>
-                    <DrawerTitle>Create a New Project</DrawerTitle>
-                    <DrawerDescription>
-                        Fill out the details below to create your project.
-                    </DrawerDescription>
-                </DrawerHeader>
+  return (
+    <Drawer>
+      {/* Trigger Button */}
+      <DrawerTrigger asChild>
+        <Button className=" cursor-pointer">
+          <Plus className="mr-2 h-4 w-4 text-black" />
+          New Project
+        </Button>
+      </DrawerTrigger>
 
-                {/* 🧾 The Form */}
-                <form onSubmit={handleSubmit} className="p-20 space-y-4 ">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            Project Name
-                        </label>
-                        <input
-                            type="text"
-                            value={projectName}
-                            onChange={(e) => setProjectName(e.target.value)}
-                            required
-                            placeholder="Enter project name"
-                            className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
-                        />
-                    </div>
+      {/* Drawer Content */}
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Create a New Project</DrawerTitle>
+          <DrawerDescription>
+            Fill out the details below to create your project.
+          </DrawerDescription>
+        </DrawerHeader>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            Description
-                        </label>
-                        <textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Describe your project"
-                            className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
-                        />
-                    </div>
-                    <DrawerFooter>
-                        <Button type="submit">
-                            Create Project
-                        </Button>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Project Name
+            </label>
+            <input
+              type="text"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              required
+              placeholder="Enter project name"
+              className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
 
-                        <DrawerClose asChild>
-                            <Button variant="outline" type="button">Cancel</Button>
-                        </DrawerClose>
-                    </DrawerFooter>
-                </form>
-            </DrawerContent>
-        </Drawer>
-    )
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe your project"
+              className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          <DrawerFooter>
+            <Button type="submit">Create Project</Button>
+            <DrawerClose asChild>
+              <Button variant="outline" type="button">Cancel</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </form>
+      </DrawerContent>
+    </Drawer>
+  )
 }
