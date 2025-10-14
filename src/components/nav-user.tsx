@@ -105,12 +105,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+            
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut />
