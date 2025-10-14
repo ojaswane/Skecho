@@ -69,7 +69,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     fetchProjects()
   }, [])
 
-  // ✅ Sidebar content
   const data = {
     user: {
       name: user?.name || "User",
@@ -89,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
       {
         title: "Documentation",
-        url: "/docs", // ✅ Works now
+        url: "/docs",
         icon: BookOpen,
       },
       {
@@ -117,25 +116,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
+      {/* ✅ HEADER */}
       <SidebarHeader>
-        <div className="flex items-center gap-2 p-2">
+        <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]/sidebar-wrapper:justify-center">
           <LayoutDashboard size={18} />
-          <span className="text-sm font-semibold">Your Workspace</span>
+          {/* ✅ Hide "Sketcho" when collapsed */}
+          <span className="text-sm font-semibold transition-opacity duration-200 group-data-[collapsible=icon]/sidebar-wrapper:opacity-0">
+            Sketcho
+          </span>
         </div>
       </SidebarHeader>
 
+      {/* ✅ MAIN CONTENT */}
       <SidebarContent>
         <NavMain items={data.navMain} />
 
+        {/* ✅ Only show projects if available */}
         {projects.length > 0 ? (
-          <NavProjects projects={data.projects} />
+          <div className="transition-all duration-300">
+            <NavProjects
+              projects={data.projects}
+            />
+          </div>
         ) : (
-          <div className="px-4 text-sm text-muted-foreground mt-2">
+          <div className="px-4 text-sm text-muted-foreground mt-2 group-data-[collapsible=icon]/sidebar-wrapper:hidden">
             No projects yet.
           </div>
         )}
       </SidebarContent>
 
+      {/* ✅ FOOTER */}
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
