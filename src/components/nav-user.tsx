@@ -1,10 +1,13 @@
 "use client"
 
+
+import { supabase } from "@/lib/supabaseclient"
+import { Button } from "./ui/button"
+import {useState , useEffect} from "react"
+
 import {
   BadgeCheck,
-  Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
   Sparkles,
 } from "lucide-react"
@@ -40,6 +43,18 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+
+  const [isLogged , setisLogged] = useState<{ name: string; email: string; avatar: string } | null>(user)
+
+  const handleLogout = async () => {
+    const {error} = await supabase.auth.signOut();
+    if(error){
+      console.log("Error logging out: ", error.message);
+    }else{
+      setisLogged(null);
+      window.location.href = "/sign-in"; // Redirect to login page after logout
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -83,7 +98,10 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <Sparkles />
-                Upgrade to Pro
+                <Button className=' bg-transparent text-black hover:bg-transparent' onClick={() => window.location.href = "/billing"}>
+                  {/* Todo : Add a logic , if user has subsciption then add upgrate to pro or else show cradidts left */}
+                  Upgrade to Pro
+                </Button>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
@@ -92,19 +110,13 @@ export function NavUser({
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut />
-              Log out
+              <Button className=' bg-transparent text-black hover:bg-transparent' onClick={handleLogout}>
+                Log out
+              </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
