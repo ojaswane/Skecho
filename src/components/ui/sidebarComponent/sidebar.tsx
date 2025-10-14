@@ -26,7 +26,7 @@ export function SidebarComponent() {
             if (data.user) {
                 setUser({
                     name: data.user.user_metadata.full_name || 'User',
-                    email: data.user.email,
+                    email: data.user.email ?? null,
                 })
             }
         }
@@ -58,14 +58,14 @@ export function SidebarComponent() {
                         </Button>
 
                         {/* RIGHT - User info */}
-                        {user ? (
+                        {/* {user ? (
                             <div className="text-right">
                                 <p className="text-sm font-medium">{user.name}</p>
                                 <p className="text-xs text-muted-foreground">{user.email}</p>
                             </div>
                         ) : (
                             <p className="text-xs text-muted-foreground">Loading...</p>
-                        )}
+                        )} */}
 
                     </div>
                 </header>
