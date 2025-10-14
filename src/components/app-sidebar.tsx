@@ -2,21 +2,16 @@
 
 import * as React from "react"
 import {
-  AudioWaveform,
-  Bot,
-  Command,
   Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
   Settings2,
-  SquareTerminal,
+  LayoutDashboard,
+  FolderPlus,
+  BookOpen,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -27,11 +22,11 @@ import {
 import { supabase } from "@/lib/supabaseclient"
 import { useState, useEffect } from "react"
 
-// ✅ Combine everything properly
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [user, setUser] = useState<{ name: string | null; email: string | null } | null>(null)
+  const [projects, setProjects] = useState<any[]>([])
 
-  // ✅ Fetch the current user from Supabase
+  // ✅ Fetch user from Supabase
   useEffect(() => {
     const fetchUser = async () => {
       const { data, error } = await supabase.auth.getUser()
@@ -41,7 +36,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       }
       if (data.user) {
         setUser({
-          name: data.user.user_metadata.full_name || "User",
+          name: data.user.user_metadata?.full_name || "User",
           email: data.user.email ?? null,
         })
       }
@@ -50,129 +45,101 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     fetchUser()
   }, [])
 
-  // ✅ Data (you can customize this later)
+  // ✅ Fetch projects from Supabase
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, name, category")
+        .eq("user_id", user.id)
+
+      if (error) {
+        console.error("Error fetching projects:", error.message)
+        return
+      }
+
+      setProjects(data || [])
+    }
+
+    fetchProjects()
+  }, [])
+
+  // ✅ Sidebar content
   const data = {
     user: {
       name: user?.name || "User",
       email: user?.email || "user@example.com",
       avatar: `https://ui-avatars.com/api/?name=${user?.name || "User"}`,
     },
-    teams: [
-      {
-        name: "Acme Inc",
-        logo: GalleryVerticalEnd,
-        plan: "Enterprise",
-      },
-      {
-        name: "Acme Corp.",
-        logo: AudioWaveform,
-        plan: "Startup",
-      },
-      {
-        name: "Evil Corp.",
-        logo: Command,
-        plan: "Free",
-      },
-    ],
     navMain: [
       {
-        title: "Playground",
-        url: "#",
-        icon: SquareTerminal,
-        isActive: true,
-        items: [
-          {
-            title: "History",
-            url: "#",
-          },
-          {
-            title: "Starred",
-            url: "#",
-          },
-          {
-            title: "Settings",
-            url: "#",
-          },
-        ],
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: LayoutDashboard,
       },
       {
-        title: "Models",
-        url: "#",
-        icon: Bot,
-        items: [
-          {
-            title: "Genesis",
-            url: "#",
-          },
-          {
-            title: "Explorer",
-            url: "#",
-          },
-          {
-            title: "Quantum",
-            url: "#",
-          },
-        ],
+        title: "New Project",
+        url: "/workflow",
+        icon: FolderPlus,
       },
       {
         title: "Documentation",
-        url: "/docs",
+        url: "/docs", // ✅ Works now
+        icon: BookOpen,
       },
       {
         title: "Settings",
-        url: "#",
+        url: "/settings",
         icon: Settings2,
         items: [
           {
             title: "General",
-            url: "#",
-          },
-          {
-            title: "Team",
-            url: "#",
+            url: "/settings/general",
           },
           {
             title: "Billing",
-            url: "#",
-          },
-          {
-            title: "Limits",
-            url: "#",
+            url: "/billing",
           },
         ],
       },
     ],
-    projects: [
-      {
-        name: "Design Engineering",
-        url: "#",
-        icon: Frame,
-      },
-      {
-        name: "Sales & Marketing",
-        url: "#",
-        icon: PieChart,
-      },
-      {
-        name: "Travel",
-        url: "#",
-        icon: Map,
-      },
-    ],
+    projects: projects.map((project) => ({
+      name: project.name,
+      url: `/dashboard/${project.id}`,
+      icon: Frame,
+    })),
   }
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <div className="flex items-center gap-2 p-2">
+          <LayoutDashboard size={18} />
+          <span className="text-sm font-semibold">Your Workspace</span>
+        </div>
       </SidebarHeader>
+
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+
+        {projects.length > 0 ? (
+          <NavProjects projects={data.projects} />
+        ) : (
+          <div className="px-4 text-sm text-muted-foreground mt-2">
+            No projects yet.
+          </div>
+        )}
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   )
