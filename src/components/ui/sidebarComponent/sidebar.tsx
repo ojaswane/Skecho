@@ -9,10 +9,9 @@ import {
     SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
-import { supabase } from '@/lib/supabaseclient' // adjust path to your client
+import { supabase } from '@/lib/supabaseclient'
 import DrawerComponent from '@/components/ui/Drawer/Drawercomponent'
 import {ThemeToggleButton } from '@/components/ui/skiper-ui/Skiper26'
-import { Plus } from 'lucide-react'
 
 export function SidebarComponent() {
     const [user, setUser] = useState<{ name: string | null; email: string | null } | null>(null)
@@ -59,7 +58,6 @@ export function SidebarComponent() {
 
                         {/* Drawer or Add button */}
                         <Button className=' bg-transparent hover:bg-transparent'>
-                            {/* <Plus /> */}
                             <DrawerComponent />
                         </Button>
 

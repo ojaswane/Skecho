@@ -31,7 +31,7 @@ export default function NewProjectDrawer() {
     <Drawer>
       {/* Trigger Button */}
       <DrawerTrigger asChild>
-        <Button className=" cursor-pointer">
+        <Button className=" cursor-pointer ">
           <Plus className="mr-2 h-4 w-4 text-black" />
           New Project
         </Button>
@@ -47,7 +47,7 @@ export default function NewProjectDrawer() {
         </DrawerHeader>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-20 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">
               Project Name
