@@ -11,6 +11,7 @@ const page = () => {
       setUser(data?.user)
     }
     fetchUser()
+    console.log(user)
   }, [])
 
   return (
