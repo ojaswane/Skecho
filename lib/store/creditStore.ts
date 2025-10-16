@@ -1,42 +1,59 @@
-// // Add this when i set up sub
+import { create } from "zustand";
 
-// // lib/store/creditStore.ts
-// import { create } from 'zustand'
-// import { supabase } from '@/lib/supabaseclient'
+// TypeScript interface (optional, for clarity)
+interface Subscription {
+  id: string;
+  user_id: string;
+  plan_name: string;
+  price: number;
+  start_date: string; // or Date
+  end_date: string;   // or Date
+  status: "active" | "inactive" | "cancelled";
+}
 
-// type CreditState = {
-//   credits: number
-//   loading: boolean
-//   setCredits: (credits: number) => void
-//   deductCredit: (amount: number) => void
-//   fetchCredits: (userId: string) => Promise<void>
-// }
+interface SubscriptionStore {
+  subscriptions: Subscription[];
+  loading: boolean;
+  error: string | null;
 
-// export const useCreditStore = create<CreditState>((set) => ({
-//   credits: 0,
-//   loading: false,
+  // Actions
+  fetchSubscriptions: (userId: string) => Promise<void>;
+  addSubscription: (subscription: Subscription) => void;
+  updateSubscription: (id: string, data: Partial<Subscription>) => void;
+  removeSubscription: (id: string) => void;
+}
 
-//   setCredits: (credits) => set({ credits }),
+export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
+  subscriptions: [],
+  loading: false,
+  error: null,
 
-//   deductCredit: (amount) =>
-//     set((state) => ({
-//       credits: Math.max(0, state.credits - amount),
-//     })),
+  fetchSubscriptions: async (userId: string) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`/api/subscriptions?userId=${userId}`);
+      const data: Subscription[] = await res.json();
+      set({ subscriptions: data, loading: false });
+    } catch (err: any) {
+      set({ error: err.message || "Failed to fetch subscriptions", loading: false });
+    }
+  },
 
-//   fetchCredits: async (userId) => {
-//     set({ loading: true })
-//     const { data, error } = await supabase
-//       .from("profiles") // assume you store credits in `profiles` table
-//       .select("credits")
-//       .eq("id", userId)
-//       .single()
+  addSubscription: (subscription) => {
+    set((state) => ({ subscriptions: [...state.subscriptions, subscription] }));
+  },
 
-//     if (error) {
-//       console.error("Error fetching credits:", error.message)
-//       set({ loading: false })
-//       return
-//     }
+  updateSubscription: (id, data) => {
+    set((state) => ({
+      subscriptions: state.subscriptions.map((sub) =>
+        sub.id === id ? { ...sub, ...data } : sub
+      ),
+    }));
+  },
 
-//     set({ credits: data?.credits ?? 0, loading: false })
-//   },
-// }))
+  removeSubscription: (id) => {
+    set((state) => ({
+      subscriptions: state.subscriptions.filter((sub) => sub.id !== id),
+    }));
+  },
+}));
