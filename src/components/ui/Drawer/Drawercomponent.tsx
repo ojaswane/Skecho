@@ -44,7 +44,8 @@ export default function NewProjectDrawer() {
       })
 
       // redirect to workspace after project is created
-      if (project?.id) router.push(`/workspace/${project.id}`)
+      const createdProject = project as { id?: string | number } | undefined
+      if (createdProject?.id) router.push(`/workspace/${createdProject.id}`)
     } catch (error) {
       console.error("Error creating project:", error)
     } finally {
@@ -61,13 +62,13 @@ export default function NewProjectDrawer() {
         toast.error("No user logged in")
         return
       }
-
       const project = await addProject({
         user_id: user?.id!,
         name: "Untitled Project",
         description: "",
       })
-      if (project?.id) router.push(`/workspace/${project.id}`)
+      const createdProject = project as { id?: string | number } | undefined
+      if (createdProject?.id) router.push(`/workspace/${createdProject.id}`)
     } catch (error) {
       console.error("Error skipping project creation:", error)
     } finally {
