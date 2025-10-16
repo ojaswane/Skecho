@@ -125,7 +125,7 @@ export default function NewProjectDrawer() {
             <Button type="submit" disabled={loading} className="cursor-pointer">
               {loading ? "Creating..." : "Create Project"}
             </Button>
-            <div className="w-full  flex gap-2">
+            <div className="w-full flex gap-2">
               <Button
                 variant="outline"
                 type="button"
