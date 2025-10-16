@@ -1,50 +1,88 @@
-// stores/projectStore.ts
-import { create } from "zustand";
-import { supabase } from "@/lib/supabaseclient";
-import { toast } from "react-hot-toast";
+import { create } from "zustand"
+import { supabase } from "@/lib/supabaseclient"
 
-export const useProjectStore = create((set) => ({
-  projects: [] as Array<any>,
-  loading: false,
+interface Project {
+    id: string
+    user_id: string
+    name: string
+    description?: string
+    thumbnail_url?: string
+    created_at: string
+    updated_at: string
+}
 
-  // Fetch all projects for a user
-  fetchProjects: async (userId: string) => {
-    try {
-      set({ loading: true });
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+interface ProjectStore {
+    projects: Project[]
+    loading: boolean
+    error: string | null
 
-      if (error) throw error;
-      set({ projects: data || [], loading: false });
-    } catch (err: any) {
-      console.error("Error fetching projects:", err.message);
-      toast.error("Failed to fetch projects");
-      set({ loading: false });
-    }
-  },
+    // Actions
+    fetchProjects: (userId: string) => Promise<void>
+    addProject: (project: Omit<Project, "id" | "created_at" | "updated_at">) => Promise<void>
+    deleteProject: (id: string) => Promise<void>
+    updateProject: (id: string, updates: Partial<Project>) => Promise<void>
+}
 
-  // Add a new project
-  addProject: async (project: any) => {
-    try {
-      const { data, error } = await supabase
-        .from("projects")
-        .insert([project])
-        .select();
+export const useProjectStore = create<ProjectStore>((set, get) => ({
+    projects: [],
+    loading: false,
+    error: null,
 
-      if (error) throw error;
+    fetchProjects: async (userId: string) => {
+        set({ loading: true, error: null })
+        try {
+            const { data, error } = await supabase
+                .from("projects")
+                .select("*")
+                .eq("user_id", userId)
+                .order("created_at", { ascending: false })
+            if (error) throw error
+            set({ projects: data || [], loading: false })
+        } catch (err: any) {
+            set({ error: err.message, loading: false })
+        }
+    },
 
-      //  Add new project at the top of the list
-      set((state: any) => ({
-        projects: [data[0], ...state.projects],
-      }));
+    addProject: async (project) => {
+        try {
+            const { data, error } = await supabase
+                .from("projects")
+                .insert([project])
+                .select()
+            if (error) throw error
+            set((state) => ({ projects: [data[0], ...state.projects] }))
+        } catch (err: any) {
+            set({ error: err.message })
+        }
+    },
 
-      toast.success("Project added successfully");
-    } catch (err: any) {
-      console.error("Error adding project:", err.message);
-      toast.error("Failed to add project");
-    }
-  },
-}));
+    deleteProject: async (id) => {
+        try {
+            const { error } = await supabase.from("projects").delete().eq("id", id)
+            if (error) throw error
+            set((state) => ({
+                projects: state.projects.filter((p) => p.id !== id),
+            }))
+        } catch (err: any) {
+            set({ error: err.message })
+        }
+    },
+
+    updateProject: async (id, updates) => {
+        try {
+            const { data, error } = await supabase
+                .from("projects")
+                .update(updates)
+                .eq("id", id)
+                .select()
+            if (error) throw error
+            set((state) => ({
+                projects: state.projects.map((p) =>
+                    p.id === id ? { ...p, ...data[0] } : p
+                ),
+            }))
+        } catch (err: any) {
+            set({ error: err.message })
+        }
+    },
+}))
