@@ -3,7 +3,7 @@
 
 import { supabase } from "@/lib/supabaseclient"
 import { Button } from "./ui/button"
-import {useState , useEffect} from "react"
+import { useState, useEffect } from "react"
 
 import {
   BadgeCheck,
@@ -32,7 +32,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-
+import { useUserStore } from "../../lib/store/userStore"
 export function NavUser({
   user,
 }: {
@@ -44,16 +44,11 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
 
-  const [isLogged , setisLogged] = useState<{ name: string; email: string; avatar: string } | null>(user)
+  const { Logout, loading } = useUserStore()
 
   const handleLogout = async () => {
-    const {error} = await supabase.auth.signOut();
-    if(error){
-      console.log("Error logging out: ", error.message);
-    }else{
-      setisLogged(null);
-      window.location.href = "/sign-in"; // Redirect to login page after logout
-    }
+    Logout()
+    window.location.href = "/sign-in"; // Redirect to login page after logout
   }
 
   return (
@@ -66,7 +61,7 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={loading ? undefined : user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -89,8 +84,8 @@ export function NavUser({
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-medium">{loading ? loading : user.name}</span>
+                  <span className="truncate text-xs">{loading ? loading : user.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -98,18 +93,18 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <Sparkles />
-                <Button className=' bg-transparent text-black hover:bg-transparent' onClick={() => window.location.href = "/billing"}>
+                <Button className=" cursor-pointer bg-transparent hover:bg-transparent text-black dark:text-white px-3 py-1 rounded" onClick={() => window.location.href = "/billing"}>
                   {/* Todo : Add a logic , if user has subsciption then add upgrate to pro or else show cradidts left */}
                   Upgrade to Pro
                 </Button>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            
+
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut />
-              <Button className=' bg-transparent text-black hover:bg-transparent' onClick={handleLogout}>
+              <Button className=" cursor-pointer bg-transparent hover:bg-transparent text-black dark:text-white px-3 py-1 rounded" onClick={handleLogout}>
                 Log out
               </Button>
             </DropdownMenuItem>

@@ -15,6 +15,7 @@ type userStore = {
   setUser: (userData: any) => void
   fetchUser: () => Promise<void>
   clearUser: () => void
+  Logout: () => Promise<void>
 }
 export const useUserStore = create<userStore>((set) => ({
     user : null,

@@ -20,54 +20,26 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { supabase } from "@/lib/supabaseclient"
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
+import { useUserStore } from "../../lib/store/userStore"
+import { useProjectStore } from "../../lib/store/projectStore"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [user, setUser] = useState<{ name: string | null; email: string | null } | null>(null)
-  const [projects, setProjects] = useState<any[]>([])
 
-  // ✅ Fetch user from Supabase
+  const { user, fetchUser } = useUserStore()
+  const { fetchProjects, projects } = useProjectStore() as any
+
+  // ✅ Fetch the current user from Supabase
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser()
-      if (error) {
-        console.error("Error fetching user:", error.message)
-        return
-      }
-      if (data.user) {
-        setUser({
-          name: data.user.user_metadata?.full_name || "User",
-          email: data.user.email ?? null,
-        })
-      }
-    }
-
     fetchUser()
-  }, [])
+  }, [fetchUser])
 
   // ✅ Fetch projects from Supabase
   useEffect(() => {
-    const fetchProjects = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data, error } = await supabase
-        .from("projects")
-        .select("id, name, category")
-        .eq("user_id", user.id)
-
-      if (error) {
-        console.error("Error fetching projects:", error.message)
-        return
-      }
-
-      setProjects(data || [])
+    if (user?.id) {
+      fetchProjects(user.id)
     }
-
-    fetchProjects()
-  }, [])
+  }, [user?.id, fetchProjects])
 
   const data = {
     user: {
@@ -107,7 +79,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ],
       },
     ],
-    projects: projects.map((project) => ({
+    projects: (projects || []).map((project: any) => ({
       name: project.name,
       url: `/dashboard/${project.id}`,
       icon: Frame,
@@ -132,7 +104,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
 
         {/* ✅ Only show projects if available */}
-        {projects.length > 0 ? (
+        {(projects || []).length > 0 ? (
           <div className="transition-all duration-300">
             <NavProjects
               projects={data.projects}

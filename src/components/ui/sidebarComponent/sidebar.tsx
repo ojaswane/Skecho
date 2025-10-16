@@ -12,28 +12,9 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { supabase } from '@/lib/supabaseclient'
 import DrawerComponent from '@/components/ui/Drawer/Drawercomponent'
 import {ThemeToggleButton } from '@/components/ui/skiper-ui/Skiper26'
+import { useUserStore } from '../../../../lib/store/userStore'
 
 export function SidebarComponent() {
-    const [user, setUser] = useState<{ name: string | null; email: string | null } | null>(null)
-
-    // ✅ Fetch the current user from Supabase
-    useEffect(() => {
-        const fetchUser = async () => {
-            const { data, error } = await supabase.auth.getUser()
-            if (error) {
-                console.error('Error fetching user:', error.message)
-                return
-            }
-            if (data.user) {
-                setUser({
-                    name: data.user.user_metadata.full_name || 'User',
-                    email: data.user.email ?? null,
-                })
-            }
-        }
-
-        fetchUser()
-    }, [])
 
     return (
         <SidebarProvider>
