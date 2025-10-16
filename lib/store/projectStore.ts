@@ -36,7 +36,7 @@ export const useProjectStore = create((set) => ({
 
       if (error) throw error;
 
-      // ✅ Add new project at the top of the list
+      //  Add new project at the top of the list
       set((state: any) => ({
         projects: [data[0], ...state.projects],
       }));
