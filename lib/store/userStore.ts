@@ -46,4 +46,15 @@ export const useUserStore = create<userStore>((set) => ({
         }
         set({loading: false});
        },
+
+       Logout : async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error("Error signing out:", error.message);
+          toast.error("Error signing out");
+          return;
+        }
+        toast.success("Signed out successfully");
+        set({ user: null });
+       }
 }))
