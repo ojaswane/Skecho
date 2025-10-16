@@ -12,26 +12,74 @@ import {
   DrawerFooter,
   DrawerClose,
 } from "@/components/ui/Drawer"
-import { useRouter } from "next/navigation" // ✅ correct hook for app router
+import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
+import { useProjectStore } from "../../../../lib/store/projectStore"
+import { useUserStore } from "../../../../lib/store/userStore"
+import toast from "react-hot-toast"
 
 export default function NewProjectDrawer() {
-  const router = useRouter() // ✅ move here
+  const router = useRouter()
+  const { addProject } = useProjectStore()
+  const { user } = useUserStore()
 
   const [projectName, setProjectName] = useState("")
   const [description, setDescription] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // ✅ Handle create project
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log({ projectName, description })
-    router.push("/workspace") // ✅ works now
+    setLoading(true)
+    try {
+      if (!user?.id) {
+        console.error("No user logged in")
+                toast.error("No user logged in")
+        return
+      }
+      const project = await addProject({
+        user_id: user?.id!,
+        name: projectName || "Untitled Project",
+        description,
+      })
+
+      // redirect to workspace after project is created
+      if (project?.id) router.push(`/workspace/${project.id}`)
+    } catch (error) {
+      console.error("Error creating project:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ✅ Skip button logic
+  const handleSkip = async () => {
+    setLoading(true)
+    try {
+      if (!user?.id) {
+        console.error("No user logged in")
+        toast.error("No user logged in")
+        return
+      }
+
+      const project = await addProject({
+        user_id: user?.id!,
+        name: "Untitled Project",
+        description: "",
+      })
+      if (project?.id) router.push(`/workspace/${project.id}`)
+    } catch (error) {
+      console.error("Error skipping project creation:", error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <Drawer>
       {/* Trigger Button */}
       <DrawerTrigger asChild>
-        <Button className=" cursor-pointer ">
+        <Button className="cursor-pointer">
           <Plus className="mr-2 h-4 w-4 text-black" />
           New Project
         </Button>
@@ -46,8 +94,7 @@ export default function NewProjectDrawer() {
           </DrawerDescription>
         </DrawerHeader>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-20 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">
               Project Name
@@ -56,7 +103,6 @@ export default function NewProjectDrawer() {
               type="text"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              required
               placeholder="Enter project name"
               className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
             />
@@ -74,10 +120,22 @@ export default function NewProjectDrawer() {
             />
           </div>
 
-          <DrawerFooter>
-            <Button type="submit">Create Project</Button>
+          <DrawerFooter className="flex flex-col gap-2">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Create Project"}
+            </Button>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={handleSkip}
+              disabled={loading}
+            >
+              {loading ? "Skipping..." : "Skip (Untitled)"}
+            </Button>
             <DrawerClose asChild>
-              <Button variant="outline" type="button">Cancel</Button>
+              <Button variant="ghost" type="button">
+                Cancel
+              </Button>
             </DrawerClose>
           </DrawerFooter>
         </form>
