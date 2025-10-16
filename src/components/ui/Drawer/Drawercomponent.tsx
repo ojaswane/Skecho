@@ -34,7 +34,7 @@ export default function NewProjectDrawer() {
     try {
       if (!user?.id) {
         console.error("No user logged in")
-                toast.error("No user logged in")
+        toast.error("No user logged in")
         return
       }
       const project = await addProject({
@@ -95,7 +95,7 @@ export default function NewProjectDrawer() {
           </DrawerDescription>
         </DrawerHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-10 space-y-4 w-1/2 mx-auto ">
           <div>
             <label className="block text-sm font-medium mb-1">
               Project Name
@@ -121,23 +121,30 @@ export default function NewProjectDrawer() {
             />
           </div>
 
-          <DrawerFooter className="flex flex-col gap-2">
-            <Button type="submit" disabled={loading}>
+          <DrawerFooter className=" p-0 flex flex-col gap-4 ">
+            <Button type="submit" disabled={loading} className="cursor-pointer">
               {loading ? "Creating..." : "Create Project"}
             </Button>
-            <Button
-              variant="outline"
-              type="button"
-              onClick={handleSkip}
-              disabled={loading}
-            >
-              {loading ? "Skipping..." : "Skip (Untitled)"}
-            </Button>
-            <DrawerClose asChild>
-              <Button variant="ghost" type="button">
-                Cancel
+            <div className="w-full  flex gap-2">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={handleSkip}
+                disabled={loading}
+                className="w-1/2 cursor-pointer"
+              >
+                {loading ? "Skipping..." : "Skip (Untitled)"}
               </Button>
-            </DrawerClose>
+              <DrawerClose asChild>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  className="w-1/2 bg-red-600 hover:bg-red-700 cursor-pointer "
+                >
+                  Cancel
+                </Button>
+              </DrawerClose>
+            </div>
           </DrawerFooter>
         </form>
       </DrawerContent>
