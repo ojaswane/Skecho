@@ -6,8 +6,8 @@ interface Subscription {
   user_id: string;
   plan_name: string;
   price: number;
-  start_date: string; // or Date
-  end_date: string; // or Date
+  start_date: Date;
+  end_date: Date;
   status: "active" | "inactive" | "cancelled";
 }
 
