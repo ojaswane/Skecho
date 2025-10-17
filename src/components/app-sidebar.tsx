@@ -19,7 +19,6 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { supabase } from "@/lib/supabaseclient"
 import { useEffect } from "react"
 import { useUserStore } from "../../lib/store/userStore"
 import { useProjectStore } from "../../lib/store/projectStore"
@@ -49,20 +48,31 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     navMain: [
       {
-        title: "Dashboard",
+        title: "Your Uploads",
         url: "/dashboard",
         icon: LayoutDashboard,
-      },
-      {
-        title: "New Project",
-        url: "/workflow",
-        icon: FolderPlus,
-      },
+        items: [
+          {
+            title: "MoodBoard",
+            url: "/",
+          },
+          {
+            title: "Your Uploads",
+            url: "/starred",
+          }
+        ],
+      },  
       {
         title: "Documentation",
         url: "/docs",
         icon: BookOpen,
       },
+      {
+        title: "Contact us",
+        url: "/workflow",
+        icon: FolderPlus,
+      },
+
       {
         title: "Settings",
         url: "/settings",
@@ -78,6 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           },
         ],
       },
+
     ],
     projects: (projects || []).map((project: any) => ({
       name: project.name,
