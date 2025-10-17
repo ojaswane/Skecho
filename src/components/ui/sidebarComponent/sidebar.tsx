@@ -55,7 +55,6 @@ export function SidebarComponent({ title = "Dashboard", children }: SidebarCompo
               children
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                Your dashboard content goes here
               </div>
             )}
           </div>
