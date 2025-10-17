@@ -95,7 +95,7 @@ export default function NewProjectDrawer() {
           </DrawerDescription>
         </DrawerHeader>
 
-        <form onSubmit={handleSubmit} className="p-10 space-y-4 w-1/2 mx-auto ">
+        <form onSubmit={handleSubmit} className="p-10 mb-10 space-y-4 w-1/2 mx-auto ">
           <div>
             <label className="block text-sm font-medium mb-1">
               Project Name
