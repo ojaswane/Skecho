@@ -27,7 +27,7 @@ export default function NewProjectDrawer() {
   const [description, setDescription] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // ✅ Handle create project
+  //  Handle create project
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -53,7 +53,7 @@ export default function NewProjectDrawer() {
     }
   }
 
-  // ✅ Skip button logic
+  //  Skip button logic
   const handleSkip = async () => {
     setLoading(true)
     try {
