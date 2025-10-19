@@ -1,27 +1,46 @@
-'use client'
+"use client"
 
-import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { SidebarComponent } from '@/components/ui/sidebarComponent/sidebar'
-import Link from 'next/link'
-import React from 'react'
-
+import React from "react"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Upload, ImageIcon } from "lucide-react"
 
 export default function MoodboardPage() {
   return (
-    <SidebarComponent title="Moodboard">
-      <div className="space-y-4 text-center">
-        {/* <Breadcrumb>
-          <Link href="/dashboard" className="text-blue-600 hover:underline">Dashboard</Link>
-          <span className="mx-2">/</span>
-          <Link href="/moodboard" className="text-blue-600 hover:underline">Moodboard</Link>
-        </Breadcrumb> */}
+    <div className="p-6">
+      <Tabs defaultValue="images" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="images">Images</TabsTrigger>
+          <TabsTrigger value="generate">Generate with AI</TabsTrigger>
+        </TabsList>
 
-        {/* THW HEADIONG PART */}
-        <div>
-          <h2 className="text-5xl font-semibold">Moodboard</h2>
-          <p>Upload your designs and get the whole style guide</p>
-        </div>
-      </div>
-    </SidebarComponent>
+        {/* ---- Upload Section ---- */}
+        <TabsContent value="images">
+          <div className="border-2 border-dashed border-gray-600 rounded-xl p-10 flex flex-col items-center justify-center gap-4 bg-neutral-900 text-gray-200 relative">
+            <p className="text-sm">Drag and drop your images</p>
+
+            <div className="absolute bottom-3 right-3 flex gap-2">
+              <Button variant="secondary" size="sm" className="bg-neutral-800 hover:bg-neutral-700 text-white">
+                Import
+              </Button>
+              <Button variant="default" size="sm" className="bg-white text-black hover:bg-gray-200">
+                Generate using AI
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* ---- AI Generate Section ---- */}
+        <TabsContent value="generate">
+          <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-600 rounded-xl p-10 bg-neutral-900 text-gray-200">
+            <ImageIcon className="w-10 h-10 mb-3 opacity-70" />
+            <p className="text-sm mb-2">Generate moodboard using AI</p>
+            <Button variant="default" size="sm" className="bg-white text-black hover:bg-gray-200">
+              Generate Now
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   )
 }

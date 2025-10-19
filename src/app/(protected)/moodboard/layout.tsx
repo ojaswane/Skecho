@@ -2,6 +2,7 @@ import { Component, Hash, Type } from 'lucide-react'
 import React from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { SidebarComponent } from '@/components/ui/sidebarComponent/sidebar'
+import MoodboardPage from './page'
 
 type props = {
     children: React.ReactNode
@@ -28,10 +29,18 @@ const layout = ({ children }: props) => {
             <SidebarComponent title="Moodboard">
                 <div className=" flex flex-row justify-between items-center w-full p-10 mt-5">
                     {/* Heading */}
-                    <div>
-                        <h2 className="text-5xl font-semibold ">Moodboard</h2>
-                        <p>Upload your designs and get the whole style guide</p>
-                    </div>
+                    <TabsContent value="canvas">
+                        <div>
+                            <h2 className="text-5xl font-semibold ">Moodboard</h2>
+                            <p>Upload your designs and get the whole style guide</p>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="style-guide">
+                        <div>
+                            <h2 className="text-5xl font-semibold ">Style Guide</h2>
+                            <p>Upload your designs and get the whole style guide</p>
+                        </div>
+                    </TabsContent>
 
                     <TabsList className="grid w-full sm:w-fit h-auto grid-cols-2  rounded-full backdrop-blur-xl bg-white/[0.08] border border-white/[0.12] saturate-150 p-2">
                         {tabs.map((tab) => {
@@ -50,6 +59,8 @@ const layout = ({ children }: props) => {
                         })}
                     </TabsList>
                 </div>
+
+                <MoodboardPage />
             </SidebarComponent>
         </Tabs>
     );
