@@ -5,7 +5,7 @@ import styled from 'styled-components';
 const Loader = () => {
   return (
     <StyledWrapper>
-      <div className="card">
+      <div className="card flex h-screen w-full items-center justify-center">
         <div className="loader">
           <p>loading</p>
           <div className="words">

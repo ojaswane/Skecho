@@ -29,7 +29,7 @@ const tabs = [
 const layout = ({children}: props) => {
   return (
     <Tabs>
-        
+        lkednlkn
     </Tabs>
   )
 }
