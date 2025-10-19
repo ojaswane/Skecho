@@ -11,9 +11,9 @@ export default function Layout({ children }: Props) {
             <SidebarComponent title="Moodboard">
 
 
-                <div className="opacity-100">
-                    <h2 className="text-5xl font-semibold">Moodboard</h2>
-                    <p className="mt-2 text-xl">Upload your designs and get the whole style guide</p>
+                <div className="flex flex-col w-full justify-center items-center text-center mb-6 mt-10 ">
+                    <h2 className="tracking-tighter text-6xl font-semibold">Moodboard</h2>
+                    <p className="mt-2 tracking-tighter opacity-90 text-2xl">Upload your designs and get the whole style guide</p>
                 </div>
 
                 <div className="container mx-auto px-4 sm:px-6 sm:py-8">
