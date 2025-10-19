@@ -6,8 +6,16 @@ import { Component, Hash, Type } from "lucide-react"
 type Props = { children: React.ReactNode }
 
 const tabs = [
-    { value: "canvas", label: "Canvas", icon: Hash },
-    { value: "style-guide", label: "Style Guide", icon: Type },
+    {
+        value: "canvas",
+        label: "Canvas",
+        icon: Hash
+    },
+    {
+        value: "style-guide",
+        label: "Style Guide",
+        icon: Type
+    },
 ] as const
 
 export default function Layout({ children }: Props) {
@@ -15,10 +23,26 @@ export default function Layout({ children }: Props) {
         <Tabs defaultValue="canvas" className="w-full h-full flex flex-col gap-6">
             <SidebarComponent title="Moodboard">
                 <div className="flex flex-row justify-between items-center w-full p-10 mt-5">
-                    <div>
-                        <h2 className="text-5xl font-semibold">Moodboard</h2>
-                        <p>Upload your designs and get the whole style guide</p>
-                    </div>
+                    <TabsContent
+                        value="canvas"
+                        className="transition-all duration-500 ease-in-out transform"
+                    >
+                        <div className="opacity-100">
+                            <h2 className="text-5xl font-semibold">Moodboard</h2>
+                            <p>Upload your designs and get the whole style guide</p>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent
+                        value="style-guide"
+                        className="transition-all duration-500 ease-in-out transform"
+                    >
+                        <div className="opacity-100">
+                            <h2 className="text-5xl font-semibold">Style Guide</h2>
+                            <p>Get your deisgn information here</p>
+                        </div>
+                    </TabsContent>
+
 
                     <TabsList className="grid w-full sm:w-fit h-auto grid-cols-2 rounded-full backdrop-blur-xl bg-white/[0.08] border border-white/[0.12] saturate-150 p-2">
                         {tabs.map((tab) => {
