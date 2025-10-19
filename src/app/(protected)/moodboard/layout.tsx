@@ -5,7 +5,7 @@ import { Component, Hash, Type } from "lucide-react"
 
 type Props = { children: React.ReactNode }
 
-const tabs = [
+export const tabs = [
     {
         value: "canvas",
         label: "Canvas",
@@ -42,8 +42,7 @@ export default function Layout({ children }: Props) {
                             <p className="mt-2 text-xl">Get your deisgn information here</p>
                         </div>
                     </TabsContent>
-
-
+                    
                     <TabsList className="grid w-full sm:w-fit h-auto grid-cols-2 rounded-full backdrop-blur-xl bg-white/[0.08] border border-white/[0.12] saturate-150 p-2">
                         {tabs.map((tab) => {
                             const Icon = tab.icon
@@ -64,7 +63,6 @@ export default function Layout({ children }: Props) {
                     {children}
                 </div>
             </SidebarComponent>
-
         </Tabs>
     )
 }
