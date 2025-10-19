@@ -29,7 +29,7 @@ export default function Layout({ children }: Props) {
                     >
                         <div className="opacity-100">
                             <h2 className="text-5xl font-semibold">Moodboard</h2>
-                            <p>Upload your designs and get the whole style guide</p>
+                            <p className="mt-2 text-xl">Upload your designs and get the whole style guide</p>
                         </div>
                     </TabsContent>
 
@@ -39,7 +39,7 @@ export default function Layout({ children }: Props) {
                     >
                         <div className="opacity-100">
                             <h2 className="text-5xl font-semibold">Style Guide</h2>
-                            <p>Get your deisgn information here</p>
+                            <p className="mt-2 text-xl">Get your deisgn information here</p>
                         </div>
                     </TabsContent>
 
