@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
+import { Sparkles } from 'lucide-react';
 
 const ImageUploader: React.FC = () => {
     const [images, setImages] = useState<File[]>([]);
@@ -34,10 +35,10 @@ const ImageUploader: React.FC = () => {
     };
 
     return (
-        <div className="w-full mt-10 max-w-full flex flex-col bg-neutral-900 text-neutral-300 p-6 rounded-lg">
+        <div className="w-full mt-10 max-w-full flex flex-col  text-neutral-300 p-6 rounded-lg">
             {/* Drag & Drop Container */}
             <div
-                className="w-full h-120 border-2 border-dashed border-neutral-600 rounded-lg flex flex-col justify-between p-4 text-neutral-400 text-base bg-neutral-950 transition-colors hover:border-neutral-400"
+                className="w-full h-120 border-2 border-dashed border-neutral-600 rounded-lg flex flex-col justify-between p-4 text-neutral-400 text-base bg-gray-200 dark:bg-neutral-950 transition-colors hover:border-neutral-400"
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
             >
@@ -78,9 +79,10 @@ const ImageUploader: React.FC = () => {
                         Import
                     </button>
                     <button
-                        className="bg-black text-white dark:bg-white dark:text-black px-4 py-2 text-sm rounded-md transition"
+                        className="bg-black flex text-white dark:bg-white dark:text-black px-4 py-2 text-sm rounded-md transition"
                         onClick={handleGenerateAI}
                     >
+                        <Sparkles className="w-5 h-5 mr-2 dark:text-black"/>
                         Generate using AI
                     </button>
                 </div>
