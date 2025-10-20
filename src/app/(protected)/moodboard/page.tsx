@@ -12,8 +12,8 @@ import ImageUploader from "@/components/ui/inputfield/imageuploader";
 
 export const tabs = [
   {
-    value: "canvas",
-    label: "Canvas",
+    value: "moodboard",
+    label: "Moodboard",
     icon: Hash,
   },
   {
@@ -26,7 +26,7 @@ export const tabs = [
 export default function MoodboardPage() {
   return (
     <>
-      <Tabs defaultValue="canvas" className="w-full">
+      <Tabs defaultValue="moodboard" className="w-full">
         {/* Top-level Tabs for Canvas / Style Guide */}
         <div className="w-full flex justify-center items-center">
           <TabsList className="grid w-full sm:w-fit h-auto grid-cols-2 rounded-full backdrop-blur-xl dark:bg-white/[0.08] border border-black/40 dark:border-white/[0.12] saturate-150 p-2">
@@ -57,7 +57,7 @@ export default function MoodboardPage() {
         </div>
 
         {/* Canvas Tab */}
-        <TabsContent value="canvas" className="p-4">
+        <TabsContent value="moodboard" className="p-4">
           {/* Image Upload Section */}
           <ImageUploader />
         </TabsContent>
