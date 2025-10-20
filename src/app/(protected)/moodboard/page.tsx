@@ -3,6 +3,7 @@
 import React from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Hash, Type } from "lucide-react"
+import ImageUploader from "@/components/ui/inputfield/imageuploader"
 
 export const tabs = [
   {
@@ -51,7 +52,8 @@ export default function MoodboardPage() {
 
         {/* Content */}
         <TabsContent value="canvas" className="p-4">
-          <p>Canvas content goes here</p>
+          {/* THIS WILL BE THE INPUT FIELD IN WHICH THE USER WILL JUST DRAG AND DROP THE IDEAS*/}
+          <ImageUploader />
         </TabsContent>
         <TabsContent value="style-guide" className="p-4">
           <p>Style Guide content goes here</p>
