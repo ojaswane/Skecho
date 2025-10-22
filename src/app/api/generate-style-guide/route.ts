@@ -7,9 +7,10 @@ const openai = new OpenAI({
 
 //function to send to the open Ai
 const POST = async (req: Request) => {
-    const { imageUrl, figmaUrl } = await req.json()
+    try {
+        const { imageUrl, figmaUrl } = await req.json()
 
-    let prompt = `
+        let prompt = `
   You are a professional UI designer. Analyze this design (${imageUrl || figmaUrl}) 
   and extract the brand's color palette (with hex codes), 
   font styles (names, weights, uses), and UI component color roles.
@@ -19,12 +20,17 @@ const POST = async (req: Request) => {
     "typography": [{ "font": "Manrope", "weight": "500", "use": "headings" }]
   }
   `
-    const Response = await openai.responses.create({
-        model: "gpt-4.1",
-        input: prompt,
-    })
-    const json = JSON.parse(Response.output[0].content[0].text)
-    return NextResponse.json(json)
+        const response = await openai.responses.create({
+            model: "gpt-4.1",
+            input: prompt,
+        })
+        const styleGuide = response.output_text || "No output"
+
+        return NextResponse.json({ styleGuide })
+    } catch (err) {
+        console.error("There is an error in Open Ai response with this error: ", err)
+        return NextResponse.json({ error: "Failed to generate style guide" }, { status: 500 })
+    }
 }
 
 export default POST
