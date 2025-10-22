@@ -9,6 +9,9 @@ import {
 } from "@/components/ui/tabs";
 import { Hash, Type } from "lucide-react";
 import ImageUploader from "@/components/ui/inputfield/imageuploader";
+import { Download } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+
 
 export const tabs = [
   {
@@ -66,14 +69,22 @@ export default function MoodboardPage() {
         <TabsContent value="style-guide" className="p-4">
           {/* Nested Tabs for Colors / Typography */}
           <Tabs defaultValue="colors">
-            <TabsList className="grid w-full sm:w-fit h-auto grid-cols-2 rounded-full backdrop-blur-xl dark:bg-white/[0.08] border border-black/40 dark:border-white/[0.12] saturate-150 p-2 mb-4">
-              <TabsTrigger value="colors" className="border-rounded-4xl">
-                Colors
-              </TabsTrigger>
-              <TabsTrigger value="typography" className="">
-                Typography
-              </TabsTrigger>
-            </TabsList>
+            <div className="mt-2 flex flex-row justify-between items-center">
+              <TabsList className="grid w-full sm:w-fit h-auto grid-cols-2 rounded-full backdrop-blur-xl dark:bg-white/[0.08] border border-black/40 dark:border-white/[0.12] saturate-150 p-2 mb-4">
+                <TabsTrigger value="colors" className="border-rounded-4xl">
+                  Colors
+                </TabsTrigger>
+                <TabsTrigger value="typography" className="">
+                  Typography
+                </TabsTrigger>
+              </TabsList>
+              <div>
+                {/* Download button and other actions can go here */}
+                <Button variant="outline" size="sm">
+                  <Download className=" h-4 mr-2" />
+                </Button>
+              </div>
+            </div>
 
             <TabsContent value="colors">
               {/* Your color section UI will go here */}
@@ -84,9 +95,10 @@ export default function MoodboardPage() {
               {/* Your typography section UI will go here */}
               <div className="text-gray-300">🔤 Typography section content</div>
             </TabsContent>
+
           </Tabs>
         </TabsContent>
-      </Tabs>
+      </Tabs >
     </>
   );
 }
