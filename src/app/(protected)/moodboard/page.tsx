@@ -10,6 +10,7 @@ import {
 import { Hash, Type, Download } from "lucide-react";
 import ImageUploader from "@/components/ui/inputfield/imageuploader";
 import { Button } from "@/components/ui/button";
+import ColorGuide from "@/components/style-guide/ColorGuide";
 
 export const tabs = [
   {
@@ -89,7 +90,7 @@ export default function MoodboardPage() {
             </div>
 
             <TabsContent value="colors">
-              <div className="text-gray-300">🎨 Colors section content</div>
+              <ColorGuide />
             </TabsContent>
 
             <TabsContent value="typography">
