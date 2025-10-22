@@ -7,11 +7,9 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@/components/ui/tabs";
-import { Hash, Type } from "lucide-react";
+import { Hash, Type, Download } from "lucide-react";
 import ImageUploader from "@/components/ui/inputfield/imageuploader";
-import { Download } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-
 
 export const tabs = [
   {
@@ -29,7 +27,7 @@ export const tabs = [
 export default function MoodboardPage() {
   return (
     <>
-      <Tabs defaultValue="moodboard" className="w-full">
+      <Tabs defaultValue="style-guide" className="w-full">
         {/* Top-level Tabs for Canvas / Style Guide */}
         <div className="w-full flex justify-center items-center">
           <TabsList className="grid w-full sm:w-fit h-auto grid-cols-2 rounded-full backdrop-blur-xl dark:bg-white/[0.08] border border-black/40 dark:border-white/[0.12] saturate-150 p-2">
@@ -61,44 +59,45 @@ export default function MoodboardPage() {
 
         {/* Canvas Tab */}
         <TabsContent value="moodboard" className="p-4">
-          {/* Image Upload Section */}
           <ImageUploader />
         </TabsContent>
 
         {/* Style Guide Tab */}
         <TabsContent value="style-guide" className="p-4">
-          {/* Nested Tabs for Colors / Typography */}
           <Tabs defaultValue="colors">
             <div className="mt-2 flex flex-row justify-between items-center">
               <TabsList className="grid w-full sm:w-fit h-auto grid-cols-2 rounded-full backdrop-blur-xl dark:bg-white/[0.08] border border-black/40 dark:border-white/[0.12] saturate-150 p-2 mb-4">
-                <TabsTrigger value="colors" className="border-rounded-4xl">
-                  Colors
-                </TabsTrigger>
-                <TabsTrigger value="typography" className="">
-                  Typography
-                </TabsTrigger>
+                <TabsTrigger value="colors">Colors</TabsTrigger>
+                <TabsTrigger value="typography">Typography</TabsTrigger>
               </TabsList>
-              <div>
-                {/* Download button and other actions can go here */}
-                <Button variant="outline" size="sm">
-                  <Download className=" h-4 mr-2" />
+
+              {/* Download button with hover effect */}
+              <div className="relative group flex flex-col justify-center items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="cursor-pointer transition-all"
+                >
+                  <Download className="h-4 mr-0" />
                 </Button>
+                <span
+                  className="absolute top-10 opacity-0 group-hover:opacity-100 text-xs text-gray-400 bg-black px-2 py-1 rounded-md transition-all duration-200"
+                >
+                  Download Your Style Guide
+                </span>
               </div>
             </div>
 
             <TabsContent value="colors">
-              {/* Your color section UI will go here */}
               <div className="text-gray-300">🎨 Colors section content</div>
             </TabsContent>
 
             <TabsContent value="typography">
-              {/* Your typography section UI will go here */}
               <div className="text-gray-300">🔤 Typography section content</div>
             </TabsContent>
-
           </Tabs>
         </TabsContent>
-      </Tabs >
+      </Tabs>
     </>
   );
 }
