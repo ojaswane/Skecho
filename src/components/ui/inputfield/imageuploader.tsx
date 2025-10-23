@@ -6,43 +6,49 @@ import { Loader2, Upload, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function ImageUploader() {
-    const [imageUrl, setImageUrl] = useState<string | null>(null)
+    const [images, setImages] = useState<string[]>([])
     const [loading, setLoading] = useState(false)
 
-    const uploadFile = async (file: File) => {
+    const uploadFiles = async (files: FileList | File[]) => {
         setLoading(true)
-        const fileName = `${Date.now()}-${file.name}`
+        const uploadedUrls: string[] = []
 
-        const { data, error } = await supabase.storage
-            .from("moodboard-images")
-            .upload(fileName, file)
+        for (const file of Array.from(files)) {
+            const fileName = `${Date.now()}-${file.name}`
 
-        if (error) {
-            console.error(error)
-            setLoading(false)
-            return
+            const { error } = await supabase.storage
+                .from("moodboard-images")
+                .upload(fileName, file)
+
+            if (error) {
+                console.error(error)
+                continue
+            }
+
+            const { data: publicUrl } = supabase.storage
+                .from("moodboard-images")
+                .getPublicUrl(fileName)
+
+            uploadedUrls.push(publicUrl.publicUrl)
         }
 
-        const { data: publicUrl } = supabase.storage
-            .from("moodboard-images")
-            .getPublicUrl(fileName)
-
-        setImageUrl(publicUrl.publicUrl)
+        setImages((prev) => [...prev, ...uploadedUrls])
         setLoading(false)
     }
 
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault()
-        const file = e.dataTransfer.files[0]
-        if (file) uploadFile(file)
+        const files = e.dataTransfer.files
+        if (files.length > 0) uploadFiles(files)
     }
 
     const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (file) uploadFile(file)
+        const files = e.target.files
+        if (files && files.length > 0) uploadFiles(files)
     }
 
-    const removeImage = () => setImageUrl(null)
+    const removeImage = (url: string) =>
+        setImages((prev) => prev.filter((img) => img !== url))
 
     return (
         <div
@@ -55,19 +61,43 @@ export default function ImageUploader() {
                     <Loader2 className="animate-spin text-white w-8 h-8 mb-2" />
                     <p className="text-gray-400">Uploading...</p>
                 </div>
-            ) : imageUrl ? (
-                <div className="relative w-full flex flex-col items-center">
-                    <img
-                        src={imageUrl}
-                        alt="Moodboard Preview"
-                        className="rounded-xl shadow-lg max-h-[350px] object-contain mb-4"
-                    />
+            ) : images.length > 0 ? (
+                <div className="w-full flex flex-col items-center">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+                        {images.map((url) => (
+                            <div key={url} className="relative group">
+                                <img
+                                    src={url}
+                                    alt="Moodboard Preview"
+                                    className="rounded-xl shadow-lg max-h-[200px] object-cover transition-transform duration-300 group-hover:scale-105"
+                                />
+                                <button
+                                    onClick={() => removeImage(url)}
+                                    className="absolute top-2 right-2 bg-black/60 p-1 rounded-full hover:bg-red-500 transition"
+                                >
+                                    <Trash2 className="w-4 h-4 text-white" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
                     <div className="flex gap-3">
-                        <Button onClick={removeImage} variant="secondary">
-                            <Trash2 className="h-4 w-4 mr-2" /> Remove
-                        </Button>
+                        <label
+                            htmlFor="fileInput"
+                            className="cursor-pointer bg-white text-black rounded-full px-5 py-2 font-medium hover:bg-gray-200 transition"
+                        >
+                            Add More
+                        </label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleFileInput}
+                            className="hidden"
+                            id="fileInput"
+                        />
                         <Button
-                            onClick={() => console.log("Send to AI →", imageUrl)}
+                            onClick={() => console.log("Send to AI →", images)}
                             className="bg-white text-black hover:bg-gray-200"
                         >
                             ✨ Generate with AI
@@ -78,14 +108,15 @@ export default function ImageUploader() {
                 <>
                     <Upload className="w-10 h-10 text-gray-400 mb-4" />
                     <p className="text-gray-300 font-medium mb-2">
-                        Drag & drop your design here
+                        Drag & drop your designs here
                     </p>
                     <p className="text-sm text-gray-500 mb-4">
-                        or click to upload from your computer
+                        or click to upload multiple images
                     </p>
                     <input
                         type="file"
                         accept="image/*"
+                        multiple
                         onChange={handleFileInput}
                         className="hidden"
                         id="fileInput"
@@ -94,7 +125,7 @@ export default function ImageUploader() {
                         htmlFor="fileInput"
                         className="cursor-pointer bg-white text-black rounded-full px-5 py-2 font-medium hover:bg-gray-200 transition"
                     >
-                        Upload Image
+                        Upload Images
                     </label>
                 </>
             )}
