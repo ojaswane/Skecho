@@ -2,7 +2,7 @@
 
 import React, { useState, DragEvent } from "react"
 import { supabase } from "../../../lib/supabaseclient"
-import { Loader2, Upload, Trash2 } from "lucide-react"
+import { Loader2, Upload, Trash2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function ImageUploader() {
@@ -100,7 +100,8 @@ export default function ImageUploader() {
                             onClick={() => console.log("Send to AI →", images)}
                             className="bg-white text-black hover:bg-gray-200"
                         >
-                            ✨ Generate with AI
+                            <Sparkles/>
+                            Generate with AI
                         </Button>
                     </div>
                 </div>
