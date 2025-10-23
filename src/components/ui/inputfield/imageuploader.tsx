@@ -35,6 +35,7 @@ export default function ImageUploader() {
         setImages((prev) => [...prev, ...uploadedUrls])
         setLoading(false)
     }
+    
 
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault()
