@@ -1,15 +1,33 @@
 "use client"
 
-import React, { useState, DragEvent } from "react"
+import React, { useState, useEffect, DragEvent } from "react"
 import { supabase } from "../../../lib/supabaseclient"
 import { Loader2, Upload, Trash2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import ShinyText from "@/components/ShinyText"
 
 export default function ImageUploader() {
     const [images, setImages] = useState<string[]>([])
     const [loading, setLoading] = useState(false)
 
+    // ✅ Fetch stored images on mount
+    useEffect(() => {
+        const fetchImages = async () => {
+            const { data, error } = await supabase
+                .from("moodboard_images")
+                .select("url")
+                .order("created_at", { ascending: false })
+
+            if (error) {
+                console.error("Error fetching images:", error)
+            } else {
+                setImages(data.map((item) => item.url))
+            }
+        }
+
+        fetchImages()
+    }, [])
+
+    // ✅ Upload files to Supabase Storage and store URLs in database
     const uploadFiles = async (files: FileList | File[]) => {
         setLoading(true)
         const uploadedUrls: string[] = []
@@ -17,42 +35,62 @@ export default function ImageUploader() {
         for (const file of Array.from(files)) {
             const fileName = `${Date.now()}-${file.name}`
 
-            const { error } = await supabase.storage
+            // Upload to Supabase storage
+            const { error: uploadError } = await supabase.storage
                 .from("moodboard-images")
                 .upload(fileName, file)
 
-            if (error) {
-                console.error(error)
+            if (uploadError) {
+                console.error("Upload error:", uploadError)
                 continue
             }
 
-            const { data: publicUrl } = supabase.storage
+            // Get public URL
+            const { data: publicUrlData } = supabase.storage
                 .from("moodboard-images")
                 .getPublicUrl(fileName)
 
-            uploadedUrls.push(publicUrl.publicUrl)
+            const publicUrl = publicUrlData?.publicUrl
+            if (publicUrl) {
+                uploadedUrls.push(publicUrl)
+
+                // Insert URL into database
+                const { error: dbError } = await supabase
+                    .from("moodboard_images")
+                    .insert({ url: publicUrl })
+
+                if (dbError) console.error("Database insert error:", dbError)
+            }
         }
 
-        setImages((prev) => [...prev, ...uploadedUrls])
+        setImages((prev) => [...uploadedUrls, ...prev])
         setLoading(false)
     }
 
+    // ✅ Handle file input
+    const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files
+        if (files && files.length > 0) uploadFiles(files)
+    }
 
-
-
+    // ✅ Handle drag & drop
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         const files = e.dataTransfer.files
         if (files.length > 0) uploadFiles(files)
     }
 
-    const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files
-        if (files && files.length > 0) uploadFiles(files)
-    }
-
-    const removeImage = (url: string) =>
+    // ✅ Delete image from both state + database
+    const removeImage = async (url: string) => {
         setImages((prev) => prev.filter((img) => img !== url))
+
+        const { error } = await supabase
+            .from("moodboard_images")
+            .delete()
+            .eq("url", url)
+
+        if (error) console.error("Error deleting image:", error)
+    }
 
     return (
         <div
@@ -104,17 +142,14 @@ export default function ImageUploader() {
                             onClick={() => console.log("Send to AI →", images)}
                             className="bg-white cursor-pointer text-black hover:bg-gray-200"
                         >
-                            {loading ? ("Generating...") : (<div className="flex items-center">
-                                <Sparkles className="mr-2" />
-
-                                {/* <ShinyText
-                                    text="Generate using Ai"
-                                    disabled={false}
-                                    speed={3}
-                                    className='custom-class'
-                                /> */}
-                                Generate using Ai
-                            </div>)}
+                            {loading ? (
+                                "Generating..."
+                            ) : (
+                                <div className="flex items-center">
+                                    <Sparkles className="mr-2" />
+                                    Generate using AI
+                                </div>
+                            )}
                         </Button>
                     </div>
                 </div>
