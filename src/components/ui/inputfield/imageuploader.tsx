@@ -125,6 +125,36 @@ export default function ImageUploader() {
         if (files.length > 0) uploadFiles(files)
     }
 
+    const handleAi = async () => {
+        if (images.length === 0) {
+            alert("Please upload at least one image first.")
+            return
+        }
+
+        setLoading(true)
+        try {
+            const res = await fetch("/api/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ images }),
+            })
+
+            const data = await res.json()
+            if (res.ok) {
+                console.log("AI Response:", data.result)
+                alert(`AI Suggestion: ${data.result}`)
+            } else {
+                console.error("Error:", data.error)
+                alert("Error from AI: " + data.error)
+            }
+        } catch (err) {
+            console.error("Fetch error:", err)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+
     return (
         <div
             onDrop={handleDrop}
@@ -172,14 +202,20 @@ export default function ImageUploader() {
                             id="fileInput"
                         />
                         <Button
-                            onClick={() => console.log("Send to AI →", images)}
+                            onClick={handleAi}
+                            disabled={loading}
                             className="bg-white cursor-pointer text-black hover:bg-gray-200"
                         >
-                            <div className="flex items-center">
-                                <Sparkles className="mr-2" />
-                                Generate using AI
-                            </div>
+                            {loading ? (
+                                "Generating..."
+                            ) : (
+                                <div className="flex items-center">
+                                    <Sparkles className="mr-2" />
+                                    Generate using AI
+                                </div>
+                            )}
                         </Button>
+
                     </div>
                 </div>
             ) : (
