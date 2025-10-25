@@ -4,6 +4,7 @@ import React, { useState, DragEvent } from "react"
 import { supabase } from "../../../lib/supabaseclient"
 import { Loader2, Upload, Trash2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import ShinyText from "@/components/ShinyText"
 
 export default function ImageUploader() {
     const [images, setImages] = useState<string[]>([])
@@ -104,7 +105,14 @@ export default function ImageUploader() {
                             className="bg-white cursor-pointer text-black hover:bg-gray-200"
                         >
                             {loading ? ("Generating...") : (<div className="flex items-center">
-                                <Sparkles className="mr-2"/>
+                                <Sparkles className="mr-2" />
+
+                                {/* <ShinyText
+                                    text="Generate using Ai"
+                                    disabled={false}
+                                    speed={3}
+                                    className='custom-class'
+                                /> */}
                                 Generate using Ai
                             </div>)}
                         </Button>
