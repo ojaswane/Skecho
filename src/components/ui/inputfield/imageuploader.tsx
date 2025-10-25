@@ -101,7 +101,7 @@ export default function ImageUploader() {
                         />
                         <Button
                             onClick={() => console.log("Send to AI →", images)}
-                            className="bg-white text-black hover:bg-gray-200"
+                            className="bg-white cursor-pointer text-black hover:bg-gray-200"
                         >
                             {loading ? ("Generating...") : (<div className="flex items-center">
                                 <Sparkles className="mr-2"/>
