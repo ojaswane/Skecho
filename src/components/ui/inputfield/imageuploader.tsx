@@ -134,7 +134,7 @@ export default function ImageUploader() {
 
         setLoading(true)
         try {
-            const res = await fetch("/api/generate", {
+            const res = await fetch("/api/generate-style-guide", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ images }),
