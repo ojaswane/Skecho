@@ -18,8 +18,9 @@ export default function ImageUploader() {
                 .order("created_at", { ascending: false })
 
             if (error) {
-                console.error("Error fetching images:", error)
-            } else {
+                console.error("Error fetching images:", error.message, error.details, error.hint);
+            }
+            else {
                 setImages(data.map((item) => item.url))
             }
         }
@@ -41,7 +42,7 @@ export default function ImageUploader() {
                 .upload(fileName, file)
 
             if (uploadError) {
-                console.error("Upload error:", uploadError)
+                console.error("Upload error:", uploadError.message)
                 continue
             }
 
@@ -59,7 +60,7 @@ export default function ImageUploader() {
                     .from("moodboard_images")
                     .insert({ url: publicUrl })
 
-                if (dbError) console.error("Database insert error:", dbError)
+                if (dbError) console.error("Database insert error:", dbError.message, dbError.details, dbError.hint);
             }
         }
 
