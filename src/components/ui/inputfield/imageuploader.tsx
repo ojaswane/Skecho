@@ -37,7 +37,7 @@ export default function ImageUploader() {
     }
 
 
-    
+
 
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault()
@@ -103,8 +103,10 @@ export default function ImageUploader() {
                             onClick={() => console.log("Send to AI →", images)}
                             className="bg-white text-black hover:bg-gray-200"
                         >
-                            <Sparkles/>
-                            Generate with AI
+                            {loading ? ("Generating...") : (<div className="flex items-center">
+                                <Sparkles className="mr-2"/>
+                                Generate using Ai
+                            </div>)}
                         </Button>
                     </div>
                 </div>
