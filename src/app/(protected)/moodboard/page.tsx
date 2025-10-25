@@ -12,6 +12,8 @@ import ImageUploader from "@/components/ui/inputfield/imageuploader";
 import { Button } from "@/components/ui/button";
 import ColorGuide from "@/components/style-guide/ColorGuide";
 import TypographyGuide from "@/components/style-guide/TypographyGuide";
+import { Bookmark } from 'lucide-react';
+import { toast } from "sonner"
 
 export const tabs = [
   {
@@ -59,7 +61,9 @@ export default function MoodboardPage() {
           </TabsList>
         </div>
 
-        {/* Canvas Tab */}
+
+
+        {/* moodboardd Tab */}
         <TabsContent value="moodboard" className="p-4">
           <ImageUploader />
         </TabsContent>
@@ -73,22 +77,44 @@ export default function MoodboardPage() {
                 <TabsTrigger value="typography">Typography</TabsTrigger>
               </TabsList>
 
-              {/* Download button with hover effect */}
-              <div className="relative group flex flex-col justify-center items-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="cursor-pointer transition-all"
-                >
-                  <Download className="h-4 mr-0" />
-                </Button>
-                <span
-                  className="absolute top-10 opacity-0 group-hover:opacity-100 text-xs text-gray-400 bg-black px-2 py-1 rounded-md transition-all duration-200"
-                >
-                  Download Your Style Guide
-                </span>
+
+              <div className="relative flex flex-row justify-center items-center gap-3">
+                {/* Save Button */}
+                <div className="relative group">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer transition-all active:scale-90"
+                    onClick={() => toast("✅ Style Guide Saved Successfully!")}
+                  >
+                    <Bookmark className="h-4 mr-0" />
+                  </Button>
+                  <span
+                    className="absolute top-9 left-1/2 -translate-x-1/2 scale-90 opacity-0 group-hover:opacity-100 text-[10px] text-gray-400 bg-black/80 px-2 py-0.5 rounded-md transition-all duration-200"
+                  >
+                    Save
+                  </span>
+                </div>
+
+                {/* Download Button */}
+                <div className="relative group">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer transition-all active:scale-90"
+                    onClick={() => toast("⬇️ Download Started")}
+                  >
+                    <Download className="h-4 mr-0" />
+                  </Button>
+                  <span
+                    className="absolute top-9 left-1/2 -translate-x-1/2 scale-90 opacity-0 group-hover:opacity-100 text-[10px] text-gray-400 bg-black/80 px-2 py-0.5 rounded-md transition-all duration-200"
+                  >
+                    Download
+                  </span>
+                </div>
               </div>
             </div>
+
 
             <TabsContent value="colors">
               <ColorGuide />
