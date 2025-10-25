@@ -4,6 +4,7 @@ import React, { useState, useEffect, DragEvent } from "react"
 import { supabase } from "../../../lib/supabaseclient"
 import { Loader2, Upload, Trash2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import toast from "react-hot-toast"
 
 export default function ImageUploader() {
     const [images, setImages] = useState<string[]>([])
@@ -127,7 +128,7 @@ export default function ImageUploader() {
 
     const handleAi = async () => {
         if (images.length === 0) {
-            alert("Please upload at least one image first.")
+            toast.error("please upload the file")
             return
         }
 
