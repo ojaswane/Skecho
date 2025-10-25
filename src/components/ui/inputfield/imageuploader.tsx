@@ -9,34 +9,50 @@ export default function ImageUploader() {
     const [images, setImages] = useState<string[]>([])
     const [loading, setLoading] = useState(false)
 
-    // ✅ Fetch stored images on mount
+    // ✅ Fetch stored images (only for the logged-in user)
     useEffect(() => {
         const fetchImages = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+
             const { data, error } = await supabase
                 .from("moodboard_images")
-                .select("url")
+                .select("url, created_at")
+                .eq("user_id", user.id)
                 .order("created_at", { ascending: false })
 
             if (error) {
-                console.error("Error fetching images:", error.message, error.details, error.hint);
-            }
-            else {
-                setImages(data.map((item) => item.url))
+                console.error("Error fetching images:", error.message)
+            } else {
+                // Remove expired (6 hours old) images locally
+                const now = new Date()
+                const filtered = data.filter(item => {
+                    const created = new Date(item.created_at)
+                    const diffHours = (now.getTime() - created.getTime()) / (1000 * 60 * 60)
+                    return diffHours < 6
+                })
+                setImages(filtered.map(item => item.url))
             }
         }
 
         fetchImages()
     }, [])
 
-    // ✅ Upload files to Supabase Storage and store URLs in database
+    // ✅ Upload new images
     const uploadFiles = async (files: FileList | File[]) => {
         setLoading(true)
         const uploadedUrls: string[] = []
 
-        for (const file of Array.from(files)) {
-            const fileName = `${Date.now()}-${file.name}`
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+            alert("You must be logged in.")
+            setLoading(false)
+            return
+        }
 
-            // Upload to Supabase storage
+        for (const file of Array.from(files)) {
+            const fileName = `${user.id}/${Date.now()}-${file.name}`
+
             const { error: uploadError } = await supabase.storage
                 .from("moodboard-images")
                 .upload(fileName, file)
@@ -55,12 +71,12 @@ export default function ImageUploader() {
             if (publicUrl) {
                 uploadedUrls.push(publicUrl)
 
-                // Insert URL into database
                 const { error: dbError } = await supabase
                     .from("moodboard_images")
-                    .insert({ url: publicUrl })
+                    .insert([{ url: publicUrl, user_id: user.id }])
 
-                if (dbError) console.error("Database insert error:", dbError.message, dbError.details, dbError.hint);
+                if (dbError)
+                    console.error("Database insert error:", dbError.message)
             }
         }
 
@@ -68,29 +84,45 @@ export default function ImageUploader() {
         setLoading(false)
     }
 
-    // ✅ Handle file input
+    // ✅ Delete image (both DB + Storage)
+    const removeImage = async (url: string) => {
+        setImages((prev) => prev.filter((img) => img !== url))
+
+        // Extract filename from URL
+        const parts = url.split("/")
+        const fileName = decodeURIComponent(parts[parts.length - 1])
+        const folder = parts[parts.length - 2]
+        const filePath = `${folder}/${fileName}`
+
+        // Delete from Supabase Storage
+        const { error: storageError } = await supabase.storage
+            .from("moodboard-images")
+            .remove([filePath])
+
+        if (storageError)
+            console.error("Storage delete error:", storageError.message)
+
+        // Delete from DB
+        const { error: dbError } = await supabase
+            .from("moodboard_images")
+            .delete()
+            .eq("url", url)
+
+        if (dbError)
+            console.error("Database delete error:", dbError.message)
+    }
+
+    // ✅ File input
     const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files
         if (files && files.length > 0) uploadFiles(files)
     }
 
-    // ✅ Handle drag & drop
+    // ✅ Drag & Drop
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         const files = e.dataTransfer.files
         if (files.length > 0) uploadFiles(files)
-    }
-
-    // ✅ Delete image from both state + database
-    const removeImage = async (url: string) => {
-        setImages((prev) => prev.filter((img) => img !== url))
-
-        const { error } = await supabase
-            .from("moodboard_images")
-            .delete()
-            .eq("url", url)
-
-        if (error) console.error("Error deleting image:", error)
     }
 
     return (
@@ -143,14 +175,10 @@ export default function ImageUploader() {
                             onClick={() => console.log("Send to AI →", images)}
                             className="bg-white cursor-pointer text-black hover:bg-gray-200"
                         >
-                            {loading ? (
-                                "Generating..."
-                            ) : (
-                                <div className="flex items-center">
-                                    <Sparkles className="mr-2" />
-                                    Generate using AI
-                                </div>
-                            )}
+                            <div className="flex items-center">
+                                <Sparkles className="mr-2" />
+                                Generate using AI
+                            </div>
                         </Button>
                     </div>
                 </div>
