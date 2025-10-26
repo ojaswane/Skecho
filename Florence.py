@@ -6,8 +6,7 @@ import json
 import sys
 
 # Example usage:
-# python florence_analyze.py https://your-image-url.com/image.png
-
+# python https://your-image-url.com/image.png
 def analyze_image(image_path_or_url):
     model_id = "microsoft/Florence-2-large"
     processor = AutoProcessor.from_pretrained(model_id)
