@@ -12,7 +12,13 @@ export async function POST(req: Request) {
     process.stderr.on("data", (data) => console.error("Florence Error:", data.toString()))
 
     process.on("close", () => {
-      resolve(NextResponse.json({ result: JSON.parse(output) }))
+      try {
+        const parsed = JSON.parse(output || "{}")
+        resolve(NextResponse.json({ result: parsed }))
+      } catch (err) {
+        console.error("JSON parse error:", err, "Output:", output)
+        resolve(NextResponse.json({ error: "AI output invalid" }, { status: 500 }))
+      }
     })
   })
 }
