@@ -4,15 +4,19 @@ from PIL import Image
 import torch
 import json
 import sys
+import requests
 
-# Example usage:
-# python https://your-image-url.com/image.png
 def analyze_image(image_path_or_url):
     model_id = "microsoft/Florence-2-large"
+    print("🔹 Loading Florence model... (this may take a few minutes the first time)")
     processor = AutoProcessor.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16, device_map="auto")
 
-    image = Image.open(image_path_or_url) if not image_path_or_url.startswith("http") else Image.open(requests.get(image_path_or_url, stream=True).raw)
+    # Load image (from URL or local path)
+    if image_path_or_url.startswith("http"):
+        image = Image.open(requests.get(image_path_or_url, stream=True).raw)
+    else:
+        image = Image.open(image_path_or_url)
 
     task_prompt = (
         "Analyze this UI design image and extract:\n"
@@ -21,8 +25,8 @@ def analyze_image(image_path_or_url):
         "3. UI component color roles.\n"
         "Return clean JSON only in this format:\n"
         "{\n"
-        '  "colors": [ {"name": "", "hex": "", "role": ""} ],\n'
-        '  "typography": [ {"font": "", "weight": "", "use": ""} ]\n'
+        '  \"colors\": [ {\"name\": \"\", \"hex\": \"\", \"role\": \"\"} ],\n'
+        '  \"typography\": [ {\"font\": \"\", \"weight\": \"\", \"use\": \"\"} ]\n'
         "}"
     )
 
@@ -42,5 +46,6 @@ if __name__ == "__main__":
     image_url = sys.argv[1] if len(sys.argv) > 1 else None
     if not image_url:
         print("Usage: python florence_analyze.py <image_url>")
-    else:
-        analyze_image(image_url)
+        sys.exit(1)
+    
+    analyze_image(image_url)
