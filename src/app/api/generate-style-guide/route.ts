@@ -5,7 +5,7 @@ export async function POST(req: Request) {
   const { imageUrl } = await req.json()
 
   return new Promise((resolve) => {
-    const process = spawn("python", ["Florence.py", imageUrl])
+    const process = spawn("python", ["D:\\New folder (2)\\sketcho\\Florence\\florence_analyze.py", imageUrl])
 
     let output = ""
     process.stdout.on("data", (data) => (output += data.toString()))

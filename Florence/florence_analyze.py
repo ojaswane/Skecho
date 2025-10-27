@@ -1,5 +1,5 @@
 # florence_analyze.py
-from transformers import AutoProcessor, AutoModelForCausalLM
+from transformers import FlorenceProcessor, FlorenceForConditionalGeneration
 from PIL import Image
 import torch
 import json
@@ -9,8 +9,9 @@ import requests
 def analyze_image(image_path_or_url):
     model_id = "microsoft/Florence-2-large"
     print("🔹 Loading Florence model... (this may take a few minutes the first time)")
-    processor = AutoProcessor.from_pretrained(model_id)
-    model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16, device_map="auto")
+    processor = FlorenceProcessor.from_pretrained(model_id)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = FlorenceForConditionalGeneration.from_pretrained(model_id, torch_dtype=torch.float16).to(device)
 
     # Load image (from URL or local path)
     if image_path_or_url.startswith("http"):
