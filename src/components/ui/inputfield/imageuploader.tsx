@@ -136,7 +136,7 @@ export default function ImageUploader() {
         try {
             const imageUrl = images[0];
 
-            const res = await fetch("/api/Florence_analyze", {
+            const res = await fetch("/api/florence-analyze", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ imageUrl }),
