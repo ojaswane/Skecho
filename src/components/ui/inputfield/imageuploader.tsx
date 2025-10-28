@@ -128,35 +128,28 @@ export default function ImageUploader() {
 
     const handleAi = async () => {
         if (images.length === 0) {
-            toast.error("Please upload a file first");
+            toast.error("Please upload an image first");
             return;
         }
 
         setLoading(true);
         try {
-            const imageUrl = images[0];
-
-            const res = await fetch("/api/florence-analyze", {
+            const res = await fetch("/api/deepseek-analyze", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ imageUrl }),
+                body: JSON.stringify({ imageUrl: images[0] }), // Use your uploaded image URL
             });
 
             const data = await res.json();
-            if (!res.ok) {
-                console.error("API Error:", data.error || data.details);
-                toast.error("Something went wrong analyzing the image");
-                return;
-            }
-            console.log("AI Response:", data.output);
-            toast.success("AI analysis completed successfully!");
+            console.log("AI Design Analysis:", data.output);
+
         } catch (err) {
-            console.error("Fetch error:", err);
-            toast.error("Error connecting to AI service");
+            console.error("DeepSeek error:", err);
         } finally {
             setLoading(false);
         }
     };
+
 
 
 
