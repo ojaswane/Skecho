@@ -128,32 +128,36 @@ export default function ImageUploader() {
 
     const handleAi = async () => {
         if (images.length === 0) {
-            toast.error("please upload the file")
-            return
+            toast.error("Please upload a file first");
+            return;
         }
 
-        setLoading(true)
+        setLoading(true);
         try {
-            const res = await fetch("/api/generate-style-guide", {
+            const imageUrl = images[0];
+
+            const res = await fetch("/api/florence-analyze", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ images }),
-            })
+                body: JSON.stringify({ imageUrl }),
+            });
 
-            const data = await res.json()
-            if (res.ok) {
-                console.log("AI Response:", data.result)
-                alert(`AI Suggestion: ${data.result}`)
-            } else {
-                console.error("Error:", data.error)
-                alert("Error from AI: " + data.error)
+            const data = await res.json();
+            if (!res.ok) {
+                console.error("API Error:", data.error || data.details);
+                toast.error("Something went wrong analyzing the image");
+                return;
             }
+            console.log("AI Response:", data.output);
+            toast.success("AI analysis completed successfully!");
         } catch (err) {
-            console.error("Fetch error:", err)
+            console.error("Fetch error:", err);
+            toast.error("Error connecting to AI service");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
+
 
 
     return (
