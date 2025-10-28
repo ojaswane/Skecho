@@ -10,7 +10,7 @@ export default function ImageUploader() {
     const [images, setImages] = useState<string[]>([])
     const [loading, setLoading] = useState(false)
 
-    // ✅ Fetch stored images (only for the logged-in user)
+    // Fetch stored images (only for the logged-in user)
     useEffect(() => {
         const fetchImages = async () => {
             const { data: { user } } = await supabase.auth.getUser()
@@ -85,7 +85,7 @@ export default function ImageUploader() {
         setLoading(false)
     }
 
-    // ✅ Delete image (both DB + Storage)
+    //  Delete image (both DB + Storage)
     const removeImage = async (url: string) => {
         setImages((prev) => prev.filter((img) => img !== url))
 
@@ -113,13 +113,13 @@ export default function ImageUploader() {
             console.error("Database delete error:", dbError.message)
     }
 
-    // ✅ File input
+    //  File input
     const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files
         if (files && files.length > 0) uploadFiles(files)
     }
 
-    // ✅ Drag & Drop
+    //  Drag & Drop
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         const files = e.dataTransfer.files
