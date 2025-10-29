@@ -32,21 +32,20 @@ export function NavProjects({
   projects,
 }: {
   projects: {
-    id: string
+    projectId: string
     name: string
     url: string
     icon: LucideIcon
   }[]
 }) {
   const { isMobile } = useSidebar()
-  const { user } = useUserStore()
   const { deleteProject } = useProjectStore()
 
   const handleDelete = async (projectId: string) => {
-    if (!user?.id) {
-      toast.error("You are not logged in")
-      return
+    if(!projectId){
+      toast.error("No project Id")
     }
+
     await deleteProject(projectId)
     toast.success("Project deleted successfully")
   }
@@ -84,7 +83,7 @@ export function NavProjects({
                   <span>Share Project</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleDelete(item.id)}>
+                <DropdownMenuItem onClick={() => handleDelete(item?.projectId)}>
                   <Trash2 className="text-muted-foreground" />
                   <span>Delete Project</span>
                 </DropdownMenuItem>

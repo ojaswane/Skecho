@@ -1,8 +1,9 @@
 import { create } from "zustand"
 import { supabase } from "@/lib/supabaseclient"
+import { error } from "console"
 
 interface Project {
-    id: string
+    projectId: string
     user_id: string
     name: string
     description?: string
@@ -56,29 +57,39 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         }
     },
 
-    deleteProject: async (id) => {
+    deleteProject: async (projectId) => {
         try {
-            const { error } = await supabase.from("projects").delete().eq("id", id)
-            if (error) throw error
-            set((state) => ({
-                projects: state.projects.filter((p) => p.id !== id),
-            }))
-        } catch (err: any) {
+            if (!projectId) {
+                console.error("❌ No project ID provided!");
+                return;
+            }
+
+            const { error } = await supabase
+                .from("projects")
+                .delete()
+                .eq("id", projectId);
+
+            if (error) {
+                console.error("❌ Delete failed:", error.message);
+            } else {
+                console.log("✅ Project deleted successfully");
+            }
+        } catch(err:any ){
             set({ error: err.message })
         }
     },
 
-    updateProject: async (id, updates) => {
+    updateProject: async (projectId, updates) => {
         try {
             const { data, error } = await supabase
                 .from("projects")
                 .update(updates)
-                .eq("id", id)
+                .eq("id", projectId)
                 .select()
             if (error) throw error
             set((state) => ({
                 projects: state.projects.map((p) =>
-                    p.id === id ? { ...p, ...data[0] } : p
+                    p.projectId === projectId ? { ...p, ...data[0] } : p
                 ),
             }))
         } catch (err: any) {
