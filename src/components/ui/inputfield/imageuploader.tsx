@@ -76,8 +76,7 @@ export default function ImageUploader() {
                     .from("moodboard_images")
                     .insert([{ url: publicUrl, user_id: user.id }])
 
-                if (dbError)
-                    console.error("Database insert error:", dbError.message)
+                if (dbError) console.error("Database insert error:", dbError.message)
             }
         }
 
@@ -85,17 +84,15 @@ export default function ImageUploader() {
         setLoading(false)
     }
 
-    //  Delete image (both DB + Storage)
+    // 🗑️ Delete image (both DB + Storage)
     const removeImage = async (url: string) => {
         setImages((prev) => prev.filter((img) => img !== url))
 
-        // Extract filename from URL
         const parts = url.split("/")
         const fileName = decodeURIComponent(parts[parts.length - 1])
         const folder = parts[parts.length - 2]
         const filePath = `${folder}/${fileName}`
 
-        // Delete from Supabase Storage
         const { error: storageError } = await supabase.storage
             .from("moodboard-images")
             .remove([filePath])
@@ -103,7 +100,6 @@ export default function ImageUploader() {
         if (storageError)
             console.error("Storage delete error:", storageError.message)
 
-        // Delete from DB
         const { error: dbError } = await supabase
             .from("moodboard_images")
             .delete()
@@ -126,32 +122,55 @@ export default function ImageUploader() {
         if (files.length > 0) uploadFiles(files)
     }
 
+    //  AI Analysis
+    // 🧠 AI Analysis
     const handleAi = async () => {
         if (images.length === 0) {
-            toast.error("Please upload an image first");
+            toast.error("Please upload an image first.");
             return;
         }
 
         setLoading(true);
         try {
-            const res = await fetch("/api/deepseek-analyze", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ imageUrl: images[0] }), // Use your uploaded image URL
+            const imageUrl = images[0]; // 👈 analyze only the first image for now
+
+            // Convert image to base64 (browser safe)
+            const imgRes = await fetch(imageUrl);
+            const blob = await imgRes.blob();
+
+            const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const result = reader.result?.toString().split(",")[1];
+                    resolve(result || "");
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
             });
 
-            const data = await res.json();
-            console.log("AI Design Analysis:", data.output);
+            // Send to Gemini API route
+            const response = await fetch("/api/gemini-analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ base64 }), 
+            });
 
+            const data = await response.json();
+
+            if (response.ok) {
+                console.log("🎨 AI Design Analysis:", data.output);
+                toast.success("AI analysis completed! Check console for details.");
+            } else {
+                console.error("AI error:", data);
+                toast.error("AI analysis failed.");
+            }
         } catch (err) {
-            console.error("DeepSeek error:", err);
+            console.error("Fetch error:", err);
+            toast.error("Something went wrong with AI analysis.");
         } finally {
             setLoading(false);
         }
     };
-
-
-
 
     return (
         <div
@@ -162,7 +181,7 @@ export default function ImageUploader() {
             {loading ? (
                 <div className="flex flex-col items-center justify-center">
                     <Loader2 className="animate-spin text-white w-8 h-8 mb-2" />
-                    <p className="text-gray-400">Uploading...</p>
+                    <p className="text-gray-400">Processing...</p>
                 </div>
             ) : images.length > 0 ? (
                 <div className="w-full flex flex-col items-center">
@@ -213,7 +232,6 @@ export default function ImageUploader() {
                                 </div>
                             )}
                         </Button>
-
                     </div>
                 </div>
             ) : (
