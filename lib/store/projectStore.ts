@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabaseclient"
 import { error } from "console"
 
 interface Project {
-    projectId: string
+    id: string
     user_id: string
     name: string
     description?: string
@@ -74,7 +74,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
             } else {
                 console.log("✅ Project deleted successfully");
             }
-        } catch(err:any ){
+        } catch (err: any) {
             set({ error: err.message })
         }
     },
@@ -89,7 +89,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
             if (error) throw error
             set((state) => ({
                 projects: state.projects.map((p) =>
-                    p.projectId === projectId ? { ...p, ...data[0] } : p
+                    p.id === projectId ? { ...p, ...data[0] } : p
                 ),
             }))
         } catch (err: any) {

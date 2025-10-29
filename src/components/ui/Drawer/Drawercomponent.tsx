@@ -17,6 +17,7 @@ import { Plus } from "lucide-react"
 import { useProjectStore } from "../../../../lib/store/projectStore"
 import { useUserStore } from "../../../../lib/store/userStore"
 import toast from "react-hot-toast"
+import { supabase } from "@/lib/supabaseclient"
 
 export default function NewProjectDrawer() {
   const router = useRouter()
@@ -58,23 +59,47 @@ export default function NewProjectDrawer() {
     setLoading(true)
     try {
       if (!user?.id) {
-        console.error("No user logged in")
         toast.error("No user logged in")
         return
       }
+
+      // Fetch all user's untitled projects
+      const { data, error } = await supabase
+        .from("projects")
+        .select("name")
+        .eq("user_id", user.id)
+        .ilike("name", "Untitled%")
+
+      if (error) throw error
+
+      // Find the next available "Untitled (n)" name
+      const existingNames = data?.map((p) => p.name) || []
+      let nextNumber = 1
+
+      while (existingNames.includes(`Untitled (${nextNumber})`)) {
+        nextNumber++
+      }
+
+      const projectName =
+        nextNumber === 1 ? "Untitled" : `Untitled (${nextNumber})`
+
+      // Create project
       const project = await addProject({
-        user_id: user?.id!,
-        name: "Untitled Project",
+        user_id: user.id,
+        name: projectName,
         description: "",
       })
+
       const createdProject = project as { id?: string | number } | undefined
       if (createdProject?.id) router.push(`/workspace/${createdProject.id}`)
     } catch (error) {
       console.error("Error skipping project creation:", error)
+      toast.error("Failed to create project")
     } finally {
       setLoading(false)
     }
   }
+
 
   return (
     <Drawer>
