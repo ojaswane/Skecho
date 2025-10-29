@@ -35,7 +35,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   //  Fetch projects from Supabase
   useEffect(() => {
-    if (user?.id) { 
+    if (user?.id) {
       fetchProjects(user.id)
     }
   }, [user?.id, fetchProjects])
@@ -99,11 +99,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      {/*  HEADER */}
+      {/* HEADER */}
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]/sidebar-wrapper:justify-center">
           <LayoutDashboard size={18} />
-          {/*  Hide "Sketcho" when collapsed */}
+          {/* Hide "Sketcho" when collapsed */}
           <span className="text-sm font-semibold transition-opacity duration-200 group-data-[collapsible=icon]/sidebar-wrapper:opacity-0">
             Sketcho
           </span>
@@ -114,7 +114,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.navMain} />
 
-        {/*  Only show projects if available */}
+        {/* Only show projects if available */}
         {(projects || []).length > 0 ? (
           <div className="transition-all duration-300">
             <NavProjects
@@ -128,7 +128,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         )}
       </SidebarContent>
 
-      {/*  FOOTER */}
+      {/* FOOTER */}
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
