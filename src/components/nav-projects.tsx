@@ -24,17 +24,32 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useProjectStore } from "../../lib/store/projectStore"
+import { useUserStore } from "../../lib/store/userStore"
+import toast from "react-hot-toast"
 
 export function NavProjects({
   projects,
 }: {
   projects: {
+    id: string
     name: string
     url: string
     icon: LucideIcon
   }[]
 }) {
   const { isMobile } = useSidebar()
+  const { user } = useUserStore()
+  const { deleteProject } = useProjectStore()
+
+  const handleDelete = async (projectId: string) => {
+    if (!user?.id) {
+      toast.error("You are not logged in")
+      return
+    }
+    await deleteProject(projectId)
+    toast.success("Project deleted successfully")
+  }
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -69,7 +84,7 @@ export function NavProjects({
                   <span>Share Project</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDelete(item.id)}>
                   <Trash2 className="text-muted-foreground" />
                   <span>Delete Project</span>
                 </DropdownMenuItem>
