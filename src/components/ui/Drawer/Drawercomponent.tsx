@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Drawer,
@@ -16,8 +16,8 @@ import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 import { useProjectStore } from "../../../../lib/store/projectStore"
 import { useUserStore } from "../../../../lib/store/userStore"
-import toast from "react-hot-toast"
 import { supabase } from "@/lib/supabaseclient"
+import toast from "react-hot-toast"
 
 export default function NewProjectDrawer() {
   const router = useRouter()
@@ -27,43 +27,67 @@ export default function NewProjectDrawer() {
   const [projectName, setProjectName] = useState("")
   const [description, setDescription] = useState("")
   const [loading, setLoading] = useState(false)
+  const [nameExists, setNameExists] = useState(false)
+  const [checkingName, setCheckingName] = useState(false)
 
-  //  Handle create project
+  // 🧠 Check if project name already exists (without debounce)
+  const checkProjectName = async (name: string, userId: string) => {
+    if (!name.trim()) return setNameExists(false)
+    setCheckingName(true)
+
+    const { data, error } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("user_id", userId)
+      .like("name", name.trim())
+      .maybeSingle()
+
+    if (error && error.code !== "PGRST116") {
+      console.error("Error checking name:", error)
+    }
+
+    setNameExists(!!data) 
+    setCheckingName(false)
+  }
+
+  useEffect(() => {
+    if (user?.id && projectName.trim()) {
+      checkProjectName(projectName, user.id)
+    } else {
+      setNameExists(false)
+    }
+  }, [projectName, user?.id])
+
+  // ✳️ Handle project creation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user?.id) return toast.error("No user logged in")
+    if (nameExists) return toast.error("A project with this name already exists.")
+
     setLoading(true)
     try {
-      if (!user?.id) {
-        console.error("No user logged in")
-        toast.error("No user logged in")
-        return
-      }
       const project = await addProject({
-        user_id: user?.id!,
-        name: projectName || "Untitled Project",
+        user_id: user.id,
+        name: projectName.trim() || "Untitled Project",
         description,
       })
 
-      // redirect to workspace after project is created
       const createdProject = project as { id?: string | number } | undefined
       if (createdProject?.id) router.push(`/workspace/${createdProject.id}`)
     } catch (error) {
       console.error("Error creating project:", error)
+      toast.error("Failed to create project")
     } finally {
       setLoading(false)
     }
   }
 
-  //  Skip button logic
+  // skip the name to untitled
   const handleSkip = async () => {
+    if (!user?.id) return toast.error("No user logged in")
+
     setLoading(true)
     try {
-      if (!user?.id) {
-        toast.error("No user logged in")
-        return
-      }
-
-      // Fetch all user's untitled projects
       const { data, error } = await supabase
         .from("projects")
         .select("name")
@@ -72,38 +96,30 @@ export default function NewProjectDrawer() {
 
       if (error) throw error
 
-      // Find the next available "Untitled (n)" name
-      const existingNames = data?.map((p) => p.name) || []
-      let nextNumber = 1
+      const existing = data?.map((p) => p.name) || []
+      let counter = 1
+      while (existing.includes(`Untitled (${counter})`)) counter++
 
-      while (existingNames.includes(`Untitled (${nextNumber})`)) {
-        nextNumber++
-      }
+      const name = counter === 1 ? "Untitled" : `Untitled (${counter})`
 
-      const projectName =
-        nextNumber === 1 ? "Untitled" : `Untitled (${nextNumber})`
-
-      // Create project
       const project = await addProject({
         user_id: user.id,
-        name: projectName,
+        name,
         description: "",
       })
 
       const createdProject = project as { id?: string | number } | undefined
       if (createdProject?.id) router.push(`/workspace/${createdProject.id}`)
     } catch (error) {
-      console.error("Error skipping project creation:", error)
-      toast.error("Failed to create project")
+      console.error("Error creating untitled project:", error)
+      toast.error("Failed to create untitled project")
     } finally {
       setLoading(false)
     }
   }
 
-
   return (
     <Drawer>
-      {/* Trigger Button */}
       <DrawerTrigger asChild>
         <Button className="cursor-pointer">
           <Plus className="mr-2 h-4 w-4 text-black" />
@@ -111,7 +127,7 @@ export default function NewProjectDrawer() {
         </Button>
       </DrawerTrigger>
 
-      {/* Drawer Content */}
+      {/* 🧩 Drawer UI */}
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Create a New Project</DrawerTitle>
@@ -120,11 +136,9 @@ export default function NewProjectDrawer() {
           </DrawerDescription>
         </DrawerHeader>
 
-        <form onSubmit={handleSubmit} className="p-10 mb-10 space-y-4 w-1/2 mx-auto ">
+        <form onSubmit={handleSubmit} className="p-10 mb-10 space-y-4 w-1/2 mx-auto">
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Project Name
-            </label>
+            <label className="block text-sm font-medium mb-1">Project Name</label>
             <input
               type="text"
               value={projectName}
@@ -132,12 +146,18 @@ export default function NewProjectDrawer() {
               placeholder="Enter project name"
               className="w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
             />
+            {checkingName && (
+              <p className="text-xs text-gray-500 mt-1">Checking name...</p>
+            )}
+            {!checkingName && nameExists && (
+              <p className="text-sm text-red-500 mt-1">
+                A project with this name already exists.
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Description
-            </label>
+            <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -146,10 +166,15 @@ export default function NewProjectDrawer() {
             />
           </div>
 
-          <DrawerFooter className=" p-0 flex flex-col gap-4 ">
-            <Button type="submit" disabled={loading} className="cursor-pointer">
+          <DrawerFooter className="p-0 flex flex-col gap-4">
+            <Button
+              type="submit"
+              disabled={loading || nameExists || !projectName.trim()}
+              className="cursor-pointer"
+            >
               {loading ? "Creating..." : "Create Project"}
             </Button>
+
             <div className="w-full flex gap-2">
               <Button
                 variant="outline"
@@ -160,11 +185,12 @@ export default function NewProjectDrawer() {
               >
                 {loading ? "Skipping..." : "Skip (Untitled)"}
               </Button>
+
               <DrawerClose asChild>
                 <Button
                   variant="ghost"
                   type="button"
-                  className="w-1/2 bg-red-600 hover:bg-red-700 cursor-pointer "
+                  className="w-1/2 bg-red-600 hover:bg-red-700 cursor-pointer"
                 >
                   Cancel
                 </Button>
