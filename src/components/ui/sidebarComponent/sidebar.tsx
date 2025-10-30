@@ -34,7 +34,7 @@ export function SidebarComponent({ title = "Dashboard", children }: SidebarCompo
             <h1 className="text-lg font-semibold">{title}</h1>
           </div>
 
-          {/* RIGHT - Theme + Drawer */}
+          {/* RIGHT - Theme and Drawer */}
           <div className="flex items-center gap-4">
             <ThemeToggleButton
               variant="circle-blur"

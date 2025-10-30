@@ -140,7 +140,7 @@ export default function NewProjectDrawer() {
         </Button>
       </DrawerTrigger>
 
-      {/* 🧩 Drawer UI */}
+      {/* Drawer UI */}
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Create a New Project</DrawerTitle>
