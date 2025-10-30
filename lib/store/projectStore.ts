@@ -1,6 +1,5 @@
 import { create } from "zustand"
 import { supabase } from "@/lib/supabaseclient"
-import { error } from "console"
 
 interface Project {
     id: string
@@ -19,7 +18,7 @@ interface ProjectStore {
 
     // Actions
     fetchProjects: (userId: string) => Promise<void>
-    addProject: (project: Omit<Project, "id" | "created_at" | "updated_at">) => Promise<void>
+    addProject: (project: Omit<Project, "id" | "created_at" | "updated_at">) => Promise<Project>
     deleteProject: (id: string) => Promise<void>
     updateProject: (id: string, updates: Partial<Project>) => Promise<void>
 }
@@ -44,16 +43,21 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         }
     },
 
-    addProject: async (project) => {
+    addProject: async (projectData: Omit<Project, "id" | "created_at" | "updated_at">): Promise<Project> => {
         try {
             const { data, error } = await supabase
                 .from("projects")
-                .insert([project])
+                .insert([projectData])
                 .select()
+                .single<Project>()
+
             if (error) throw error
-            set((state) => ({ projects: [data[0], ...state.projects] }))
+
+            set((state) => ({ projects: [data, ...state.projects] }))
+            return data
         } catch (err: any) {
             set({ error: err.message })
+            throw err
         }
     },
 

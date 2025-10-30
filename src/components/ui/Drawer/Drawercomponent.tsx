@@ -30,7 +30,7 @@ export default function NewProjectDrawer() {
   const [nameExists, setNameExists] = useState(false)
   const [checkingName, setCheckingName] = useState(false)
 
-  // 🧠 Check if project name already exists (without debounce)
+  // Check if project name already exists 
   const checkProjectName = async (name: string, userId: string) => {
     if (!name.trim()) return setNameExists(false)
     setCheckingName(true)
@@ -46,7 +46,7 @@ export default function NewProjectDrawer() {
       console.error("Error checking name:", error)
     }
 
-    setNameExists(!!data) 
+    setNameExists(!!data)
     setCheckingName(false)
   }
 
@@ -58,7 +58,7 @@ export default function NewProjectDrawer() {
     }
   }, [projectName, user?.id])
 
-  // ✳️ Handle project creation
+  // Handle project creation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.id) return toast.error("No user logged in")
@@ -66,17 +66,25 @@ export default function NewProjectDrawer() {
 
     setLoading(true)
     try {
-      const project = await addProject({
+      const created: Project = await addProject({
         user_id: user.id,
         name: projectName.trim() || "Untitled Project",
         description,
       })
 
-      const createdProject = project as { id?: string | number } | undefined
-      if (createdProject?.id) router.push(`/workspace/${createdProject.id}`)
-    } catch (error) {
-      console.error("Error creating project:", error)
-      toast.error("Failed to create project")
+
+      console.log("Created project:", created)
+
+      if (created?.id) {
+        // redirect to workspace with the new id
+        router.push(`/workspace/${created.id}`)
+        return
+      }
+
+      toast.error("Project created but no ID returned.")
+    } catch (err: any) {
+      console.error("Error creating project:", err)
+      toast.error(err?.message || "Failed to create project")
     } finally {
       setLoading(false)
     }
@@ -96,23 +104,28 @@ export default function NewProjectDrawer() {
 
       if (error) throw error
 
-      const existing = data?.map((p) => p.name) || []
+      const existing = (data || []).map((p) => p.name)
       let counter = 1
       while (existing.includes(`Untitled (${counter})`)) counter++
 
       const name = counter === 1 ? "Untitled" : `Untitled (${counter})`
 
-      const project = await addProject({
+      const created = await addProject({
         user_id: user.id,
         name,
         description: "",
       })
 
-      const createdProject = project as { id?: string | number } | undefined
-      if (createdProject?.id) router.push(`/workspace/${createdProject.id}`)
-    } catch (error) {
-      console.error("Error creating untitled project:", error)
-      toast.error("Failed to create untitled project")
+      console.log("Created untitled project:", created)
+
+      if (created?.id) {
+        router.push(`/workspace/${created.id}`)
+        return
+      }
+      toast.error("Project created but no ID returned.")
+    } catch (err: any) {
+      console.error("Error creating untitled project:", err)
+      toast.error(err?.message || "Failed to create untitled project")
     } finally {
       setLoading(false)
     }
