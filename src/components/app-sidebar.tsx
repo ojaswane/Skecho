@@ -92,7 +92,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ],
     projects: (projects || []).map((project: any) => ({
       name: project.name,
-      url: `/dashboard/${project.id}`,
+      url: `/workspace/${project.id}`,
       icon: Frame,
     })),
   }
