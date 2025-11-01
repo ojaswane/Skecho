@@ -12,9 +12,10 @@ import {
 import { useProjectStore } from "../../../../../lib/store/projectStore"
 import { Input } from "@/components/ui/input"
 import { useParams } from "next/navigation"
+import toast from "react-hot-toast"
 
 const Breadcrumbb = () => {
-    const { id } = useParams() 
+    const { id } = useParams()
     const { projects, updateProject } = useProjectStore()
     const project = projects.find((p) => p.id === id)
 
@@ -29,6 +30,7 @@ const Breadcrumbb = () => {
         setEditing(false)
         if (project && name.trim() !== project.name) {
             await updateProject(project.id, { name })
+            toast.success("✅ Project name updated")
         }
     }
 
@@ -40,10 +42,6 @@ const Breadcrumbb = () => {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                    <BreadcrumbLink href="/projects">Projects</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
                     <BreadcrumbPage>
                         {editing ? (
                             <Input
@@ -51,7 +49,7 @@ const Breadcrumbb = () => {
                                 onChange={(e) => setName(e.target.value)}
                                 onBlur={handleBlur}
                                 onKeyDown={(e) => e.key === "Enter" && handleBlur()}
-                                className="w-48 h-7 text-sm font-medium bg-transparent border-none focus-visible:ring-0"
+                                className="w-48 h-7 p-0  text-sm font-medium bg-transparent border-none focus-visible:ring-0"
                                 autoFocus
                             />
                         ) : (
