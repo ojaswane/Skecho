@@ -1,3 +1,4 @@
+import Navbar from '@/components/canvas/Navbar'
 import React from 'react'
 
 
@@ -8,7 +9,7 @@ const layout = ({children}: props) => {
   return (
     <>
         <div>
-            
+            <Navbar />
         </div>
     </>
   )
