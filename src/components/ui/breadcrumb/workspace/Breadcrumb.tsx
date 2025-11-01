@@ -4,18 +4,16 @@ import {
     BreadcrumbItem,
     BreadcrumbLink,
     BreadcrumbList,
-    BreadcrumbPage,
     BreadcrumbSeparator
 } from "@/components/ui/breadcrumb"
 
 const Breadcrumbb = () => {
     return (
-
         <>
             <Breadcrumb>
                 <BreadcrumbList>
                     <BreadcrumbItem>
-                        <BreadcrumbLink href="/dashboard">Home</BreadcrumbLink>
+                        <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
@@ -24,7 +22,6 @@ const Breadcrumbb = () => {
                 </BreadcrumbList>
             </Breadcrumb>
         </>
-
     )
 }
 

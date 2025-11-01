@@ -1,5 +1,5 @@
 import React from "react"
-import Breadcrumbb from "../ui/breadcrumb/Breadcrumbforworkspace"
+import Breadcrumbb from "../ui/breadcrumb/workspace/Breadcrumb"
 
 
 const Navbar = () => {
