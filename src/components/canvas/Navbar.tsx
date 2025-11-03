@@ -11,11 +11,6 @@ const Navbar = () => {
         <Breadcrumbb/>
       </div>
 
-      {/* Center - Tabs or Title */}
-      <div className="flex items-center space-x-4">
-        center
-      </div>
-
       {/* Right Side - Credits / Export / Profile */}
       <div className="flex items-center space-x-4">
         right side
