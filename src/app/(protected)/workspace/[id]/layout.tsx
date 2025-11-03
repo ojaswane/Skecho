@@ -8,7 +8,7 @@ type props = {
 const layout = ({children}: props) => {
   return (
     <>
-        <div>
+        <div className=''>
             <Navbar />
         </div>
     </>
