@@ -6,7 +6,7 @@ import {
     Type,
     Image as ImageIcon,
     ArrowRight,
-    Frame
+    Frame,
 } from "lucide-react"
 
 const Tools = () => {
@@ -29,15 +29,22 @@ const Tools = () => {
             >
                 {tools.map((tool, index) => {
                     const Icon = tool.icon
+                    const isLast = index === tools.length - 1
                     return (
-                        <span
-                            key={index}
-                            title={tool.name}
-                            className="inline-grid h-9 w-9 place-items-center rounded-full 
-              hover:bg-white/10 hover:text-white transition-all cursor-pointer"
-                        >
-                            <Icon size={16} className="opacity-80 stroke-[1.75]" />
-                        </span>
+                        <React.Fragment key={index}>
+                            <span
+                                title={tool.name}
+                                className="inline-grid h-9 w-9 place-items-center rounded-full 
+                hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+                            >
+                                <Icon size={16} className="opacity-80 stroke-[1.75]" />
+                            </span>
+
+                            {/* divider only between icons */}
+                            {!isLast && (
+                                <span className="mx-1 h-5 w-px rounded bg-white/[0.16]" />
+                            )}
+                        </React.Fragment>
                     )
                 })}
             </div>

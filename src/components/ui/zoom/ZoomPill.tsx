@@ -20,6 +20,7 @@ const ZoomBar = () => {
                 className="flex items-center gap-1 backdrop-blur-xl bg-white/10 
         border border-white/10 rounded-full p-1 saturate-150"
             >
+                {/* TODO : Add the zoom percentage */}
                 <Button
                     variant="ghost"
                     size="lg"
