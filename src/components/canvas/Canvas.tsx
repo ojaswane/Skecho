@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useRef } from "react"
-import { fabric } from "fabric"
+import  fabric  from "fabric"
 import { useCanvasStore } from "../../../lib/store/canvasStore"
 
 const CanvasBoard = () => {
@@ -54,6 +54,8 @@ const CanvasBoard = () => {
       useCanvasStore.setState({ activeTool: "Select" })
     }
   }, [activeTool])
+
+
 
   return (
     <div className="flex-1 w-full h-[calc(100vh-80px)] bg-neutral-100">
