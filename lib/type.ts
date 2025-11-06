@@ -7,12 +7,16 @@ type Project = {
 }
 
 // type of the shapes used in canvas
-type shape = {
+
+export type ShapeType = 'rectangle' | 'circle' | 'line' | 'text' | 'arrow' | 'oval' | 'triangle'
+
+export type shape = {
   id: string,
   x: number,
   y: number,
   fill: string,
   width: number,
   height: number,
-  type: string
+  type: ShapeType,
+  rotation: number
 }
