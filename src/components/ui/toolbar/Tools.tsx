@@ -1,3 +1,4 @@
+"use client"
 import React from "react"
 import {
     MousePointer2,
@@ -8,16 +9,20 @@ import {
     ArrowRight,
     Frame,
 } from "lucide-react"
+import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
+import { useCanvasStore } from "../../../../lib/store/canvasStore"
 
 const Tools = () => {
+    const { activeTool, setActiveTool } = useCanvasStore()
+
     const tools = [
         { name: "Select", icon: MousePointer2 },
+        { name: "Frame", icon: Frame },
         { name: "Rectangle", icon: Square },
         { name: "Circle", icon: Circle },
         { name: "Text", icon: Type },
         { name: "Image", icon: ImageIcon },
         { name: "Arrow", icon: ArrowRight },
-        { name: "Frame", icon: Frame },
     ]
 
     return (
@@ -27,26 +32,33 @@ const Tools = () => {
         bg-white/10 border border-white/10 text-neutral-300 p-1 saturate-150 shadow-lg"
                 aria-hidden
             >
-                {tools.map((tool, index) => {
+                {tools.map((tool) => {
                     const Icon = tool.icon
-                    const isLast = index === tools.length - 1
-                    return (
-                        <React.Fragment key={index}>
-                            <span
-                                title={tool.name}
-                                className="inline-grid h-9 w-9 place-items-center rounded-full 
-                hover:bg-white/10 hover:text-white transition-all cursor-pointer"
-                            >
-                                <Icon size={16} className="opacity-80 stroke-[1.75]" />
-                            </span>
+                    const isActive = activeTool === tool.name
 
-                            {/* divider only between icons */}
-                            {/* {!isLast && (
-                                <span className="mx-1 h-5 w-px rounded bg-white/[0.16]" />
-                            )} */}
-                        </React.Fragment>
+                    return (
+                        <button
+                            key={tool.name}
+                            title={tool.name}
+                            onClick={() => setActiveTool(tool.name)}
+                            className={`inline-grid h-9 w-9 place-items-center rounded-full transition-all cursor-pointer
+                ${isActive ? "bg-white/20 text-white" : "hover:bg-white/10 hover:text-white"}
+              `}
+                        >
+                            <Icon size={16} className="opacity-80 stroke-[1.75]" />
+                        </button>
                     )
                 })}
+
+                {/* theme toggler at end */}
+                <span className="mx-2 flex justify-center items-center">
+                    <ThemeToggleButton
+                        variant="circle-blur"
+                        start="bottom-up"
+                        blur
+                        className="w-7 h-7"
+                    />
+                </span>
             </div>
         </div>
     )

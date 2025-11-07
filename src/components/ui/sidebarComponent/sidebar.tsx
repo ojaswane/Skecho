@@ -20,7 +20,7 @@ interface SidebarComponentProps {
 export function SidebarComponent({ title = "Dashboard", children }: SidebarComponentProps) {
   return (
     <SidebarProvider>
-      {/* Sidebar menu (collapsible) */}
+      {/* Sidebar menu  */}
       <AppSidebar />
 
       {/* Main content area beside sidebar */}
