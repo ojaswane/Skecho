@@ -41,9 +41,9 @@ const Tools = () => {
                             </span>
 
                             {/* divider only between icons */}
-                            {!isLast && (
+                            {/* {!isLast && (
                                 <span className="mx-1 h-5 w-px rounded bg-white/[0.16]" />
-                            )}
+                            )} */}
                         </React.Fragment>
                     )
                 })}
