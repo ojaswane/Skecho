@@ -19,7 +19,7 @@ const CanvasBoard = () => {
   const [selected, setSelected] = useState<string | null>(null)
   const [drag, setDrag] = useState<{ offsetX: number; offsetY: number } | null>(null)
 
-  // 🎨 RENDER LOOP
+  //  RENDER LOOP
   useEffect(() => {
     const canvas = canvasRef.current!
     const ctx = canvas.getContext("2d")!
