@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useRef } from "react"
 import { fabric } from "fabric"
-import { useCanvasStore } from "@/lib/store/canvasStore"
+import { useCanvasStore } from "../../../lib/store/canvasStore"
 
 const CanvasBoard = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
