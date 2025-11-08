@@ -1,95 +1,83 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
-import { useCanvasStore } from "../../../lib/store/canvasStore"
-import { Shape } from "../../../lib/type"
+import { useEffect, useRef } from "react"
+import { fabric } from "fabric"
+import { useCanvasStore } from "@/lib/store/canvasStore"
 
 const CanvasBoard = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  // const { shapes, setShapes, addShape, selectedId, setSelectedId, activeTool, setActiveTool } = useCanvasStore()
-  const [drag, setDrag] = useState<{ offsetX: number; offsetY: number } | null>(null)
+  const { activeTool, setCanvas, setCanvasJSON, selectedFrame } = useCanvasStore()
 
-  // 🎨 Render loop
   useEffect(() => {
-    const canvas = canvasRef.current!
-    const ctx = canvas.getContext("2d")!
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    shapes.forEach((shape) => {
-      ctx.save()
-      ctx.translate(shape.x + shape.width / 2, shape.y + shape.height / 2)
-      ctx.rotate((shape.rotation * Math.PI) / 180)
-      ctx.fillStyle = shape.fill
-      ctx.fillRect(-shape.width / 2, -shape.height / 2, shape.width, shape.height)
-
-      if (selectedId === shape.id) {
-        ctx.strokeStyle = "#000"
-        ctx.lineWidth = 2
-        ctx.strokeRect(-shape.width / 2, -shape.height / 2, shape.width, shape.height)
-      }
-      ctx.restore()
+    const canvas = new fabric.Canvas("sketcho-canvas", {
+      backgroundColor: "#f8f8f8",
+      selection: true,
     })
-  }, [shapes, selectedId])
+    setCanvas(canvas)
 
-  // 🖱️ Mouse helpers
-  const getMouse = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top }
-  }
+    // update zustand store when objects change
+    const updateJSON = () => setCanvasJSON(canvas.toJSON())
+    canvas.on("object:modified", updateJSON)
+    canvas.on("object:added", updateJSON)
+    canvas.on("object:removed", updateJSON)
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const { x, y } = getMouse(e)
+    // handle frame (desktop, mobile, etc.)
+    if (selectedFrame) {
+      const frameSizes = {
+        desktop: { width: 1440, height: 1024 },
+        tablet: { width: 768, height: 1024 },
+        mobile: { width: 375, height: 812 },
+      }
+      const { width, height } = frameSizes[selectedFrame] || frameSizes.desktop
 
-    // if user clicked "Rectangle", "Circle", etc.
-    if (activeTool !== "Select") {
-      const newShape: Shape = {
-        id: Math.random().toString(36).slice(2),
-        type: activeTool,
-        x: x - 50,
-        y: y - 40,
+      const frame = new fabric.Rect({
+        width,
+        height,
+        stroke: "#aaa",
+        fill: "#fff",
+        left: 100,
+        top: 100,
+        selectable: false,
+      })
+      canvas.add(frame)
+      canvas.sendToBack(frame)
+    }
+
+    return () => canvas.dispose()
+  }, [selectedFrame, setCanvas, setCanvasJSON])
+
+  // handle tool changes
+  useEffect(() => {
+    const canvas = useCanvasStore.getState().canvas
+    if (!canvas) return
+
+    if (activeTool === "Rectangle") {
+      const rect = new fabric.Rect({
         width: 100,
         height: 80,
-        rotation: 0,
-        fill: activeTool === "Circle" ? "lightcoral" : "skyblue",
-      }
-      addShape(newShape)
-      setActiveTool("Select")
-      return
+        fill: "#d1d5db",
+        left: 100,
+        top: 100,
+      })
+      canvas.add(rect)
+      useCanvasStore.setState({ activeTool: "Select" })
     }
 
-    // otherwise handle selection / dragging
-    const clicked = shapes.find(
-      (s) => x >= s.x && x <= s.x + s.width && y >= s.y && y <= s.y + s.height
-    )
-    if (clicked) {
-      setSelectedId(clicked.id)
-      setDrag({ offsetX: x - clicked.x, offsetY: y - clicked.y })
-    } else {
-      setSelectedId(null)
+    if (activeTool === "Circle") {
+      const circle = new fabric.Circle({
+        radius: 50,
+        fill: "#d1d5db",
+        left: 200,
+        top: 200,
+      })
+      canvas.add(circle)
+      useCanvasStore.setState({ activeTool: "Select" })
     }
-  }
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!drag || !selectedId) return
-    const { x, y } = getMouse(e)
-    setShapes(
-      shapes.map((s) =>
-        s.id === selectedId ? { ...s, x: x - drag.offsetX, y: y - drag.offsetY } : s
-      )
-    )
-  }
-
-  const handleMouseUp = () => setDrag(null)
+  }, [activeTool])
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={1000}
-      height={700}
-      className="border border-neutral-300 bg-neutral-50 rounded-lg"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-    />
+    <div className="w-full h-[calc(100vh-80px)] flex justify-center items-center">
+      <canvas id="sketcho-canvas" width={1600} height={1000} />
+    </div>
   )
 }
 
