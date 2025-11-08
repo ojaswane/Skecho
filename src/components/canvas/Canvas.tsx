@@ -1,25 +1,14 @@
-import { useState, useRef, useEffect } from "react"
-
-type Shape = {
-  id: string
-  x: number
-  y: number
-  width: number
-  height: number
-  rotation: number
-  fill: string
-}
+"use client"
+import { useEffect, useRef, useState } from "react"
+import { useCanvasStore } from "../../../lib/store/canvasStore"
+import { Shape } from "../../../lib/type"
 
 const CanvasBoard = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [shapes, setShapes] = useState<Shape[]>([
-    { id: "1", x: 100, y: 100, width: 120, height: 80, rotation: 0, fill: "skyblue" },
-    { id: "2", x: 300, y: 200, width: 150, height: 100, rotation: 10, fill: "lightcoral" },
-  ])
-  const [selected, setSelected] = useState<string | null>(null)
+  const { shapes, setShapes, addShape, selectedId, setSelectedId, activeTool, setActiveTool } = useCanvasStore()
   const [drag, setDrag] = useState<{ offsetX: number; offsetY: number } | null>(null)
 
-  //  RENDER LOOP
+  // 🎨 Render loop
   useEffect(() => {
     const canvas = canvasRef.current!
     const ctx = canvas.getContext("2d")!
@@ -32,16 +21,16 @@ const CanvasBoard = () => {
       ctx.fillStyle = shape.fill
       ctx.fillRect(-shape.width / 2, -shape.height / 2, shape.width, shape.height)
 
-      if (selected === shape.id) {
+      if (selectedId === shape.id) {
         ctx.strokeStyle = "#000"
         ctx.lineWidth = 2
         ctx.strokeRect(-shape.width / 2, -shape.height / 2, shape.width, shape.height)
       }
       ctx.restore()
     })
-  }, [shapes, selected])
+  }, [shapes, selectedId])
 
-  // Mouse helpers
+  // 🖱️ Mouse helpers
   const getMouse = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
     return { x: e.clientX - rect.left, y: e.clientY - rect.top }
@@ -49,23 +38,42 @@ const CanvasBoard = () => {
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const { x, y } = getMouse(e)
+
+    // if user clicked "Rectangle", "Circle", etc.
+    if (activeTool !== "Select") {
+      const newShape: Shape = {
+        id: Math.random().toString(36).slice(2),
+        type: activeTool,
+        x: x - 50,
+        y: y - 40,
+        width: 100,
+        height: 80,
+        rotation: 0,
+        fill: activeTool === "Circle" ? "lightcoral" : "skyblue",
+      }
+      addShape(newShape)
+      setActiveTool("Select")
+      return
+    }
+
+    // otherwise handle selection / dragging
     const clicked = shapes.find(
       (s) => x >= s.x && x <= s.x + s.width && y >= s.y && y <= s.y + s.height
     )
     if (clicked) {
-      setSelected(clicked.id)
+      setSelectedId(clicked.id)
       setDrag({ offsetX: x - clicked.x, offsetY: y - clicked.y })
     } else {
-      setSelected(null)
+      setSelectedId(null)
     }
   }
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!drag || !selected) return
+    if (!drag || !selectedId) return
     const { x, y } = getMouse(e)
-    setShapes((prev) =>
-      prev.map((s) =>
-        s.id === selected ? { ...s, x: x - drag.offsetX, y: y - drag.offsetY } : s
+    setShapes(
+      shapes.map((s) =>
+        s.id === selectedId ? { ...s, x: x - drag.offsetX, y: y - drag.offsetY } : s
       )
     )
   }
@@ -75,9 +83,9 @@ const CanvasBoard = () => {
   return (
     <canvas
       ref={canvasRef}
-      width={800}
-      height={600}
-      style={{ border: "1px solid #ccc", background: "#fafafa" }}
+      width={1000}
+      height={700}
+      className="border border-neutral-300 bg-neutral-50 rounded-lg"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

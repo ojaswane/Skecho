@@ -8,15 +8,15 @@ type Project = {
 
 // type of the shapes used in canvas
 
-export type ShapeType = 'rectangle' | 'circle' | 'line' | 'text' | 'arrow' | 'oval' | 'triangle'
+// export type ShapeType = 'rectangle' | 'circle' | 'line' | 'text' | 'arrow' | 'oval' | 'triangle'
 
-export type shape = {
+export type Shape = {
   id: string,
   x: number,
   y: number,
   fill: string,
   width: number,
   height: number,
-  type: ShapeType,
+  type: string,
   rotation: number
 }
