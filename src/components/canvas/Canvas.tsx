@@ -5,7 +5,7 @@ import { Shape } from "../../../lib/type"
 
 const CanvasBoard = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const { shapes, setShapes, addShape, selectedId, setSelectedId, activeTool, setActiveTool } = useCanvasStore()
+  // const { shapes, setShapes, addShape, selectedId, setSelectedId, activeTool, setActiveTool } = useCanvasStore()
   const [drag, setDrag] = useState<{ offsetX: number; offsetY: number } | null>(null)
 
   // 🎨 Render loop

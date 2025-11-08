@@ -1,22 +1,34 @@
 import { create } from "zustand"
-import { Shape } from "../type"
+import { devtools } from "zustand/middleware"
+
+type Tool = "Select" | "Rectangle" | "Circle" | "Text" | "Frame" | "Image" | "Arrow"
 
 interface CanvasState {
-    shapes: Shape[]
-    setShapes: (shapes: Shape[]) => void
-    addShape: (shape: Shape) => void
-    selectedId: string | null
-    setSelectedId: (id: string | null) => void
-    activeTool: string
-    setActiveTool: (tool: string) => void
+    activeTool: Tool
+    setActiveTool: (tool: Tool) => void
+
+    canvas: fabric.Canvas | null
+    setCanvas: (canvas: fabric.Canvas) => void
+
+    canvasJSON: any
+    setCanvasJSON: (json: any) => void
+
+    selectedFrame: string | null
+    setSelectedFrame: (frame: string | null) => void
 }
 
-export const useCanvasStore = create<CanvasState>((set) => ({
-    shapes: [],
-    setShapes: (shapes) => set({ shapes }),
-    addShape: (shape) => set((state) => ({ shapes: [...state.shapes, shape] })),
-    selectedId: null,
-    setSelectedId: (id) => set({ selectedId: id }),
-    activeTool: "Select",
-    setActiveTool: (tool) => set({ activeTool: tool }),
-}))
+export const useCanvasStore = create<CanvasState>()(
+    devtools((set) => ({
+        activeTool: "Select",
+        setActiveTool: (tool) => set({ activeTool: tool }),
+
+        canvas: null,
+        setCanvas: (canvas) => set({ canvas }),
+
+        canvasJSON: null,
+        setCanvasJSON: (json) => set({ canvasJSON: json }),
+
+        selectedFrame: null,
+        setSelectedFrame: (frame) => set({ selectedFrame: frame }),
+    }))
+)
