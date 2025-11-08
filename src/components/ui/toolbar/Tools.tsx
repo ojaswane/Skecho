@@ -29,7 +29,7 @@ const Tools = () => {
         <div className="col-span-1 flex justify-center items-center">
             <div
                 className="inline-flex items-center rounded-full backdrop-blur-xl
-        bg-white/10 border border-white/10 text-neutral-300 p-1 saturate-150 shadow-lg"
+        dark:bg-white/10 border dark:border-white/10 dark:text-neutral-300 bg-black/30  border-black/20 text-black p-1 saturate-150 shadow-lg"
                 aria-hidden
             >
                 {tools.map((tool) => {
@@ -42,8 +42,8 @@ const Tools = () => {
                             title={tool.name}
                             onClick={() => setActiveTool(tool.name)}
                             className={`inline-grid h-9 w-9 place-items-center rounded-full transition-all cursor-pointer
-                ${isActive ? "bg-white/20 text-white" : "hover:bg-white/10 hover:text-white"}
-              `}
+                ${isActive ? " bg-black/20  dark:bg-white/20 dark:text-white text-black" : "dark:hover:bg-white/10 hover:bg-black/10 dark:hover:text-white hover:text-black/10"}
+            `}
                         >
                             <Icon size={16} className="opacity-80 stroke-[1.75]" />
                         </button>
