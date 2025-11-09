@@ -7,22 +7,24 @@ import {
     Type,
     Image as ImageIcon,
     ArrowRight,
-    Frame,
+    Frame
 } from "lucide-react"
 import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
+
+type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow"
 
 const Tools = () => {
     const { activeTool, setActiveTool } = useCanvasStore()
 
     const tools = [
-        { name: "Select", icon: MousePointer2 },
-        { name: "Frame", icon: Frame },
-        { name: "Rectangle", icon: Square },
-        { name: "Circle", icon: Circle },
-        { name: "Text", icon: Type },
-        { name: "Image", icon: ImageIcon },
-        { name: "Arrow", icon: ArrowRight },
+        { name: "Select" as Tool, icon: MousePointer2 },
+        { name: "Frame" as Tool, icon: Frame },
+        { name: "Rectangle" as Tool, icon: Square },
+        { name: "Circle" as Tool, icon: Circle },
+        { name: "Text" as Tool, icon: Type },
+        { name: "Image" as Tool, icon: ImageIcon },
+        { name: "Arrow" as Tool, icon: ArrowRight },
     ]
 
     return (

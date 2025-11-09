@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 
-type Tool = "Select" | "Rectangle" | "Circle" | "Text" | "Frame" | "Image" | "Arrow"
+type Tool = "Select" | "Rectangle" | "Circle" | "Text" | "Frame" | "Image" | "Arrow" | "line"
 
 interface CanvasState {
     activeTool: Tool

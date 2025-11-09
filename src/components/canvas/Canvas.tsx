@@ -67,7 +67,7 @@ const CanvasBoard = () => {
       const rect = new fabric.Rect({
         width: 100,
         height: 80,
-        fill: "#d1d5db",
+        fill: "#fff",
         left: 100,
         top: 100,
       })
