@@ -1,28 +1,37 @@
 "use client"
-import { useEffect, useRef } from "react"
-import { fabric } from "fabric"
+import { useEffect, useRef, useState } from "react"
 import { useCanvasStore } from "../../../lib/store/canvasStore"
 
 const CanvasBoard = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const { activeTool, setCanvas, setCanvasJSON, selectedFrame } = useCanvasStore()
+  const [fabricLib, setFabricLib] = useState<any>(null)
 
   useEffect(() => {
+    // Dynamically import fabric only on the client
+    import("fabric").then((mod) => {
+      const fabric = mod.default
+      setFabricLib(fabric)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!fabricLib) return
+    const fabric = fabricLib
+
     const canvas = new fabric.Canvas("sketcho-canvas", {
       backgroundColor: "#f8f8f8",
       selection: true,
     })
     setCanvas(canvas)
 
-    // update zustand store when objects change
     const updateJSON = () => setCanvasJSON(canvas.toJSON())
     canvas.on("object:modified", updateJSON)
     canvas.on("object:added", updateJSON)
     canvas.on("object:removed", updateJSON)
 
-    // handle frame (desktop, mobile, etc.)
     if (selectedFrame) {
-      const frameSizes = {
+      const frameSizes: any = {
         desktop: { width: 1440, height: 1024 },
         tablet: { width: 768, height: 1024 },
         mobile: { width: 375, height: 812 },
@@ -42,13 +51,17 @@ const CanvasBoard = () => {
       canvas.sendToBack(frame)
     }
 
-    return () => canvas.dispose()
-  }, [selectedFrame, setCanvas, setCanvasJSON])
+    return () => {
+      canvas.dispose()
+    }
+  }, [fabricLib, selectedFrame, setCanvas, setCanvasJSON])
 
-  // handle tool changes
   useEffect(() => {
+    if (!fabricLib) return
     const canvas = useCanvasStore.getState().canvas
     if (!canvas) return
+
+    const fabric = fabricLib
 
     if (activeTool === "Rectangle") {
       const rect = new fabric.Rect({
@@ -72,11 +85,11 @@ const CanvasBoard = () => {
       canvas.add(circle)
       useCanvasStore.setState({ activeTool: "Select" })
     }
-  }, [activeTool])
+  }, [activeTool, fabricLib])
 
   return (
     <div className="w-full h-[calc(100vh-80px)] flex justify-center items-center">
-      <canvas id="sketcho-canvas" width={1600} height={1000} />
+      <canvas id="sketcho-canvas" width={1600} height={1000} ref={canvasRef} />
     </div>
   )
 }
