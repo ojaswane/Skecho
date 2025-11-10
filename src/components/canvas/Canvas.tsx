@@ -21,7 +21,7 @@ const CanvasBoard = () => {
     let lastPosX = 0
     let lastPosY = 0
 
-    canvas.on("mouse:down", (opt) => {
+    canvas.on("mouse:down", (opt : any) => {
       const evt = opt.e as MouseEvent
       if (evt.altKey || evt.button === 1) {
         isDragging = true
@@ -31,7 +31,7 @@ const CanvasBoard = () => {
       }
     })
 
-    canvas.on("mouse:move", (opt) => {
+    canvas.on("mouse:move", (opt : any) => {
       if (isDragging) {
         const e = opt.e as MouseEvent
         const vpt = canvas.viewportTransform!
@@ -48,7 +48,7 @@ const CanvasBoard = () => {
       canvas.selection = true
     })
 
-    canvas.on("mouse:wheel", (opt) => {
+    canvas.on("mouse:wheel", (opt : any) => {
       const delta = (opt.e as WheelEvent).deltaY
       let zoom = canvas.getZoom()
       zoom *= 0.999 ** delta
@@ -58,7 +58,7 @@ const CanvasBoard = () => {
       opt.e.stopPropagation()
     })
 
-    // Save canvas instance in Zustand
+    // Save canvas in Zustand
     setCanvas(canvas)
 
     // Keep Zustand JSON updated

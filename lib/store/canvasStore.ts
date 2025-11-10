@@ -25,7 +25,7 @@ interface CanvasState {
     // Frame type
     selectedFrame: FrameType
 
-    // JSON data for the canvas
+    // JSON data for the canvas just like figma has -> TODO: do use this data for AI fine tune
     canvasJSON: any
 
     //actions
@@ -36,6 +36,7 @@ interface CanvasState {
     setSelectedFrame: (frame: FrameType) => void
     setCanvasJSON: (json: any) => void
     resetCanvas: () => void
+    //TODO:  getJson: () => any
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
