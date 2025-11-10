@@ -64,7 +64,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     deleteProject: async (projectId) => {
         try {
             if (!projectId) {
-                console.error("❌ No project ID provided!");
+                console.error(" No project ID provided!");
                 return;
             }
 
@@ -74,9 +74,9 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
                 .eq("id", projectId);
 
             if (error) {
-                console.error("❌ Delete failed:", error.message);
+                console.error(" Delete failed:", error.message);
             } else {
-                console.log("✅ Project deleted successfully");
+                console.log(" Project deleted successfully");
             }
         } catch (err: any) {
             set({ error: err.message })
