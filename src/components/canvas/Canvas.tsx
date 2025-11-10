@@ -1,95 +1,139 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
+import { Fabric } from "fabric"
 import { useCanvasStore } from "../../../lib/store/canvasStore"
 
 const CanvasBoard = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const { activeTool, setCanvas, setCanvasJSON, selectedFrame } = useCanvasStore()
-  const [fabricLib, setFabricLib] = useState<any>(null)
+  const { activeTool, theme, setCanvas, setCanvasJSON, selectedFrame } = useCanvasStore()
 
   useEffect(() => {
-    // Dynamically import fabric only on the client
-    import("fabric").then((mod) => {
-      const fabric = mod.default
-      setFabricLib(fabric)
-    })
-  }, [])
+    const canvasEl = canvasRef.current
+    if (!canvasEl) return
 
-  useEffect(() => {
-    if (!fabricLib) return
-    const fabric = fabricLib
-
-    const canvas = new fabric.Canvas("sketcho-canvas", {
-      backgroundColor: "#f8f8f8",
+    const canvas = new Fabric.Canvas(canvasEl, {
+      backgroundColor: theme === "dark" ? "#0f0f0f" : "#f8f8f8",
       selection: true,
     })
+
+    // Enable pan and zoom
+    let isDragging = false
+    let lastPosX = 0
+    let lastPosY = 0
+
+    canvas.on("mouse:down", (opt) => {
+      const evt = opt.e as MouseEvent
+      if (evt.altKey || evt.button === 1) {
+        isDragging = true
+        canvas.selection = false
+        lastPosX = evt.clientX
+        lastPosY = evt.clientY
+      }
+    })
+
+    canvas.on("mouse:move", (opt) => {
+      if (isDragging) {
+        const e = opt.e as MouseEvent
+        const vpt = canvas.viewportTransform!
+        vpt[4] += e.clientX - lastPosX
+        vpt[5] += e.clientY - lastPosY
+        canvas.requestRenderAll()
+        lastPosX = e.clientX
+        lastPosY = e.clientY
+      }
+    })
+
+    canvas.on("mouse:up", () => {
+      isDragging = false
+      canvas.selection = true
+    })
+
+    canvas.on("mouse:wheel", (opt) => {
+      const delta = (opt.e as WheelEvent).deltaY
+      let zoom = canvas.getZoom()
+      zoom *= 0.999 ** delta
+      zoom = Math.min(Math.max(zoom, 0.5), 3)
+      canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom)
+      opt.e.preventDefault()
+      opt.e.stopPropagation()
+    })
+
+    // Save canvas instance in Zustand
     setCanvas(canvas)
 
+    // Keep Zustand JSON updated
     const updateJSON = () => setCanvasJSON(canvas.toJSON())
     canvas.on("object:modified", updateJSON)
     canvas.on("object:added", updateJSON)
     canvas.on("object:removed", updateJSON)
 
+    // Draw frame if selected
     if (selectedFrame) {
-      const frameSizes: any = {
+      const sizes = {
         desktop: { width: 1440, height: 1024 },
         tablet: { width: 768, height: 1024 },
         mobile: { width: 375, height: 812 },
       }
-      const { width, height } = frameSizes[selectedFrame] || frameSizes.desktop
-
-      const frame = new fabric.Rect({
+      const { width, height } = sizes[(selectedFrame as keyof typeof sizes)] || sizes.desktop
+      const frame = new Fabric.Rect({
         width,
         height,
-        stroke: "#aaa",
-        fill: "#fff",
         left: 100,
         top: 100,
-        selectable: false,
+        fill: theme === "dark" ? "#1a1a1a" : "#fff",
+        stroke: theme === "dark" ? "#444" : "#ccc",
+        strokeWidth: 1,
+        selectable: true,
+        hasControls: true,
       })
       canvas.add(frame)
-      canvas.sendToBack(frame)
+      canvas.setActiveObject(frame)
     }
 
-    return () => {
-      canvas.dispose()
-    }
-  }, [fabricLib, selectedFrame, setCanvas, setCanvasJSON])
+    return () => canvas.dispose()
+  }, [theme, selectedFrame, setCanvas, setCanvasJSON])
 
+  // Handle tool actions (rect, circle, etc.)
   useEffect(() => {
-    if (!fabricLib) return
     const canvas = useCanvasStore.getState().canvas
     if (!canvas) return
 
-    const fabric = fabricLib
-
     if (activeTool === "Rectangle") {
-      const rect = new fabric.Rect({
-        width: 100,
-        height: 80,
-        fill: "#fff",
-        left: 100,
-        top: 100,
+      const rect = new Fabric.Rect({
+        width: 150,
+        height: 100,
+        left: 200,
+        top: 200,
+        fill: "#d1d5db",
       })
       canvas.add(rect)
       useCanvasStore.setState({ activeTool: "Select" })
     }
 
     if (activeTool === "Circle") {
-      const circle = new fabric.Circle({
-        radius: 50,
+      const circle = new Fabric.Circle({
+        radius: 60,
+        left: 300,
+        top: 300,
         fill: "#d1d5db",
-        left: 200,
-        top: 200,
       })
       canvas.add(circle)
       useCanvasStore.setState({ activeTool: "Select" })
     }
-  }, [activeTool, fabricLib])
+  }, [activeTool])
 
   return (
-    <div className="w-full h-[calc(100vh-80px)] flex justify-center items-center">
-      <canvas id="sketcho-canvas" width={1600} height={1000} ref={canvasRef} />
+    <div
+      className={`w-full h-[calc(100vh-80px)] flex justify-center items-center ${theme === "dark" ? "bg-[#0f0f0f]" : "bg-[#f8f8f8]"
+        }`}
+    >
+      <canvas
+        ref={canvasRef}
+        id="sketcho-canvas"
+        width={1600}
+        height={1000}
+        className="rounded-2xl shadow-sm"
+      />
     </div>
   )
 }
