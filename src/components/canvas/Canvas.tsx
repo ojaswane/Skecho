@@ -14,6 +14,10 @@ const CanvasRender = () => {
       });
       initCanvas.renderAll();
       setCanvas(initCanvas);
+
+      return () => {
+        initCanvas.dispose();
+      }
     }
 
   }, []);
