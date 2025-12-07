@@ -9,7 +9,7 @@ import {
     ArrowRight,
     Frame
 } from "lucide-react"
-import { Circle as FabricCircle } from "fabric"
+import { Circle as FabricCircle, Rect as FabricRect, Line as FabricLine } from "fabric"
 import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
 type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow"
@@ -68,8 +68,75 @@ const Tools = () => {
             } catch (error) {
                 console.error("Error creating circle:", error);
             }
+        } else if (toolName === "Rectangle") {
+            console.log("Creating rectangle...");
+            if (!canvas) {
+                console.error("Canvas is not available");
+                return;
+            }
+
+            try {
+                const properties = {
+                    left: canvas.width! / 2 - 50,
+                    top: canvas.height! / 2 - 50,
+                    width: 100,
+                    height: 100,
+                    fill: "#3b82f6",
+                    stroke: "#1e40af",
+                    strokeWidth: 4,
+                }
+
+                const rectangleRef = new FabricRect({
+                    ...properties
+                });
+
+                console.log("Rectangle created successfully:", rectangleRef);
+                console.log("Canvas type:", typeof canvas);
+                console.log("Add method exists:", typeof canvas.add === 'function');
+
+                canvas.add(rectangleRef as any);
+                canvas.renderAll();
+
+                console.log("Rectangle added and rendered");
+            } catch (error) {
+                console.error("Error creating rectangle:", error);
+            }
+        } else if (toolName === "Arrow") {
+            console.log("Creating arrow...");
+            if (!canvas) {
+                console.error("Canvas is not available");
+                return;
+            }
+
+            try {
+                const startX = canvas.width! / 2 - 50;
+                const startY = canvas.height! / 2 - 50;
+                const endX = canvas.width! / 2 + 50;
+                const endY = canvas.height! / 2 + 50;
+
+                const arrowRef = new FabricLine(
+                    [startX, startY, endX, endY],
+                    {
+                        stroke: "#1e40af",
+                        strokeWidth: 4,
+                        fill: "#1e40af",
+                    }
+                );
+
+                console.log("Arrow created successfully:", arrowRef);
+                console.log("Canvas type:", typeof canvas);
+                console.log("Add method exists:", typeof canvas.add === 'function');
+
+                canvas.add(arrowRef as any);
+                canvas.renderAll();
+
+                console.log("Arrow added and rendered");
+            } catch (error) {
+                console.error("Error creating arrow:", error);
+            }
         }
     }
+
     return (
         <div className="col-span-1 flex justify-center items-center">
             <div
@@ -107,7 +174,7 @@ const Tools = () => {
                     />
                 </span>
             </div>
-        </div >
+        </div>
     )
 }
 
