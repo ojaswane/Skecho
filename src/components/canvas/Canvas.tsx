@@ -13,12 +13,27 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     if (canvasRef.current && !canvas) {
       const initCanvas = new fabric.Canvas(canvasRef.current as HTMLCanvasElement, {
         backgroundColor: theme === "dark" ? "#1a1a1a" : "#ffffff",
+        selection: true,
       });
       initCanvas.setWidth(window.innerWidth);
       initCanvas.setHeight(window.innerHeight - 120);
       initCanvas.renderAll();
       setCanvas(initCanvas);
       setStoreCanvas(initCanvas as any);
+
+      // Delete key handler
+      window.addEventListener("keydown", (e: KeyboardEvent) => {
+        const key = e.key;
+
+        if (key === "Delete" || key === "Backspace") {
+          const active = initCanvas.getActiveObject();
+          if (active) {
+            initCanvas.remove(active);
+            initCanvas.requestRenderAll();
+          }
+        }
+      });
+
 
       return () => {
         initCanvas.dispose();
