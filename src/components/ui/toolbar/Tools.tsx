@@ -31,24 +31,43 @@ const Tools = () => {
 
     const canvas = canvasEditor;
     const handleToolClick = (toolName: Tool) => {
+        console.log("Tool clicked:", toolName);
+        console.log("Canvas available:", !!canvas);
+
         setActiveTool(toolName);
-        if (toolName === "Circle" && canvas) {
-            const properties = {
-                left: canvas.width! / 2 - 50,
-                top: canvas.height! / 2 - 50,
-                radius: 50,
-                fill: "#3b82f6",
-                stroke: "#1e40af",
-                strokeWidth: 4,
+
+        if (toolName === "Circle") {
+            console.log("Creating circle...");
+            if (!canvas) {
+                console.error("Canvas is not available");
+                return;
             }
 
-            const circleRef = new FabricCircle({
-                ...properties
-            });
-            
-            console.log("Circle Tool Selected: ", circleRef);
-            canvasEditor?.add(circleRef as any);
-            canvasEditor?.renderAll();
+            try {
+                const properties = {
+                    left: canvas.width! / 2 - 50,
+                    top: canvas.height! / 2 - 50,
+                    radius: 50,
+                    fill: "#3b82f6",
+                    stroke: "#1e40af",
+                    strokeWidth: 4,
+                }
+
+                const circleRef = new FabricCircle({
+                    ...properties
+                });
+
+                console.log("Circle created successfully:", circleRef);
+                console.log("Canvas type:", typeof canvas);
+                console.log("Add method exists:", typeof canvas.add === 'function');
+
+                canvas.add(circleRef as any);
+                canvas.renderAll();
+
+                console.log("Circle added and rendered");
+            } catch (error) {
+                console.error("Error creating circle:", error);
+            }
         }
     }
     return (

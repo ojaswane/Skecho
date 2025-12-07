@@ -1,19 +1,24 @@
 'use client'
 import React, { useEffect } from 'react'
 import { useRef } from 'react';
-import { Canvas } from 'fabric';
+import * as fabric from 'fabric';
+import { useCanvasStore } from '../../../lib/store/canvasStore'
+
 const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   const canvasRef = useRef(null);
   const [canvas, setCanvas] = React.useState<any>(null);
+  const { setCanvas: setStoreCanvas } = useCanvasStore();
+
   useEffect(() => {
     if (canvasRef.current && !canvas) {
-      const initCanvas = new Canvas(canvasRef.current, {
+      const initCanvas = new fabric.Canvas(canvasRef.current as HTMLCanvasElement, {
         backgroundColor: theme === "dark" ? "#1a1a1a" : "#ffffff",
       });
       initCanvas.setWidth(window.innerWidth);
       initCanvas.setHeight(window.innerHeight - 120);
       initCanvas.renderAll();
       setCanvas(initCanvas);
+      setStoreCanvas(initCanvas as any);
 
       return () => {
         initCanvas.dispose();
