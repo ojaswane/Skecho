@@ -29,22 +29,23 @@ const Tools = () => {
 
     const canvasEditor = useCanvasStore((state) => state.canvas);
 
+    const canvas = canvasEditor;
     const handleToolClick = (toolName: Tool) => {
         setActiveTool(toolName);
-
-        if (toolName === "Circle") {
+        if (toolName === "Circle" && canvas) {
             const properties = {
-                left: 100,
-                top: 100,
-                fill: '#3b82f6',
-                radius: 30,
-                stroke: '#1e40af',
-                strokeWidth: 2,
+                left: canvas.width! / 2 - 50,
+                top: canvas.height! / 2 - 50,
+                radius: 50,
+                fill: "#3b82f6",
+                stroke: "#1e40af",
+                strokeWidth: 4,
             }
 
             const circleRef = new FabricCircle({
                 ...properties
             });
+            
             console.log("Circle Tool Selected: ", circleRef);
             canvasEditor?.add(circleRef as any);
             canvasEditor?.renderAll();
