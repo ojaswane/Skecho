@@ -8,10 +8,10 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   useEffect(() => {
     if (canvasRef.current && !canvas) {
       const initCanvas = new Canvas(canvasRef.current, {
-        width: 800,
-        height: 1000,
         backgroundColor: theme === "dark" ? "#1a1a1a" : "#ffffff",
       });
+      initCanvas.setWidth(window.innerWidth);
+      initCanvas.setHeight(window.innerHeight - 120);
       initCanvas.renderAll();
       setCanvas(initCanvas);
 
