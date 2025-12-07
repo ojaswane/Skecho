@@ -11,7 +11,6 @@ import {
 } from "lucide-react"
 import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
-
 type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow"
 
 const Tools = () => {
@@ -27,6 +26,28 @@ const Tools = () => {
         { name: "Arrow" as Tool, icon: ArrowRight },
     ]
 
+    const canvasEditor = useCanvasStore((state) => state.canvas);
+    const setTools = () => {
+        const properties = {
+            left: 100,
+            top: 100,
+            fill: 'white',
+            radius: 30,
+            stroke: 'black',
+            strokeWidth: 0,
+        }
+
+        if (activeTool === "Circle") {
+            // @ts-ignore
+            const circleRef = new window.fabric.Circle({
+                ...properties
+            });
+
+            canvasEditor?.add(circleRef);
+        }
+
+        canvasEditor?.renderAll();
+    }
     return (
         <div className="col-span-1 flex justify-center items-center">
             <div
@@ -42,7 +63,10 @@ const Tools = () => {
                         <button
                             key={tool.name}
                             title={tool.name}
-                            onClick={() => setActiveTool(tool.name)}
+                            onClick={() => {
+                                setTools();
+                                setActiveTool(tool.name)
+                            }}
                             className={`inline-grid h-9 w-9 place-items-center rounded-full transition-all cursor-pointer
                 ${isActive ? " bg-black/20  dark:bg-white/20 dark:text-white text-black" : "dark:hover:bg-white/10 hover:bg-black/10 dark:hover:text-white hover:text-black/10"}
             `}
@@ -62,7 +86,7 @@ const Tools = () => {
                     />
                 </span>
             </div>
-        </div>
+        </div >
     )
 }
 
