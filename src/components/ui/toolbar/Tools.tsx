@@ -9,6 +9,7 @@ import {
     ArrowRight,
     Frame
 } from "lucide-react"
+import { Circle as FabricCircle } from "fabric"
 import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
 type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow"
@@ -27,26 +28,27 @@ const Tools = () => {
     ]
 
     const canvasEditor = useCanvasStore((state) => state.canvas);
-    const setTools = () => {
-        const properties = {
-            left: 100,
-            top: 100,
-            fill: 'white',
-            radius: 30,
-            stroke: 'black',
-            strokeWidth: 0,
-        }
 
-        if (activeTool === "Circle") {
-            // @ts-ignore
-            const circleRef = new window.fabric.Circle({
+    const handleToolClick = (toolName: Tool) => {
+        setActiveTool(toolName);
+
+        if (toolName === "Circle") {
+            const properties = {
+                left: 100,
+                top: 100,
+                fill: '#3b82f6',
+                radius: 30,
+                stroke: '#1e40af',
+                strokeWidth: 2,
+            }
+
+            const circleRef = new FabricCircle({
                 ...properties
             });
-
-            canvasEditor?.add(circleRef);
+            console.log("Circle Tool Selected: ", circleRef);
+            canvasEditor?.add(circleRef as any);
+            canvasEditor?.renderAll();
         }
-
-        canvasEditor?.renderAll();
     }
     return (
         <div className="col-span-1 flex justify-center items-center">
@@ -64,8 +66,7 @@ const Tools = () => {
                             key={tool.name}
                             title={tool.name}
                             onClick={() => {
-                                setTools();
-                                setActiveTool(tool.name)
+                                handleToolClick(tool.name)
                             }}
                             className={`inline-grid h-9 w-9 place-items-center rounded-full transition-all cursor-pointer
                 ${isActive ? " bg-black/20  dark:bg-white/20 dark:text-white text-black" : "dark:hover:bg-white/10 hover:bg-black/10 dark:hover:text-white hover:text-black/10"}
