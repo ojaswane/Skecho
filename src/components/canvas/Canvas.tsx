@@ -1,9 +1,27 @@
-import React from 'react'
+'use client'
+import React, { useEffect } from 'react'
+import { useRef } from 'react';
+import { Canvas } from 'fabric';
+const CanvasRender = () => {
+  const canvasRef = useRef(null);
+  const [canvas, setCanvas] = React.useState<any>(null);
+  useEffect(() => {
+    if (canvasRef.current && !canvas) {
+      const initCanvas = new Canvas(canvasRef.current, {
+        width: 800,
+        height: 600,
+        backgroundColor: '#ffffff',
+      });
+      initCanvas.renderAll();
+      setCanvas(initCanvas);
+    }
 
-const Canvas = () => {
+  }, []);
   return (
-    <div>Canvas</div>
+    <div>
+      <canvas ref={canvasRef} id='canvas' />
+    </div>
   )
 }
 
-export default Canvas
+export default CanvasRender;
