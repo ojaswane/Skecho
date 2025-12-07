@@ -9,7 +9,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     if (canvasRef.current && !canvas) {
       const initCanvas = new Canvas(canvasRef.current, {
         width: 800,
-        height: 600,
+        height: 1000,
         backgroundColor: theme === "dark" ? "#1a1a1a" : "#ffffff",
       });
       initCanvas.renderAll();
@@ -22,14 +22,14 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   }, []);
 
 
-  useEffect(() => {
-    if (!canvas) return;
+  // useEffect(() => {
+  //   if (!canvas) return;
 
-    canvas.setBackgroundColor(
-      theme === "dark" ? "#1a1a1a" : "#ffffff",
-      () => canvas.renderAll()
-    );
-  }, [theme, canvas]);
+  //   canvas.setBackgroundColor(
+  //     theme === "dark" ? "#1a1a1a" : "#ffffff",
+  //     () => canvas.renderAll()
+  //   );
+  // }, [theme, canvas]);
   return (
     <div>
       <canvas ref={canvasRef} id='canvas' />

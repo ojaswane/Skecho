@@ -3,10 +3,10 @@
 import Navbar from "@/components/canvas/Navbar";
 import Toolbar from "@/components/canvas/Toolbar";
 import CanvasBoard from "@/components/canvas/Canvas";
-import { useCanvasStore } from "../../../../../lib/store/canvasStore"; // if using zustand
+import { useCanvasStore } from "../../../../../lib/store/canvasStore";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const theme = useCanvasStore((s) => s.theme); // "light" | "dark"
+  const theme = useCanvasStore((s) => s.theme);
 
   return (
     <main className="flex flex-col h-screen">
