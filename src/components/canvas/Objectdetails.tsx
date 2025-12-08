@@ -6,59 +6,102 @@ const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
 
   return (
-    <div className="w-64 h-100 rounded-4xl backdrop-blur-3xl mt-10 overflow-hidden  border-r  bg-white dark:bg-[#1e1e1e] flex flex-col ">
+    <div
+      className="
+        w-64 
+        h-full 
+        mt-10
+        rounded-xl
+        border border-white/20
+        bg-white/10 
+        dark:bg-white/5
+        backdrop-blur-2xl
+        shadow-[0_8px_32px_rgba(0,0,0,0.15)]
+        flex flex-col
+      "
+    >
 
       {/* Header */}
-      <div className="p-4 border-b border-gray-300 dark:border-white/10 font-semibold">
+      <div className="p-4 border-b border-white/20 font-semibold backdrop-blur-xl">
         Design Properties
       </div>
 
       {/* Scroll Area */}
-      <div className="flex-1 overflow-y-hidden p-4  ">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
 
         {!selectedObject ? (
           <p className="text-sm opacity-60">No object selected</p>
         ) : (
-          <div className="flex flex-col w-20 gap-6" >
-            {/* Position */}
-            <div>
-              <h2 className="text-xs uppercase opacity-60 mb-1">Position</h2>
-              <div className="flex gap-2">
+          <>
+            {/* POSITION */}
+            <Section title="Position">
+              <Row>
                 <Input label="X" value={selectedObject.left} />
                 <Input label="Y" value={selectedObject.top} />
-              </div>
-            </div>
+              </Row>
+            </Section>
 
-            {/* Size */}
-            <div>
-              <h2 className="text-xs uppercase opacity-60 mb-1">Size</h2>
-              <div className="flex gap-2">
+            {/* SIZE */}
+            <Section title="Size">
+              <Row>
                 <Input label="W" value={selectedObject.width} />
                 <Input label="H" value={selectedObject.height} />
-              </div>
-            </div>
+              </Row>
+            </Section>
 
-            {/* Fill */}
-            <div>
-              <h2 className="text-xs uppercase opacity-60 mb-1">Fill</h2>
+            {/* FILL */}
+            <Section title="Fill">
               <input
                 type="color"
-                value={typeof selectedObject.fill === "string" ? selectedObject.fill : "#000000"}
-                className="w-full h-8 rounded cursor-pointer"
+                value={
+                  typeof selectedObject.fill === "string"
+                    ? selectedObject.fill
+                    : "#000000"
+                }
+                className="
+                  w-full h-9 rounded 
+                  border border-white/20
+                  bg-white/20 
+                  dark:bg-white/10
+                  cursor-pointer
+                "
               />
-            </div>
-          </ div>
+            </Section>
+          </>
         )}
       </div>
     </div>
   );
 };
 
+/* ---------- UI Sub Components ---------- */
+
+const Section = ({ title, children }: any) => (
+  <div>
+    <h2 className="text-xs uppercase opacity-60 mb-1 tracking-wider">{title}</h2>
+    {children}
+  </div>
+);
+
+const Row = ({ children }: any) => (
+  <div className="flex gap-2">{children}</div>
+);
+
 const Input = ({ label, value }: { label: string; value: any }) => (
   <div className="flex flex-col w-full">
     <label className="text-[10px] uppercase opacity-60">{label}</label>
     <input
-      className="h-7 rounded border px-1 text-sm bg-transparent"
+      className="
+        h-8 
+        rounded 
+        border border-white/20
+        bg-white/10 
+        dark:bg-white/10
+        backdrop-blur-md
+        px-2 
+        text-sm
+        focus:outline-none
+      "
       value={Math.round(value)}
     />
   </div>
