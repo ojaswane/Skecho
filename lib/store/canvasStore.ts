@@ -1,6 +1,6 @@
 "use client"
 import { create } from "zustand"
-import type { Canvas as FabricCanvas } from "fabric/fabric-impl"
+import type { Canvas as FabricCanvas, Object as FabricObject } from "fabric/fabric-impl"
 
 type FrameType = "desktop" | "tablet" | "mobile" | null
 type ToolType =
@@ -16,41 +16,51 @@ type ToolType =
 interface CanvasState {
     canvas: FabricCanvas | null
 
-    // Currently active tool
+    // Toolbar tool
     activeTool: ToolType
 
-    // Theme
+    // Current theme
     theme: "light" | "dark"
 
-    // Frame type
+    // Figma frame
     selectedFrame: FrameType
 
-    // JSON data for the canvas just like figma has -> TODO: do use this data for AI fine tune
+    // Whole canvas JSON
     canvasJSON: any
 
-    //actions
+    // Currently selected fabric object (for right sidebar)
+    selectedObject: FabricObject | null
+
     setCanvas: (canvas: FabricCanvas) => void
     setActiveTool: (tool: ToolType) => void
     setTheme: (theme: "light" | "dark") => void
     toggleTheme: () => void
     setSelectedFrame: (frame: FrameType) => void
     setCanvasJSON: (json: any) => void
+
+
+    setSelectedObject: (obj: FabricObject | null) => void
+
     resetCanvas: () => void
-    //TODO:  getJson: () => any
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
     canvas: null,
     activeTool: "Select",
     theme:
-        typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches
+        typeof window !== "undefined" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
             ? "dark"
             : "light",
+
     selectedFrame: null,
     canvasJSON: null,
 
+    selectedObject: null, 
     setCanvas: (canvas) => set({ canvas }),
+
     setActiveTool: (tool) => set({ activeTool: tool }),
+
     setTheme: (theme) => {
         set({ theme })
         if (typeof document !== "undefined") {
@@ -58,12 +68,18 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
             else document.documentElement.classList.remove("dark")
         }
     },
+
     toggleTheme: () => {
         const newTheme = get().theme === "dark" ? "light" : "dark"
         get().setTheme(newTheme)
     },
+
     setSelectedFrame: (frame) => set({ selectedFrame: frame }),
+
     setCanvasJSON: (json) => set({ canvasJSON: json }),
+
+    setSelectedObject: (obj) => set({ selectedObject: obj }),
+
     resetCanvas: () => {
         const c = get().canvas
         if (c) c.clear()
@@ -71,6 +87,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
             canvasJSON: null,
             selectedFrame: null,
             activeTool: "Select",
+            selectedObject: null,
         })
     },
 }))
