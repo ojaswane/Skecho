@@ -7,7 +7,7 @@ import { useCanvasStore } from '../../../lib/store/canvasStore'
 const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   const canvasRef = useRef(null);
   const [canvas, setCanvas] = React.useState<any>(null);
-  const { setCanvas: setStoreCanvas } = useCanvasStore();
+  const { setCanvas: setStoreCanvas, setSelectedObject } = useCanvasStore();
 
   useEffect(() => {
     if (canvasRef.current && !canvas) {
@@ -21,8 +21,8 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       setCanvas(initCanvas);
       setStoreCanvas(initCanvas as any);
 
-      // Delete key handler
-      window.addEventListener("keydown", (e: KeyboardEvent) => {
+      // Delete key handler (attach once and clean up)
+      const onKeyDown = (e: KeyboardEvent) => {
         const key = e.key;
 
         if (key === "Delete" || key === "Backspace") {
@@ -32,10 +32,37 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
             initCanvas.requestRenderAll();
           }
         }
+      };
+      window.addEventListener("keydown", onKeyDown);
+
+      // Wire up selection/object events to update store
+      initCanvas.on("selection:created", (e: any) => {
+        setSelectedObject(e.selected?.[0] || null);
       });
 
+      initCanvas.on("selection:updated", (e: any) => {
+        setSelectedObject(e.selected?.[0] || null);
+      });
+
+      initCanvas.on("selection:cleared", () => {
+        setSelectedObject(null);
+      });
+
+      // Track live updates when user moves or scales:
+      initCanvas.on("object:moving", (e: any) => {
+        setSelectedObject(e.target || null);
+      });
+
+      initCanvas.on("object:scaling", (e: any) => {
+        setSelectedObject(e.target || null);
+      });
+
+      initCanvas.on("object:modified", (e: any) => {
+        setSelectedObject(e.target || null);
+      });
 
       return () => {
+        window.removeEventListener("keydown", onKeyDown);
         initCanvas.dispose();
       }
     }
