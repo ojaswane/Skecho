@@ -9,17 +9,17 @@ const Objectdetails = () => {
     <div className="w-64 h-100 rounded-4xl backdrop-blur-3xl mt-10 overflow-hidden  border-r  bg-white dark:bg-[#1e1e1e] flex flex-col ">
 
       {/* Header */}
-      <div className="p-3 border-b border-gray-300 dark:border-white/10 font-semibold">
-        Design
+      <div className="p-4 border-b border-gray-300 dark:border-white/10 font-semibold">
+        Design Properties
       </div>
 
       {/* Scroll Area */}
-      <div className="flex-1 overflow-y-hidden p-4 ">
+      <div className="flex-1 overflow-y-hidden p-4  ">
 
         {!selectedObject ? (
           <p className="text-sm opacity-60">No object selected</p>
         ) : (
-          <div className="flex flex-col w-20 " >
+          <div className="flex flex-col w-20 gap-6" >
             {/* Position */}
             <div>
               <h2 className="text-xs uppercase opacity-60 mb-1">Position</h2>
