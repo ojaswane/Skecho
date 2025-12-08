@@ -24,7 +24,7 @@ const Layout = () => {
         </div>
 
         {/* RIGHT SIDEBAR (properties panel) */}
-        <div className="w-72 border-l border-gray-300 dark:border-gray-700 overflow-y-auto">
+        <div className="w-72 ">
           <Objectdetails />
         </div>
 

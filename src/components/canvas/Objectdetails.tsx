@@ -6,10 +6,10 @@ const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
 
   return (
-    <div className="w-64 h-screen overflow-hidden  border-r border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1e1e1e] flex flex-col ">
+    <div className="w-64 h-100 rounded-4xl backdrop:backdrop-blur-3xl mt-10 overflow-hidden  border-r  bg-white dark:bg-[#1e1e1e] flex flex-col ">
 
       {/* Header */}
-      <div className="p-3 border-b border-gray-300 dark:border-gray-700 font-semibold">
+      <div className="p-3 border-b border-gray-300 dark:border-white/10 font-semibold">
         Design
       </div>
 
