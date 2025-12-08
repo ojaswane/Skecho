@@ -74,8 +74,6 @@ const Objectdetails = () => {
   );
 };
 
-/* ---------- UI Sub Components ---------- */
-
 const Section = ({ title, children }: any) => (
   <div>
     <h2 className="text-xs uppercase opacity-60 mb-1 tracking-wider">{title}</h2>
