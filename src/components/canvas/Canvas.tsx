@@ -68,22 +68,23 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (!canvas) return;
+// ======================= TODO : Add this back later =======================
 
-    const updateProps = (obj: fabric.Object & { id?: string }) => {
-      useCanvasStore.getState().setSelectedObject({
-        id: obj.id ?? null,
-        left: obj.left ?? 0,
-        top: obj.top ?? 0,
-        width: (obj.width ?? 0) * (obj.scaleX ?? 1),
-        height: (obj.height ?? 0) * (obj.scaleY ?? 1),
-        fill: obj.fill as string,
-        stroke: obj.stroke as string,
-        strokeWidth: obj.strokeWidth,
-      });
-    };
-  }, [canvas]);
+  // useEffect(() => {
+  //   if (!canvas) return;
+
+  //   const updateProps = (obj: fabric.Object) => {
+  //     useCanvasStore.getState().setSelectedObject({
+  //       left: obj.left ?? 0,
+  //       top: obj.top ?? 0,
+  //       width: (obj.width ?? 0) * (obj.scaleX ?? 1),
+  //       height: (obj.height ?? 0) * (obj.scaleY ?? 1),
+  //       fill: obj.fill as string, 
+  //       stroke: obj.stroke as string,
+  //       strokeWidth: obj.strokeWidth,
+  //     });
+  //   };
+  // }, [canvas]);
 
   return (
     <div>
