@@ -27,46 +27,49 @@ const Objectdetails = () => {
       </div>
 
       {/* Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 w-full ">
 
         {!selectedObject ? (
           <p className="text-sm opacity-60">No object selected</p>
         ) : (
           <>
-            {/* POSITION */}
-            <Section title="Position">
-              <Row>
-                <Input label="X" value={selectedObject.left} />
-                <Input label="Y" value={selectedObject.top} />
-              </Row>
-            </Section>
+            <div className="flex flex-col w-20 gap-6">
 
-            {/* SIZE */}
-            <Section title="Size">
-              <Row>
-                <Input label="W" value={selectedObject.width} />
-                <Input label="H" value={selectedObject.height} />
-              </Row>
-            </Section>
+              {/* POSITION */}
+              <Section title="Position">
+                <Row>
+                  <Input label="X" value={selectedObject.left} />
+                  <Input label="Y" value={selectedObject.top} />
+                </Row>
+              </Section>
 
-            {/* FILL */}
-            <Section title="Fill">
-              <input
-                type="color"
-                value={
-                  typeof selectedObject.fill === "string"
-                    ? selectedObject.fill
-                    : "#000000"
-                }
-                className="
-                  w-full h-9 rounded 
-                  border border-white/20
-                  bg-white/20 
-                  dark:bg-white/10
-                  cursor-pointer
+              {/* SIZE */}
+              <Section title="Size">
+                <Row>
+                  <Input label="W" value={selectedObject.width} />
+                  <Input label="H" value={selectedObject.height} />
+                </Row>
+              </Section>
+
+              {/* FILL */}
+              <Section title="Fill">
+                <input
+                  type="color"
+                  value={
+                    typeof selectedObject.fill === "string"
+                      ? selectedObject.fill
+                      : "#000000"
+                  }
+                  className="
+                w-full h-9 rounded 
+                border border-white/20
+                bg-white/20 
+                dark:bg-white/10
+                cursor-pointer
                 "
-              />
-            </Section>
+                />
+              </Section>
+            </div>
           </>
         )}
       </div>
