@@ -71,9 +71,9 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   useEffect(() => {
     if (!canvas) return;
 
-    const updateProps = (obj: fabric.Object) => {
+    const updateProps = (obj: fabric.Object & { id?: string }) => {
       useCanvasStore.getState().setSelectedObject({
-        id: obj.id,
+        id: obj.id ?? null,
         left: obj.left ?? 0,
         top: obj.top ?? 0,
         width: (obj.width ?? 0) * (obj.scaleX ?? 1),
