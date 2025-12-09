@@ -9,7 +9,7 @@ import {
     ArrowRight,
     Frame
 } from "lucide-react"
-import { Circle as FabricCircle, Rect as FabricRect, Line as FabricLine } from "fabric"
+import { Circle as FabricCircle, Rect as FabricRect, Line as FabricLine , IText as text} from "fabric"
 import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
 type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow"
@@ -133,6 +133,31 @@ const Tools = () => {
                 console.log("Arrow added and rendered");
             } catch (error) {
                 console.error("Error creating arrow:", error);
+            }
+        } else if (toolName === "Text") {
+            console.log("Text tool selected");
+            if(!canvas) {
+                console.error("Canvas is not available");
+                return;
+            }
+            try {
+                const properties = {
+                    left: canvas.width! / 2 - 50,
+                    top: canvas.height! / 2 - 50,
+                    fontSize: 24,
+                    fill: "#ffffff",
+                    fontFamily: "inter",
+                    fontWeight: "normal" as "normal" | "bold" | "bolder" | "lighter" | number,
+                    editable: true,
+                }
+                const textRef = new text('text', ({
+                    ...properties
+                }))
+                canvas.add(textRef as any);
+                canvas.renderAll();
+                console.log("Text added and rendered");
+            } catch (e) {
+                console.error("Error creating text:", e);
             }
         }
     }
