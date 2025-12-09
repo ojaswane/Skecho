@@ -56,9 +56,9 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     selectedFrame: null,
     canvasJSON: null,
 
-    selectedObject: null, 
+    selectedObject: null,
     setCanvas: (canvas) => set({ canvas }),
-
+    
     setActiveTool: (tool) => set({ activeTool: tool }),
 
     setTheme: (theme) => {
@@ -91,3 +91,5 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
         })
     },
 }))
+
+export const selectedObject = useCanvasStore((e) => e.selectedObject);

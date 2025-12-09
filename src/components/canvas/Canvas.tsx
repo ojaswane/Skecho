@@ -68,15 +68,23 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     }
   }, []);
 
+  useEffect(() => {
+    if (!canvas) return;
 
-  // useEffect(() => {
-  //   if (!canvas) return;
+    const updateProps = (obj: fabric.Object) => {
+      useCanvasStore.getState().setSelectedObject({
+        id: obj.id,
+        left: obj.left ?? 0,
+        top: obj.top ?? 0,
+        width: (obj.width ?? 0) * (obj.scaleX ?? 1),
+        height: (obj.height ?? 0) * (obj.scaleY ?? 1),
+        fill: obj.fill as string,
+        stroke: obj.stroke as string,
+        strokeWidth: obj.strokeWidth,
+      });
+    };
+  }, [canvas]);
 
-  //   canvas.setBackgroundColor(
-  //     theme === "dark" ? "#1a1a1a" : "#ffffff",
-  //     () => canvas.renderAll()
-  //   );
-  // }, [theme, canvas]);
   return (
     <div>
       <canvas ref={canvasRef} id='canvas' />
@@ -85,3 +93,13 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
 }
 
 export default CanvasRender;
+
+
+// useEffect(() => {
+//   if (!canvas) return;
+
+//   canvas.setBackgroundColor(
+//     theme === "dark" ? "#1a1a1a" : "#ffffff",
+//     () => canvas.renderAll()
+//   );
+// }, [theme, canvas]);
