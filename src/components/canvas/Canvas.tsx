@@ -26,7 +26,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       const onKeyDown = (e: KeyboardEvent) => {
         const key = e.key;
 
-        if (key === "Delete" || key === "Backspace") {
+        if (key === "Delete" ) {
           const active = initCanvas.getActiveObject();
           if (active) {
             initCanvas.remove(active);

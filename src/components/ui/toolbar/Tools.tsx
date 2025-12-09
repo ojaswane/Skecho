@@ -146,7 +146,7 @@ const Tools = () => {
                     top: canvas.height! / 2 - 50,
                     fontSize: 24,
                     fill: "#ffffff",
-                    fontFamily: "inter",
+                    fontFamily: "Arial",
                     fontWeight: "normal" as "normal" | "bold" | "bolder" | "lighter" | number,
                     editable: true,
                 }
