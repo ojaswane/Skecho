@@ -1,7 +1,11 @@
 "use client";
 import React from "react";
 import { useCanvasStore } from "../../../lib/store/canvasStore";
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
 
@@ -53,21 +57,26 @@ const Objectdetails = () => {
 
               {/* FILL */}
               <Section title="Fill">
-                <input
-                  type="color"
-                  value={
-                    typeof selectedObject.fill === "string"
-                      ? selectedObject.fill
-                      : "#000000"
-                  }
-                  className="
-                w-full h-9 rounded 
-                border border-white/20
-                bg-white/20 
-                dark:bg-white/10
-                cursor-pointer
-                "
-                />
+                <Popover>
+                  <PopoverTrigger
+                    value={
+                      typeof selectedObject.fill === "string"
+                        ? selectedObject.fill
+                        : "#000000"
+                    }
+                    className="
+                  w-full h-9 rounded-4xl
+                  border border-white/20
+                  bg-white/20 
+                  dark:bg-white/10
+                  cursor-pointer
+                  "
+                  >
+                    <PopoverContent>
+                      <div>THis Is popover for color section</div>
+                    </PopoverContent>
+                  </PopoverTrigger>
+                </Popover>
               </Section>
             </div>
           </>

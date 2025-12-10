@@ -571,7 +571,6 @@ export const useThemeToggle = ({
   };
 };
 
-// ///////////////////////////////////////////////////////////////////////////
 
 export const ThemeToggleButton = ({
   className = "",
