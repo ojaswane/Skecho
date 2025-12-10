@@ -6,12 +6,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { SketchPicker } from "react-color";
+import { HexColorPicker } from "react-colorful";
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
 
-  const UpdateFill = () => {
-    
-  }
+  const updateFillColor = (color: any) => {
+    const canvas = useCanvasStore.getState().canvas;
+    const active = canvas?.getActiveObject();
+    if (!active) return;
+
+    active.set("fill", color.hex);
+    canvas?.renderAll();
+
+    useCanvasStore.getState().setSelectedObject(active);
+  };
   return (
     <div
       className="
@@ -62,21 +71,23 @@ const Objectdetails = () => {
               <Section title="Fill">
                 <Popover>
                   <PopoverTrigger
-                    value={
-                      typeof selectedObject.fill === "string"
-                        ? selectedObject.fill
-                        : "#000000"
-                    }
                     className="
-                  w-full h-9 rounded-4xl
-                  border border-white/20
-                  bg-white/20 
-                  dark:bg-white/10
-                  cursor-pointer
-                  "
+                w-full h-9 rounded-4xl
+                border border-white/20
+                bg-white/20 
+                dark:bg-white/10
+                cursor-pointer
+                "
                   >
                     <PopoverContent>
-                      <div>THis Is popover for color section</div>
+                      <HexColorPicker
+                        color={
+                          typeof selectedObject.fill === "string"
+                            ? selectedObject.fill
+                            : "#000000"
+                        }
+                        onChange={updateFillColor}
+                      />
                     </PopoverContent>
                   </PopoverTrigger>
                 </Popover>
