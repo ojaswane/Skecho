@@ -31,6 +31,9 @@ interface CanvasState {
     // Currently selected fabric object (for right sidebar)
     selectedObject: FabricObject | null
 
+    // Simple local model of canvas elements (used for quick updates)
+    elements: Array<{ id: number; fill?: string;[key: string]: any }>
+
     setCanvas: (canvas: FabricCanvas) => void
     setActiveTool: (tool: ToolType) => void
     setTheme: (theme: "light" | "dark") => void
@@ -42,6 +45,7 @@ interface CanvasState {
     setSelectedObject: (obj: FabricObject | null) => void
 
     resetCanvas: () => void
+    updateElementColor: (id: number, color: string) => void;
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
@@ -57,6 +61,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     canvasJSON: null,
 
     selectedObject: null,
+    elements: [],
     setCanvas: (canvas) => set({ canvas }),
 
     setActiveTool: (tool) => set({ activeTool: tool }),
@@ -89,6 +94,13 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
             activeTool: "Select",
             selectedObject: null,
         })
+    },
+    updateElementColor(id, color) {
+        set((state) => ({
+            elements: state.elements.map((el: any) =>
+                el.id === id ? { ...el, fill: color } : el
+            ),
+        } as Partial<CanvasState>));
     },
 }))
 

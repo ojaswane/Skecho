@@ -9,6 +9,9 @@ import {
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
 
+  const UpdateFill = () => {
+    
+  }
   return (
     <div
       className="
