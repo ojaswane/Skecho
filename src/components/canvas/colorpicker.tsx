@@ -161,7 +161,7 @@ export default function ColorPickerEditor({ value, onChange }: ColorPickerProps)
   /* UI */
 
   return (
-    <div className="w-[260px] flex flex-col gap-4 p-3 border rounded-lg bg-white/20 dark:bg-white/10  shadow">
+    <div className="w-full flex flex-col gap-4 p-3  rounded-lg bg-white/20 dark:bg-white/10  ">
 
       {/* COLOR BOX */}
       <div
@@ -175,7 +175,7 @@ export default function ColorPickerEditor({ value, onChange }: ColorPickerProps)
 
         {/* Selector */}
         <div
-          className="absolute w-4 h-4 border-2 border-white rounded-full shadow"
+          className="absolute w-4 h-4 border-2 border-white rounded-full pointer-events-none"
           style={{
             left: `${sat}%`,
             top: `${100 - light}%`,
@@ -254,7 +254,7 @@ export default function ColorPickerEditor({ value, onChange }: ColorPickerProps)
 
       {/* RECENT */}
       <div>
-        <p className="text-xs text-black dark:text-white mb-2">Recent</p>
+        <p className="text-xs text-black dark:text-white mb-2">SHADES</p>
         <div className="flex gap-2 flex-wrap">
           {recent.map((c, i) => (
             <div
