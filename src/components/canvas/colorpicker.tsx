@@ -28,7 +28,7 @@ export default function ColorPickerEditor({ value, onChange }: ColorPickerProps)
   const [recent, setRecent] = useState<string[]>([]);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
-  /* ------------------ UTIL FUNCTIONS ------------------ */
+  /* UTIL FUNCTIONS  */
 
   const hexToRGBA = (hex: string, opacity = 1) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -93,9 +93,8 @@ export default function ColorPickerEditor({ value, onChange }: ColorPickerProps)
     };
   };
 
-  /* ------------------ EFFECTS ------------------ */
+  /* EFFECTS */
 
-  // Sync external value → internal HSL + HEX
   useEffect(() => {
     if (value) {
       setHex(value);
@@ -135,7 +134,8 @@ export default function ColorPickerEditor({ value, onChange }: ColorPickerProps)
     localStorage.setItem("recentColors", JSON.stringify(updated));
   }, [hex]);
 
-  /* ------------------ DRAG HANDLER ------------------ */
+
+  /* DRAG HANDLER  */
 
   const handleDrag = (e: MouseEvent) => {
     if (!boxRef.current) return;
@@ -158,10 +158,10 @@ export default function ColorPickerEditor({ value, onChange }: ColorPickerProps)
     window.removeEventListener("mouseup", stopDrag);
   };
 
-  /* ------------------ UI ------------------ */
+  /* UI */
 
   return (
-    <div className="w-[260px] flex flex-col gap-4 p-3 border rounded-lg bg-white shadow">
+    <div className="w-[260px] flex flex-col gap-4 p-3 border rounded-lg bg-white/20 dark:bg-white/10  shadow">
 
       {/* COLOR BOX */}
       <div
@@ -214,7 +214,7 @@ export default function ColorPickerEditor({ value, onChange }: ColorPickerProps)
 
       {/* HEX INPUT */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-600">HEX</span>
+        <span className="text-sm text-black dark:text-white">HEX</span>
         <input
           type="text"
           value={hex.toUpperCase()}
@@ -254,7 +254,7 @@ export default function ColorPickerEditor({ value, onChange }: ColorPickerProps)
 
       {/* RECENT */}
       <div>
-        <p className="text-xs text-gray-500 mb-1">Recent</p>
+        <p className="text-xs text-black dark:text-white mb-2">Recent</p>
         <div className="flex gap-2 flex-wrap">
           {recent.map((c, i) => (
             <div
