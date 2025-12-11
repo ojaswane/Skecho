@@ -6,8 +6,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-// import { SketchPicker } from "react-color";
-// import { HexColorPicker } from "react-colorful";
 
 import ColorPickerEditor from "./colorpicker";
 const Objectdetails = () => {
