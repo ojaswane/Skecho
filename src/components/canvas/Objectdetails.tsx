@@ -77,7 +77,7 @@ const Objectdetails = () => {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
-                      className=" w-full h-9 rounded-4xl  border border-white/20   bg-white/20 dark:bg-white/10  cursor-pointer flex items-center px-2 gap-2 "
+                      className=" w-full h-9 rounded-4xl  border border-white/20 bg-white/20 dark:bg-white/10  cursor-pointer flex items-center px-2 gap-2 "
                     >
                       {/* Color preview circle */}
                       <div
