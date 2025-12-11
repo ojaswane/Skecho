@@ -1,32 +1,63 @@
 "use client";
+import React, { useState, useEffect } from "react";
 
-import { HexColorPicker } from "react-colorful";
-import "react-colorful/dist/index.css";
-import { useCanvasStore } from "../../../lib/store/canvasStore";
+const PRESET_COLORS = [
+  "#FF0000", "#FFA500", "#FFFF00",
+  "#00FF00", "#00FFFF", "#0000FF",
+  "#800080", "#000000", "#FFFFFF"
+];
 
-export default function ColorPickerPanel() {
-  const selectedObject = useCanvasStore((s) => s.selectedObject);
+interface ColorPaletteProps {
+  value?: string;
+  onChange?: (color: string) => void;
+}
 
-  if (!selectedObject) return null;
+export default function ColorPalette({ value, onChange }: ColorPaletteProps) {
+  const [color, setColor] = useState(value || "#ff0000");
 
-  const updateColor = (color: string) => {
-    const canvas = useCanvasStore.getState().canvas;
-    const obj = canvas?.getActiveObject();
-    if (!obj) return;
+  useEffect(() => {
+    if (value) setColor(value);
+  }, [value]);
 
-    obj.set("fill", color);
-    canvas?.renderAll();
-
-    useCanvasStore.getState().setSelectedObject(obj);
+  const handleColorChange = (newColor: string) => {
+    setColor(newColor);
+    onChange?.(newColor);
   };
 
   return (
-    <div className="p-4 bg-white/10 backdrop-blur-xl rounded-xl shadow-xl border border-white/20">
-      <h3 className="text-white mb-2 text-sm">Fill Color</h3>
+    <div className="flex flex-col gap-3 w-[220px]">
 
-      <HexColorPicker
-        color={selectedObject.fill as string|| "#000000"}
-        onChange={updateColor}
+      {/* Palette */}
+      <div className="grid grid-cols-6 gap-2">
+        {PRESET_COLORS.map((c) => (
+          <div
+            key={c}
+            onClick={() => handleColorChange(c)}
+            className="w-8 h-8 rounded border cursor-pointer"
+            style={{ backgroundColor: c }}
+          />
+        ))}
+      </div>
+
+      {/* Native Picker */}
+      <input
+        type="color"
+        value={color}
+        onChange={(e) => handleColorChange(e.target.value)}
+        className="w-full h-10 cursor-pointer rounded"
+      />
+
+      {/* HEX Input */}
+      <input
+        type="text"
+        value={color.toUpperCase()}
+        onChange={(e) => {
+          const hex = e.target.value;
+          if (/^#[0-9A-Fa-f]{0,6}$/.test(hex)) {
+            handleColorChange(hex);
+          }
+        }}
+        className="border px-2 py-1 rounded text-sm"
       />
     </div>
   );

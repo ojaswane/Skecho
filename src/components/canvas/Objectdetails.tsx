@@ -6,8 +6,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { SketchPicker } from "react-color";
-import { HexColorPicker } from "react-colorful";
+// import { SketchPicker } from "react-color";
+// import { HexColorPicker } from "react-colorful";
+
+import ColorPickerEditor from "./colorpicker";
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
 
@@ -21,6 +23,8 @@ const Objectdetails = () => {
 
     useCanvasStore.getState().setSelectedObject(active);
   };
+
+
   return (
     <div
       className="
@@ -80,14 +84,7 @@ const Objectdetails = () => {
                 "
                   >
                     <PopoverContent>
-                      <HexColorPicker
-                        color={
-                          typeof selectedObject.fill === "string"
-                            ? selectedObject.fill
-                            : "#000000"
-                        }
-                        onChange={updateFillColor}
-                      />
+                      <ColorPickerEditor />
                     </PopoverContent>
                   </PopoverTrigger>
                 </Popover>
