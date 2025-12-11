@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { use } from "react";
 import { useCanvasStore } from "../../../lib/store/canvasStore";
 import {
   Popover,
@@ -12,6 +12,7 @@ const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
   const [colorSet, setColor] = React.useState("#ffffff");
 
+
   const updateFillColor = (color: any) => {
     const canvas = useCanvasStore.getState().canvas;
     const active = canvas?.getActiveObject();
@@ -23,6 +24,12 @@ const Objectdetails = () => {
 
     useCanvasStore.getState().setSelectedObject(active);
   };
+
+
+  const activeObject = useCanvasStore((s) => s.selectedObject);
+  const ColorSetObj = () => {
+    activeObject?.fill || "#ffffff";
+  }
 
 
   return (
@@ -72,7 +79,6 @@ const Objectdetails = () => {
               </Section>
 
               {/* FILL */}
-              {/* FILL */}
               <Section title="Fill">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -82,7 +88,7 @@ const Objectdetails = () => {
                       {/* Color preview circle */}
                       <div
                         className="w-full h-full rounded-full "
-                        style={{ background: colorSet }}
+                        style={{ background: ColorSetObj() }}
                       />
                     </button>
                   </PopoverTrigger>
