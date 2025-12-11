@@ -74,19 +74,27 @@ const Objectdetails = () => {
                 <Popover>
                   <PopoverTrigger
                     className="
-                w-full h-9 rounded-4xl
-                border border-white/20
-                bg-white/20 
-                dark:bg-white/10
-                cursor-pointer
-                "
+        w-full h-9 rounded-4xl
+        border border-white/20
+        bg-white/20 dark:bg-white/10
+        cursor-pointer
+      "
                   >
-                    <PopoverContent>
-                      <ColorPickerEditor />
-                    </PopoverContent>
+                    {/* This button becomes the trigger */}
+                    <div className="w-full h-full"></div>
                   </PopoverTrigger>
+
+                  <PopoverContent
+                    side="right"
+                    align="start"
+                    className="p-0"
+                    onOpenAutoFocus={(e) => e.preventDefault()}   // prevent input auto-focus closing
+                  >
+                    <ColorPickerEditor onChange={updateFillColor} />
+                  </PopoverContent>
                 </Popover>
               </Section>
+
             </div>
           </>
         )}
