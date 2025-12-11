@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/popover";
 
 import ColorPickerEditor from "./colorpicker";
+import StrokeSettings from "./ui/StrokeSettings";
 
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
@@ -116,6 +117,9 @@ const Objectdetails = () => {
                   </PopoverContent>
                 </Popover>
               </Section>
+
+              {/* Stroke sections */}
+              <StrokeSettings />
 
             </div>
           </>
