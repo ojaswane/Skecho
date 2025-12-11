@@ -7,87 +7,145 @@ const PRESET_COLORS = [
   "#800080", "#000000", "#FFFFFF"
 ];
 
-interface colorpicker {
+interface ColorPickerProps {
   value?: string;
-  onChange?: (color: any) => void;
+  onChange?: (data: {
+    hex: string;
+    hsl: { h: number; s: number; l: number };
+    rgba: string;
+    opacity: number;
+  }) => void;
 }
 
-interface Hex {
-  hex: string;
-  updated: string[];
-}
-export default function ColorPickerEditor({ value, onChange }: colorpicker) {
+export default function ColorPickerEditor({ value, onChange }: ColorPickerProps) {
   const [hex, setHex] = useState(value || "#ff0000");
   const [opacity, setOpacity] = useState(1);
-  const [recent, setRecent] = useState([]);
 
-  const boxRef = useRef(null);
+  const [hue, setHue] = useState(0);
   const [sat, setSat] = useState(100);
   const [light, setLight] = useState(50);
-  const [hue, setHue] = useState(0);
 
-  //  Convert HSL → HEX
-  function hslToHex(h: any, s: any, l: any) {
+  const [recent, setRecent] = useState<string[]>([]);
+  const boxRef = useRef<HTMLDivElement | null>(null);
+
+  /* ------------------ UTIL FUNCTIONS ------------------ */
+
+  const hexToRGBA = (hex: string, opacity = 1) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  const hslToHex = (h: number, s: number, l: number) => {
     s /= 100;
     l /= 100;
-    const k = (n: any) => (n + h / 30) % 12;
-    const a = s * Math.min(l, 1 - l);
-    const f = (n: any) =>
-      Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1))));
-    return `#${f(0).toString(16).padStart(2, "0")}${f(8)
-      .toString(16)
-      .padStart(2, "0")}${f(4).toString(16).padStart(2, "0")}`;
-  }
 
-  // update the hsl
+    const k = (n: number) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+
+    const f = (n: number) =>
+      Math.round(
+        255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))
+      );
+
+    return (
+      "#" +
+      f(0).toString(16).padStart(2, "0") +
+      f(8).toString(16).padStart(2, "0") +
+      f(4).toString(16).padStart(2, "0")
+    );
+  };
+
+  const hexToHSL = (hex: string) => {
+    let r = parseInt(hex.substr(1, 2), 16) / 255;
+    let g = parseInt(hex.substr(3, 2), 16) / 255;
+    let b = parseInt(hex.substr(5, 2), 16) / 255;
+
+    let max = Math.max(r, g, b),
+      min = Math.min(r, g, b);
+    let h = 0,
+      s = 0,
+      l = (max + min) / 2;
+
+    if (max !== min) {
+      let d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+      switch (max) {
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
+      }
+      h *= 60;
+    }
+
+    return {
+      h: Math.round(h),
+      s: Math.round(s * 100),
+      l: Math.round(l * 100),
+    };
+  };
+
+  /* ------------------ EFFECTS ------------------ */
+
+  // Sync external value → internal HSL + HEX
+  useEffect(() => {
+    if (value) {
+      setHex(value);
+      const hsl = hexToHSL(value);
+      setHue(hsl.h);
+      setSat(hsl.s);
+      setLight(hsl.l);
+    }
+  }, [value]);
+
+  // When HSL changes → generate hex
   useEffect(() => {
     const newHex = hslToHex(hue, sat, light);
     setHex(newHex);
 
-    if (onChange) {
-      onChange({
-        hex: newHex,
-        hsl: { h: hue, s: sat, l: light },
-        opacity: opacity,
-        rgba: hexToRGBA(newHex, opacity),
-      });
-    }
+    onChange?.({
+      hex: newHex,
+      hsl: { h: hue, s: sat, l: light },
+      opacity,
+      rgba: hexToRGBA(newHex, opacity),
+    });
   }, [hue, sat, light, opacity]);
 
-
-  useEffect(() => {
-    if (!recent.includes(hex)) {
-      const updated = [hex, ...recent].slice(0, 6);
-      setRecent(updated);
-      localStorage.setItem("recentColors", JSON.stringify(updated));
-    }
-  }, [hex]);
-
+  // Load recent from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("recentColors");
     if (saved) setRecent(JSON.parse(saved));
   }, []);
 
-  // Converts HEX to RGBA
-  function hexToRGBA(hex: string, opacity = 1) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-  }
+  // Add new color to recent
+  useEffect(() => {
+    if (!hex) return;
+    if (recent.includes(hex)) return;
 
-  // Handle color box drag
+    const updated = [hex, ...recent].slice(0, 6);
+    setRecent(updated);
+    localStorage.setItem("recentColors", JSON.stringify(updated));
+  }, [hex]);
 
-  const handleDrag = (e: any) => {
-    const rect = boxRef.current?.getBoundingClientRect();
+  /* ------------------ DRAG HANDLER ------------------ */
+
+  const handleDrag = (e: MouseEvent) => {
+    if (!boxRef.current) return;
+
+    const rect = boxRef.current.getBoundingClientRect();
     const x = Math.min(Math.max(0, e.clientX - rect.left), rect.width);
     const y = Math.min(Math.max(0, e.clientY - rect.top), rect.height);
 
-    const satVal = Math.round((x / rect.width) * 100);
-    const lightVal = Math.round(100 - (y / rect.height) * 100);
-
-    setSat(satVal);
-    setLight(lightVal);
+    setSat(Math.round((x / rect.width) * 100));
+    setLight(Math.round(100 - (y / rect.height) * 100));
   };
 
   const startDrag = () => {
@@ -100,22 +158,22 @@ export default function ColorPickerEditor({ value, onChange }: colorpicker) {
     window.removeEventListener("mouseup", stopDrag);
   };
 
+  /* ------------------ UI ------------------ */
+
   return (
     <div className="w-[260px] flex flex-col gap-4 p-3 border rounded-lg bg-white shadow">
 
-      {/*  COLOR BOX */}
+      {/* COLOR BOX */}
       <div
         ref={boxRef}
         onMouseDown={startDrag}
         className="relative w-full h-36 rounded-lg cursor-crosshair"
-        style={{
-          background: `hsl(${hue}, 100%, 50%)`
-        }}
+        style={{ background: `hsl(${hue}, 100%, 50%)` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-white"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-white" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black" />
 
-        {/* Selector circle */}
+        {/* Selector */}
         <div
           className="absolute w-4 h-4 border-2 border-white rounded-full shadow"
           style={{
@@ -123,75 +181,91 @@ export default function ColorPickerEditor({ value, onChange }: colorpicker) {
             top: `${100 - light}%`,
             transform: "translate(-50%, -50%)",
           }}
-        ></div>
+        />
       </div>
 
-      {/* - HUE SLIDER */}
+      {/* HUE SLIDER */}
       <input
         type="range"
         min="0"
         max="360"
         value={hue}
         onChange={(e) => setHue(Number(e.target.value))}
-        className="w-full h-2 rounded-lg cursor-pointer"
+        className="w-full h-2 rounded-lg cursor-pointer appearance-none"
         style={{
           background:
-            "linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red)"
+            "linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red)",
         }}
       />
 
-      {/* OPACITY SLIDER  */}
-      <div className="relative w-full h-2 rounded bg-gray-200">
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value={opacity}
-          onChange={(e) => setOpacity(Number(e.target.value))}
-          className="w-full absolute top-0 h-2 opacity-100 cursor-pointer"
-          style={{
-            background: `linear-gradient(to right, transparent, ${hex})`
-          }}
-        />
-      </div>
+      {/* OPACITY SLIDER */}
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        value={opacity}
+        onChange={(e) => setOpacity(Number(e.target.value))}
+        className="w-full h-2 rounded cursor-pointer"
+        style={{
+          background: `linear-gradient(to right, transparent, ${hex})`,
+        }}
+      />
 
-      {/* - HEX INPUT */}
+      {/* HEX INPUT */}
       <div className="flex items-center gap-2">
         <span className="text-sm text-gray-600">HEX</span>
         <input
           type="text"
           value={hex.toUpperCase()}
           onChange={(e) => {
-            let v = e.target.value;
+            const v = e.target.value;
             if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) {
               setHex(v);
+              if (v.length === 7) {
+                const hsl = hexToHSL(v);
+                setHue(hsl.h);
+                setSat(hsl.s);
+                setLight(hsl.l);
+              }
             }
           }}
           className="flex-1 border px-2 py-1 rounded text-sm"
         />
       </div>
 
-      {/*  PRESET COLORS */}
+      {/* PRESETS */}
       <div className="grid grid-cols-6 gap-2">
         {PRESET_COLORS.map((c) => (
           <div
             key={c}
-            onClick={() => setHex(c)}
+            onClick={() => {
+              setHex(c);
+              const hsl = hexToHSL(c);
+              setHue(hsl.h);
+              setSat(hsl.s);
+              setLight(hsl.l);
+            }}
             className="w-7 h-7 rounded border cursor-pointer"
             style={{ background: c }}
           />
         ))}
       </div>
 
-      {/* RECENT COLORS */}
+      {/* RECENT */}
       <div>
         <p className="text-xs text-gray-500 mb-1">Recent</p>
         <div className="flex gap-2 flex-wrap">
           {recent.map((c, i) => (
             <div
               key={i}
-              onClick={() => setHex(c)}
+              onClick={() => {
+                setHex(c);
+                const hsl = hexToHSL(c);
+                setHue(hsl.h);
+                setSat(hsl.s);
+                setLight(hsl.l);
+              }}
               className="w-7 h-7 rounded border cursor-pointer"
               style={{ background: c }}
             />
