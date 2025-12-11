@@ -74,16 +74,10 @@ const Objectdetails = () => {
                 <Popover>
                   <PopoverTrigger
                     className="
-        w-full h-9 rounded-4xl
-        border border-white/20
-        bg-white/20 dark:bg-white/10
-        cursor-pointer
-      "
+                      w-full h-9 rounded-4xl border border-white/20 bg-white/20 dark:bg-white/10 cursor-pointer "
                   >
-                    {/* This button becomes the trigger */}
                     <div className="w-full h-full"></div>
                   </PopoverTrigger>
-
                   <PopoverContent
                     side="right"
                     align="start"
