@@ -10,6 +10,7 @@ import {
 import ColorPickerEditor from "./colorpicker";
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
+  const [colorSet, setColor] = React.useState("#ffffff");
 
   const updateFillColor = (color: any) => {
     const canvas = useCanvasStore.getState().canvas;
@@ -17,6 +18,7 @@ const Objectdetails = () => {
     if (!active) return;
 
     active.set("fill", color.hex);
+    setColor(color.hex);
     canvas?.renderAll();
 
     useCanvasStore.getState().setSelectedObject(active);
@@ -70,24 +72,43 @@ const Objectdetails = () => {
               </Section>
 
               {/* FILL */}
+              {/* FILL */}
               <Section title="Fill">
                 <Popover>
-                  <PopoverTrigger
-                    className="
-                      w-full h-9 rounded-4xl border border-white/20 bg-white/20 dark:bg-white/10 cursor-pointer "
-                  >
-                    <div className="w-full h-full"></div>
+                  <PopoverTrigger asChild>
+                    <button
+                      className=" w-full h-9 rounded-4xl  border border-white/20   bg-white/20 dark:bg-white/10  cursor-pointer flex items-center px-2 gap-2 "
+                    >
+                      {/* Color preview circle */}
+                      <div
+                        className="w-full h-full p-0 rounded-full "
+                        style={{ background: colorSet }}
+                      />
+                    </button>
                   </PopoverTrigger>
+
                   <PopoverContent
                     side="right"
                     align="start"
                     className="p-0"
-                    onOpenAutoFocus={(e) => e.preventDefault()}   // prevent input auto-focus closing
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                    // prevents auto-focus closing bug
+                    onInteractOutside={(e) => {
+                      if (
+                        e.target instanceof HTMLElement &&
+                        e.target.closest(".colorpicker-area")
+                      ) {
+                        e.preventDefault();
+                      }
+                    }}
                   >
-                    <ColorPickerEditor onChange={updateFillColor} />
+                    <div className="colorpicker-area">
+                      <ColorPickerEditor onChange={updateFillColor} />
+                    </div>
                   </PopoverContent>
                 </Popover>
               </Section>
+
 
             </div>
           </>
