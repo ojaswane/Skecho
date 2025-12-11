@@ -1,17 +1,17 @@
 "use client";
-import React, { use } from "react";
+import React from "react";
 import { useCanvasStore } from "../../../lib/store/canvasStore";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 
 import ColorPickerEditor from "./colorpicker";
+
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
   const [colorSet, setColor] = React.useState("#ffffff");
-
 
   const updateFillColor = (color: any) => {
     const canvas = useCanvasStore.getState().canvas;
@@ -24,13 +24,6 @@ const Objectdetails = () => {
 
     useCanvasStore.getState().setSelectedObject(active);
   };
-
-
-  const activeObject = useCanvasStore((s) => s.selectedObject);
-  const ColorSetObj = () => {
-    activeObject?.fill || "#ffffff";
-  }
-
 
   return (
     <div
@@ -47,7 +40,6 @@ const Objectdetails = () => {
         flex flex-col
       "
     >
-
       {/* Header */}
       <div className="p-4 border-b border-white/20 font-semibold backdrop-blur-xl">
         Design Properties
@@ -55,13 +47,11 @@ const Objectdetails = () => {
 
       {/* Scroll Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6 w-full ">
-
         {!selectedObject ? (
           <p className="text-sm opacity-60">No object selected</p>
         ) : (
           <>
             <div className="flex flex-col w-20 gap-6">
-
               {/* POSITION */}
               <Section title="Position">
                 <Row>
@@ -79,16 +69,29 @@ const Objectdetails = () => {
               </Section>
 
               {/* FILL */}
+              {/* FILL */}
               <Section title="Fill">
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
-                      className=" w-full mt-4 h-9 rounded-4xl  border border-white/20 bg-white/20 dark:bg-white/10  cursor-pointer flex items-center gap-2 "
+                      className="
+          w-full mt-4 h-9 rounded-4xl 
+          border border-white/20 
+          bg-white/20 dark:bg-white/10  
+          cursor-pointer flex items-center
+        "
                     >
-                      {/* Color preview circle */}
+                      {/* Color preview box */}
                       <div
-                        className="w-full h-full rounded-full "
-                        style={{ background: ColorSetObj() }}
+                        className="w-full h-full rounded-full"
+                        style={{
+                          backgroundColor:
+                            typeof selectedObject?.fill === "string"
+                              ? selectedObject.fill
+                              : typeof selectedObject?.backgroundColor === "string"
+                                ? selectedObject.backgroundColor
+                                : "#ffffff",
+                        }}
                       />
                     </button>
                   </PopoverTrigger>
@@ -98,7 +101,6 @@ const Objectdetails = () => {
                     align="start"
                     className="p-0"
                     onOpenAutoFocus={(e) => e.preventDefault()}
-                    // prevents auto-focus closing bug
                     onInteractOutside={(e) => {
                       if (
                         e.target instanceof HTMLElement &&
@@ -115,7 +117,6 @@ const Objectdetails = () => {
                 </Popover>
               </Section>
 
-
             </div>
           </>
         )}
@@ -131,26 +132,22 @@ const Section = ({ title, children }: any) => (
   </div>
 );
 
-const Row = ({ children }: any) => (
-  <div className="flex gap-2">{children}</div>
-);
+const Row = ({ children }: any) => <div className="flex gap-2">{children}</div>;
 
 const Input = ({ label, value }: { label: string; value: any }) => (
   <div className="flex flex-col w-full">
     <label className="text-[10px] uppercase opacity-60">{label}</label>
     <input
       className="
-        h-8 
-        rounded 
+        h-8 rounded 
         border border-white/20
-        bg-white/10 
-        dark:bg-white/10
+        bg-white/10 dark:bg-white/10
         backdrop-blur-md
-        px-2 
-        text-sm
+        px-2 text-sm
         focus:outline-none
       "
       value={Math.round(value)}
+      readOnly
     />
   </div>
 );
