@@ -118,7 +118,9 @@ const Objectdetails = () => {
               </Section>
 
               {/* Stroke sections */}
-              <StrokeSettings />
+              <div className="w-full ">
+                <StrokeSettings />
+              </div>
 
             </div>
           </>
