@@ -10,6 +10,7 @@ import ColorPickerEditor from '../colorpicker';
 
 const StrokeSettings = () => {
     const selectedObject = useCanvasStore((s) => s.selectedObject);
+
     const updateWidth = (e: any) => {
         const canvas = useCanvasStore.getState().canvas;
         const activeObject = canvas?.getActiveObject();
@@ -21,20 +22,16 @@ const StrokeSettings = () => {
         useCanvasStore.getState().setSelectedObject(activeObject);
     };
 
-    // stroke color update
     const updateStrokeColor = (color: any) => {
         const canvas = useCanvasStore.getState().canvas;
         const activeObject = canvas?.getActiveObject();
         if (!activeObject) return;
 
         activeObject.set("stroke", color.hex);
-        activeObject.set("dirty", true);
         canvas?.renderAll();
-
         useCanvasStore.getState().setSelectedObject(activeObject);
     };
 
-    // FIXED preview — using STROKE not FILL
     const strokePreview =
         typeof selectedObject?.stroke === "string"
             ? selectedObject.stroke
@@ -42,14 +39,13 @@ const StrokeSettings = () => {
 
     return (
         <section className="w-full">
-            {/* Stroke Width + Color */}
-            <div className="flex w-full justify-between items-center gap-4 text-[15px]">
+            <div className="flex w-full items-end gap-8 p-2">
 
-                {/* WIDTH */}
-                <div>
+                {/* Stroke Width */}
+                <div className="flex flex-col">
                     <label
                         htmlFor="stroke-width"
-                        className="uppercase text-[12px] opacity-60"
+                        className="uppercase text-[11px] opacity-60 tracking-wide"
                     >
                         Stroke Width
                     </label>
@@ -57,49 +53,55 @@ const StrokeSettings = () => {
                     <input
                         id="stroke-width"
                         type="number"
-                        className="w-16 h-8 rounded border border-white/20 bg-white/10 px-2 mt-1"
+                        className="
+                            w-20 h-10 mt-1 px-3
+                            rounded-md border border-white/20 
+                            bg-white/10 text-sm 
+                            focus:outline-none focus:ring-1 focus:ring-white/40
+                        "
                         value={selectedObject?.strokeWidth || 0}
                         onChange={updateWidth}
                     />
                 </div>
 
-                {/* COLOR PICKER */}
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <button
-                            className="
-                                w-10 h-10 mt-4 rounded-full 
-                                border border-white/20 
-                                bg-white/20 dark:bg-white/10 
-                                cursor-pointer flex items-center justify-center
-                            "
-                        >
-                            <div
-                                className="w-6 h-6 rounded-full border"
-                                style={{ backgroundColor: strokePreview }}
-                            />
-                        </button>
-                    </PopoverTrigger>
+                {/* Stroke Color */}
+                <div className="flex flex-col">
+                    <label className="uppercase text-[11px] opacity-60 tracking-wide">
+                        Stroke Color
+                    </label>
 
-                    <PopoverContent
-                        side="right"
-                        align="start"
-                        className="p-0"
-                        onOpenAutoFocus={(e) => e.preventDefault()}
-                        onInteractOutside={(e) => {
-                            if (
-                                e.target instanceof HTMLElement &&
-                                e.target.closest(".colorpicker-area")
-                            ) {
-                                e.preventDefault();
-                            }
-                        }}
-                    >
-                        <div className="colorpicker-area">
-                            <ColorPickerEditor onChange={updateStrokeColor} />
-                        </div>
-                    </PopoverContent>
-                </Popover>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <button
+                                className="
+                                    w-20 h-10 mt-1 rounded-md
+                                    border border-white/20 
+                                    bg-white/10
+                                    flex items-center justify-start p-2
+                                    transition
+                                    cursor-pointer
+                                "
+                            >
+                                <div
+                                    className="w-6 h-6 rounded-full border border-black/20"
+                                    style={{ backgroundColor: strokePreview }}
+                                />
+                            </button>
+                        </PopoverTrigger>
+
+                        <PopoverContent
+                            side="right"
+                            align="start"
+                            className="p-0 shadow-xl rounded-lg"
+                            onOpenAutoFocus={(e) => e.preventDefault()}
+                        >
+                            <div className="colorpicker-area">
+                                <ColorPickerEditor onChange={updateStrokeColor} />
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                </div>
+
             </div>
         </section>
     );
