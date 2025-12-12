@@ -70,7 +70,6 @@ const Objectdetails = () => {
               </Section>
 
               {/* FILL */}
-              {/* FILL */}
               <Section title="Fill">
                 <Popover>
                   <PopoverTrigger asChild>
