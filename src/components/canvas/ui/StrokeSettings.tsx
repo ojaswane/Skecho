@@ -8,28 +8,47 @@ import {
 } from "@/components/ui/popover";
 import ColorPickerEditor from '../colorpicker';
 
+const STROKE_STYLES = [
+    { label: "Solid", value: "solid", dash: [] },
+    { label: "Dashed", value: "dashed", dash: [8, 4] },
+    { label: "Dotted", value: "dotted", dash: [2, 4] },
+    { label: "Dash-Dot", value: "dashdot", dash: [10, 4, 2, 4] },
+];
+
 const StrokeSettings = () => {
     const selectedObject = useCanvasStore((s) => s.selectedObject);
 
     const updateWidth = (e: any) => {
         const canvas = useCanvasStore.getState().canvas;
-        const activeObject = canvas?.getActiveObject();
-        if (!activeObject) return;
+        const obj = canvas?.getActiveObject();
+        if (!obj) return;
 
-        const newWidth = parseInt(e.target.value, 10) || 0;
-        activeObject.set('strokeWidth', newWidth);
+        const width = parseInt(e.target.value, 10) || 0;
+        obj.set("strokeWidth", width);
         canvas?.renderAll();
-        useCanvasStore.getState().setSelectedObject(activeObject);
+        useCanvasStore.getState().setSelectedObject(obj);
     };
 
     const updateStrokeColor = (color: any) => {
         const canvas = useCanvasStore.getState().canvas;
-        const activeObject = canvas?.getActiveObject();
-        if (!activeObject) return;
+        const obj = canvas?.getActiveObject();
+        if (!obj) return;
 
-        activeObject.set("stroke", color.hex);
+        obj.set("stroke", color.hex);
         canvas?.renderAll();
-        useCanvasStore.getState().setSelectedObject(activeObject);
+        useCanvasStore.getState().setSelectedObject(obj);
+    };
+
+    const updateStrokeStyle = (e: any) => {
+        const canvas = useCanvasStore.getState().canvas;
+        const obj = canvas?.getActiveObject();
+        if (!obj) return;
+
+        const selected = STROKE_STYLES.find(s => s.value === e.target.value);
+        obj.set("strokeDashArray", selected?.dash || []);
+
+        canvas?.renderAll();
+        useCanvasStore.getState().setSelectedObject(obj);
     };
 
     const strokePreview =
@@ -37,21 +56,25 @@ const StrokeSettings = () => {
             ? selectedObject.stroke
             : "#000000";
 
+    const currentStyle = STROKE_STYLES.find(
+        s =>
+            JSON.stringify(s.dash) ===
+            JSON.stringify(selectedObject?.strokeDashArray || [])
+    )?.value || "solid";
+
     return (
         <section className="w-full">
-            <div className="flex w-full items-end gap-8 p-2">
 
-                {/* Stroke Width */}
+            {/* WIDTH + COLOR */}
+            <div className="flex w-full items-end gap-6 p-2">
+
+                {/* Width */}
                 <div className="flex flex-col">
-                    <label
-                        htmlFor="stroke-width"
-                        className="uppercase text-[11px] opacity-60 tracking-wide"
-                    >
+                    <label className="uppercase text-[11px] opacity-60 tracking-wide">
                         Stroke Width
                     </label>
 
                     <input
-                        id="stroke-width"
                         type="number"
                         className="
                             w-20 h-10 mt-1 px-3
@@ -64,7 +87,7 @@ const StrokeSettings = () => {
                     />
                 </div>
 
-                {/* Stroke Color */}
+                {/* Color */}
                 <div className="flex flex-col">
                     <label className="uppercase text-[11px] opacity-60 tracking-wide">
                         Stroke Color
@@ -78,7 +101,6 @@ const StrokeSettings = () => {
                                     border border-white/20 
                                     bg-white/10
                                     flex items-center justify-start p-2
-                                    transition
                                     cursor-pointer
                                 "
                             >
@@ -101,8 +123,32 @@ const StrokeSettings = () => {
                         </PopoverContent>
                     </Popover>
                 </div>
-
             </div>
+
+            {/* STROKE STYLE */}
+            <div className="px-2 mt-3 flex flex-col w-full">
+                <label className="uppercase text-[11px] opacity-60 tracking-wide">
+                    Stroke Style
+                </label>
+
+                <select
+                    value={currentStyle}
+                    onChange={updateStrokeStyle}
+                    className="
+                        mt-1 w-40 h-10 
+                        bg-white/10 border border-white/20 
+                        rounded-md px-3 text-sm
+                        focus:outline-none focus:ring-1 focus:ring-white/40
+                    "
+                >
+                    {STROKE_STYLES.map((item) => (
+                        <option key={item.value} value={item.value}>
+                            {item.label}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
         </section>
     );
 };
