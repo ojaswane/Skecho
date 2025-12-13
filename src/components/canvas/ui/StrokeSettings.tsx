@@ -77,16 +77,18 @@ const StrokeSettings = () => {
 
         if (align === 'inside') {
             // we will just shrink the object little bit by the stoke width
-            const Shrink =  (obj.width! - stroke) / obj.width!;
+            const Shrink = (obj.width! - stroke) / obj.width!;
             obj.scaleX = (obj.scaleX || 1) * Shrink;
             obj.scaleY = (obj.scaleY || 1) * Shrink;
-        } else if(align === "outside") {
+        } else if (align === "outside") {
             // we will just increase the object little bit by the stoke width
             const Grow = (obj.width! + stroke) / obj.width!;
             obj.scaleX = (obj.scaleX || 1) * Grow;
             obj.scaleY = (obj.scaleY || 1) * Grow;
         }
     }
+
+
 
 
     return (
@@ -152,28 +154,54 @@ const StrokeSettings = () => {
                 </div>
             </div>
 
-            {/* STROKE STYLE */}
-            <div className=" mt-3 flex flex-col w-full">
-                <label className="uppercase text-[11px] opacity-60 tracking-wide">
-                    Stroke Style
-                </label>
 
-                <select
-                    value={currentStyle}
-                    onChange={updateStrokeStyle}
-                    className="
-                        mt-1 w-40 h-10
+            <div className='flex w-full '>
+                {/* STROKE STYLE */}
+                <div className=" mt-3 flex flex-col w-full">
+                    <label className="uppercase text-[11px] opacity-60 tracking-wide">
+                        Stroke Style
+                    </label>
+
+                    <select
+                        value={currentStyle}
+                        onChange={updateStrokeStyle}
+                        className="
+                    mt-1 w-20 h-10
                         bg-white/10 border border-white/20
                         rounded-md px-3 text-sm
                         focus:outline-none focus:ring-1 focus:ring-white/40
-                    "
-                >
-                    {STROKE_STYLES.map((item) => (
-                        <option key={item.value} value={item.value} className='dark:bg-black dark:text-white mt-2'>
-                            {item.label}
-                        </option>
-                    ))}
-                </select>
+                        p-2
+                        "
+                    >
+                        {STROKE_STYLES.map((item) => (
+                            <option key={item.value} value={item.value} className='dark:bg-black dark:text-white mt-2'>
+                                {item.label}
+                            </option>
+                        ))}
+                    </select>
+
+                </div>
+                {/* STROKE ALIGN */}
+                <div className=" mt-3 flex flex-col w-full">
+                    <label className='uppercase text-[11px] opacity-60 tracking-wide'>stroke align</label>
+                    <select
+                        value={currentStyle}
+                        onChange={updateStrokeStyle}
+                        className="
+                    mt-1 w-20 h-10
+                        bg-white/10 border border-white/20
+                        rounded-md px-3 text-sm
+                        focus:outline-none focus:ring-1 focus:ring-white/40
+                        p-2
+                        "
+                    >
+                        {STROKE_ALIGNS.map((item) => (
+                            <option key={item.value} value={item.value} className='dark:bg-black dark:text-white mt-2'>
+                                {item.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
         </section>
