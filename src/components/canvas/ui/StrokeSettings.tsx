@@ -25,6 +25,7 @@ type StrokeAlign = 'inside' | 'center' | 'outside';
 const StrokeSettings = () => {
     const selectedObject = useCanvasStore((s) => s.selectedObject);
 
+    // stroke width handling
     const updateWidth = (e: any) => {
         const canvas = useCanvasStore.getState().canvas;
         const obj = canvas?.getActiveObject();
@@ -36,6 +37,8 @@ const StrokeSettings = () => {
         useCanvasStore.getState().setSelectedObject(obj);
     };
 
+
+    // Stroke color handeling
     const updateStrokeColor = (color: any) => {
         const canvas = useCanvasStore.getState().canvas;
         const obj = canvas?.getActiveObject();
@@ -46,6 +49,9 @@ const StrokeSettings = () => {
         useCanvasStore.getState().setSelectedObject(obj);
     };
 
+
+
+    // Stroke Style Handling
     const updateStrokeStyle = (e: any) => {
         const canvas = useCanvasStore.getState().canvas;
         const obj = canvas?.getActiveObject();
@@ -69,9 +75,13 @@ const StrokeSettings = () => {
             JSON.stringify(selectedObject?.strokeDashArray || [])
     )?.value || "solid";
 
+
+
+    // Stoke Align Handling
     const SetStrokeAlign = (align: StrokeAlign) => {
-        const obj = useCanvasStore.getState().canvas?.getActiveObject();
-        if (!obj) return;
+        const canvas = useCanvasStore.getState().canvas;
+        const obj = canvas?.getActiveObject();
+        if (!obj || !obj.width || !obj.stroke) return;
 
         const stroke = obj.get("strokeWidth") || 0;
 
@@ -87,11 +97,25 @@ const StrokeSettings = () => {
             obj.scaleY = (obj.scaleY || 1) * Grow;
         }
         obj.setCoords();
-        useCanvasStore.getState().canvas?.renderAll();
+        canvas?.requestRenderAll();
+        useCanvasStore.getState().setSelectedObject(obj);
     }
+
+
     const UpdateStrokeAlign = (e: any) => {
-        SetStrokeAlign(e.target.value as StrokeAlign);
-    }
+        const canvas = useCanvasStore.getState().canvas;
+        const obj = canvas?.getActiveObject();
+        if (!obj) return;
+
+        const width = parseInt(e.target.value, 10) || 0;
+        obj.set("strokeWidth", width);
+
+        // re-apply current alignment
+        SetStrokeAlign("center");
+
+        canvas?.requestRenderAll();
+        useCanvasStore.getState().setSelectedObject(obj);
+    };
 
 
     return (
