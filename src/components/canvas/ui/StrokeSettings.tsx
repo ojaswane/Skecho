@@ -85,6 +85,11 @@ const StrokeSettings = () => {
 
         const stroke = obj.get("strokeWidth") || 0;
 
+        obj.scaleX = 1;
+        obj.scaleY = 1;
+
+        obj.set({ strokeUniform: true });
+
         if (align === 'inside') {
             // we will just shrink the object little bit by the stoke width
             const Shrink = (obj.width! - stroke) / obj.width!;
@@ -110,12 +115,12 @@ const StrokeSettings = () => {
         const width = parseInt(e.target.value, 10) || 0;
         obj.set("strokeWidth", width);
 
-        // re-apply current alignment
         SetStrokeAlign("center");
 
         canvas?.requestRenderAll();
         useCanvasStore.getState().setSelectedObject(obj);
     };
+
 
 
     return (
