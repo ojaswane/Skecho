@@ -16,8 +16,8 @@ const STROKE_STYLES = [
 ];
 
 const STROKE_ALIGNS = [
-    { label: "Inside", value: "inside" },
     { label: "Center", value: "center" },
+    { label: "Inside", value: "inside" },
     { label: "Outside", value: "outside" },
 ];
 
@@ -86,9 +86,12 @@ const StrokeSettings = () => {
             obj.scaleX = (obj.scaleX || 1) * Grow;
             obj.scaleY = (obj.scaleY || 1) * Grow;
         }
+        obj.setCoords();
+        useCanvasStore.getState().canvas?.renderAll();
     }
-
-
+    const UpdateStrokeAlign = (e: any) => {
+        SetStrokeAlign(e.target.value as StrokeAlign);
+    }
 
 
     return (
@@ -185,8 +188,7 @@ const StrokeSettings = () => {
                 <div className=" mt-3 flex flex-col w-full">
                     <label className='uppercase text-[11px] opacity-60 tracking-wide'>stroke align</label>
                     <select
-                        value={currentStyle}
-                        onChange={updateStrokeStyle}
+                        onChange={UpdateStrokeAlign as any}
                         className="
                     mt-1 w-20 h-10
                         bg-white/10 border border-white/20
@@ -194,6 +196,7 @@ const StrokeSettings = () => {
                         focus:outline-none focus:ring-1 focus:ring-white/40
                         p-2
                         "
+                        defaultValue={"center"}
                     >
                         {STROKE_ALIGNS.map((item) => (
                             <option key={item.value} value={item.value} className='dark:bg-black dark:text-white mt-2'>
