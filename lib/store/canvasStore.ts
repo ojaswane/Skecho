@@ -13,6 +13,8 @@ type ToolType =
     | "Frame"
     | null
 
+type StrokeAlign = 'inside' | 'center' | 'outside';
+
 interface CanvasState {
     canvas: FabricCanvas | null
 
@@ -46,6 +48,7 @@ interface CanvasState {
 
     resetCanvas: () => void
     updateElementColor: (id: number, color: string) => void;
+
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
@@ -102,6 +105,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
             ),
         } as Partial<CanvasState>));
     },
+
+
 }))
 
 // export const selectedObject = useCanvasStore((e) => e.selectedObject);

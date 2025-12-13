@@ -15,6 +15,13 @@ const STROKE_STYLES = [
     { label: "Dash-Dot", value: "dashdot", dash: [10, 4, 2, 4] },
 ];
 
+const STROKE_ALIGNS = [
+    { label: "Inside", value: "inside" },
+    { label: "Center", value: "center" },
+    { label: "Outside", value: "outside" },
+];
+
+type StrokeAlign = 'inside' | 'center' | 'outside';
 const StrokeSettings = () => {
     const selectedObject = useCanvasStore((s) => s.selectedObject);
 
@@ -62,6 +69,26 @@ const StrokeSettings = () => {
             JSON.stringify(selectedObject?.strokeDashArray || [])
     )?.value || "solid";
 
+    const SetStrokeAlign = (align: StrokeAlign) => {
+        const obj = useCanvasStore.getState().canvas?.getActiveObject();
+        if (!obj) return;
+
+        const stroke = obj.get("strokeWidth") || 0;
+
+        if (align === 'inside') {
+            // we will just shrink the object little bit by the stoke width
+            const Shrink =  (obj.width! - stroke) / obj.width!;
+            obj.scaleX = (obj.scaleX || 1) * Shrink;
+            obj.scaleY = (obj.scaleY || 1) * Shrink;
+        } else if(align === "outside") {
+            // we will just increase the object little bit by the stoke width
+            const Grow = (obj.width! + stroke) / obj.width!;
+            obj.scaleX = (obj.scaleX || 1) * Grow;
+            obj.scaleY = (obj.scaleY || 1) * Grow;
+        }
+    }
+
+
     return (
         <section className="w-full">
 
@@ -98,7 +125,7 @@ const StrokeSettings = () => {
                             <button
                                 className="
                                     w-20 h-10 mt-1 rounded-md
-                                    border border-white/20 
+                                    border border-white/20
                                     bg-white/10
                                     flex items-center justify-start p-2
                                     cursor-pointer
@@ -126,7 +153,7 @@ const StrokeSettings = () => {
             </div>
 
             {/* STROKE STYLE */}
-            <div className="px-2 mt-3 flex flex-col w-full">
+            <div className=" mt-3 flex flex-col w-full">
                 <label className="uppercase text-[11px] opacity-60 tracking-wide">
                     Stroke Style
                 </label>
@@ -135,14 +162,14 @@ const StrokeSettings = () => {
                     value={currentStyle}
                     onChange={updateStrokeStyle}
                     className="
-                        mt-1 w-40 h-10 
-                        bg-white/10 border border-white/20 
+                        mt-1 w-40 h-10
+                        bg-white/10 border border-white/20
                         rounded-md px-3 text-sm
                         focus:outline-none focus:ring-1 focus:ring-white/40
                     "
                 >
                     {STROKE_STYLES.map((item) => (
-                        <option key={item.value} value={item.value}>
+                        <option key={item.value} value={item.value} className='dark:bg-black dark:text-white mt-2'>
                             {item.label}
                         </option>
                     ))}
