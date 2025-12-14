@@ -121,7 +121,7 @@ const Objectdetails = () => {
           focus:outline-none
         "
                       value={Math.round(selectedObject.angle || 0)}
-                      readOnly
+
                     />
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-60">
                       °
