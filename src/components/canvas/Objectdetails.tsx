@@ -69,53 +69,67 @@ const Objectdetails = () => {
                 </Row>
               </Section>
 
-              {/* FILL */}
-              <Section title="Fill">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="
-          w-full mt-4 h-9 rounded-4xl 
-          border border-white/20 
-          bg-white/20 dark:bg-white/10  
-          cursor-pointer flex items-center
-        "
-                    >
-                      {/* Color preview box */}
-                      <div
-                        className="w-full h-full rounded-full"
-                        style={{
-                          backgroundColor:
-                            typeof selectedObject?.fill === "string"
-                              ? selectedObject.fill
-                              : typeof selectedObject?.backgroundColor === "string"
-                                ? selectedObject.backgroundColor
-                                : "#ffffff",
-                        }}
-                      />
-                    </button>
-                  </PopoverTrigger>
+              <div className="grid grid-cols-2 gap-3">
+                {/* FILL */}
+                <Section title="Fill">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="
+            mt-1 h-9 w-full rounded-md
+            border border-white/20
+            bg-white/20 dark:bg-white/10
+            flex items-center justify-center
+          "
+                      >
+                        <div
+                          className="w-full h-full rounded-md"
+                          style={{
+                            backgroundColor:
+                              typeof selectedObject?.fill === "string"
+                                ? selectedObject.fill
+                                : typeof selectedObject?.backgroundColor === "string"
+                                  ? selectedObject.backgroundColor
+                                  : "#ffffff",
+                          }}
+                        />
+                      </button>
+                    </PopoverTrigger>
 
-                  <PopoverContent
-                    side="right"
-                    align="start"
-                    className="p-0"
-                    onOpenAutoFocus={(e) => e.preventDefault()}
-                    onInteractOutside={(e) => {
-                      if (
-                        e.target instanceof HTMLElement &&
-                        e.target.closest(".colorpicker-area")
-                      ) {
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    <div className="colorpicker-area">
-                      <ColorPickerEditor onChange={updateFillColor} />
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </Section>
+                    <PopoverContent
+                      side="right"
+                      align="start"
+                      className="p-0"
+                      onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
+                      <div className="colorpicker-area">
+                        <ColorPickerEditor onChange={updateFillColor} />
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </Section>
+
+                {/* ROTATE */}
+                <Section title="Rotate">
+                  <div className="relative mt-1">
+                    <input
+                      className="
+          h-9 w-full rounded-md
+          border border-white/20
+          bg-white/10
+          px-2 pr-6 text-sm
+          focus:outline-none
+        "
+                      value={Math.round(selectedObject.angle || 0)}
+                      readOnly
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-60">
+                      °
+                    </span>
+                  </div>
+                </Section>
+              </div>
+
 
               {/* Stroke sections */}
               <div className="w-full ">
