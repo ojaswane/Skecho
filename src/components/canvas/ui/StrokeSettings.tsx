@@ -129,7 +129,7 @@ const StrokeSettings = () => {
         <section className="w-full">
 
             {/* WIDTH + COLOR */}
-            <div className="flex w-full items-end gap-6 p-2">
+            <div className="flex w-full items-end gap-4 p-2">
 
                 {/* Width */}
                 <div className="flex flex-col">
@@ -189,7 +189,7 @@ const StrokeSettings = () => {
             </div>
 
 
-            <div className='flex w-full '>
+            <div className='flex w-full gap-4'>
                 {/* STROKE STYLE */}
                 <div className=" mt-3 flex flex-col w-full">
                     <label className="uppercase text-[11px] opacity-60 tracking-wide">
