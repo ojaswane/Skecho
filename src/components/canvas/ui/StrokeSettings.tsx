@@ -78,47 +78,49 @@ const StrokeSettings = () => {
 
 
     // Stoke Align Handling
-    const SetStrokeAlign = (align: StrokeAlign) => {
-        const canvas = useCanvasStore.getState().canvas;
-        const obj = canvas?.getActiveObject();
-        if (!obj || !obj.width || !obj.stroke) return;
-
-        const stroke = obj.get("strokeWidth") || 0;
-
-        obj.scaleX = 1;
-        obj.scaleY = 1;
-
-        obj.set({ strokeUniform: true });
-
-        if (align === 'inside') {
-            // we will just shrink the object little bit by the stoke width
-            const Shrink = (obj.width! - stroke) / obj.width!;
-            obj.scaleX = (obj.scaleX || 1) * Shrink;
-            obj.scaleY = (obj.scaleY || 1) * Shrink;
-        } else if (align === "outside") {
-            // we will just increase the object little bit by the stoke width
-            const Grow = (obj.width! + stroke) / obj.width!;
-            obj.scaleX = (obj.scaleX || 1) * Grow;
-            obj.scaleY = (obj.scaleY || 1) * Grow;
-        }
-        obj.setCoords();
-        canvas?.requestRenderAll();
-        useCanvasStore.getState().setSelectedObject(obj);
-    }
-
-
-    const UpdateStrokeAlign = (e: any) => {
+    const setStrokeAlign = (align: StrokeAlign) => {
         const canvas = useCanvasStore.getState().canvas;
         const obj = canvas?.getActiveObject();
         if (!obj) return;
 
-        const width = parseInt(e.target.value, 10) || 0;
-        obj.set("strokeWidth", width);
+        const baseWidth = obj.get("strokeWidth") || 0;
 
-        SetStrokeAlign("center");
+        obj.set({
+            strokeUniform: true,
+        });
 
+        switch (align) {
+            case "inside":
+                obj.set({
+                    strokeWidth: baseWidth,
+                    paintFirst: "stroke", // keeps stroke inside
+                });
+                break;
+
+            case "outside":
+                obj.set({
+                    strokeWidth: baseWidth * 2, // fake outside stroke
+                    paintFirst: "stroke",
+                });
+                break;
+
+            case "center":
+            default:
+                obj.set({
+                    strokeWidth: baseWidth,
+                    paintFirst: "fill",
+                });
+                break;
+        }
+
+        obj.setCoords();
         canvas?.requestRenderAll();
         useCanvasStore.getState().setSelectedObject(obj);
+    };
+
+
+    const updateStrokeAlign = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setStrokeAlign(e.target.value as StrokeAlign);
     };
 
 
@@ -217,7 +219,7 @@ const StrokeSettings = () => {
                 <div className=" mt-3 flex flex-col w-full">
                     <label className='uppercase text-[11px] opacity-60 tracking-wide'>stroke align</label>
                     <select
-                        onChange={UpdateStrokeAlign as any}
+                        onChange={updateStrokeAlign as any}
                         className="
                     mt-1 w-20 h-10
                         bg-white/10 border border-white/20
