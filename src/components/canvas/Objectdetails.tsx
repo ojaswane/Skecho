@@ -69,21 +69,22 @@ const Objectdetails = () => {
                 </Row>
               </Section>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {/* FILL */}
                 <Section title="Fill">
                   <Popover>
                     <PopoverTrigger asChild>
                       <button
                         className="
-            mt-1 h-9 w-full rounded-md
+            h-8 w-full rounded
             border border-white/20
-            bg-white/20 dark:bg-white/10
-            flex items-center justify-center
+            bg-white/10
+            backdrop-blur-md
+            flex items-center px-1
           "
                       >
                         <div
-                          className="w-full h-full rounded-md"
+                          className="w-full h-full rounded"
                           style={{
                             backgroundColor:
                               typeof selectedObject?.fill === "string"
@@ -111,24 +112,26 @@ const Objectdetails = () => {
 
                 {/* ROTATE */}
                 <Section title="Rotate">
-                  <div className="relative mt-1">
+                  <div className="relative">
                     <input
                       className="
-          h-9 w-full rounded-md
+          h-8 w-full rounded
           border border-white/20
           bg-white/10
+          backdrop-blur-md
           px-2 pr-6 text-sm
           focus:outline-none
         "
                       value={Math.round(selectedObject.angle || 0)}
-
+                      readOnly
                     />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-60">
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-60">
                       °
                     </span>
                   </div>
                 </Section>
               </div>
+
 
 
               {/* Stroke sections */}
