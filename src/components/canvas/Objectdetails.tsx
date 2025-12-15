@@ -76,12 +76,12 @@ const Objectdetails = () => {
                     <PopoverTrigger asChild>
                       <button
                         className="
-            h-8 w-full rounded
-            border border-white/20
-            bg-white/10
-            backdrop-blur-md
-            flex items-center px-1
-          "
+                                h-8 w-full rounded
+                                border border-white/20
+                                bg-white/10
+                                backdrop-blur-md
+                                flex items-center px-1
+                              "
                       >
                         <div
                           className="w-full h-full rounded"
