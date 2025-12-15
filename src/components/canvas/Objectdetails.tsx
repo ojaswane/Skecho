@@ -69,18 +69,19 @@ const Objectdetails = () => {
                 </Row>
               </Section>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex gap-4  ">
                 {/* FILL */}
-                <Section title="Fill">
+                <Section title="Fill" >
                   <Popover>
                     <PopoverTrigger asChild>
                       <button
                         className="
-                                h-8 w-full rounded
+                                h-8 w-20 rounded
                                 border border-white/20
                                 bg-white/10
                                 backdrop-blur-md
                                 flex items-center px-1
+                                cursor-pointer
                               "
                       >
                         <div
@@ -125,7 +126,7 @@ const Objectdetails = () => {
                       value={Math.round(selectedObject.angle || 0)}
                       readOnly
                     />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-60">
+                    <span className="absolute right-2 w-2 top-1/2 -translate-y-1/2 text-[20px] opacity-60">
                       °
                     </span>
                   </div>
