@@ -9,6 +9,7 @@ import {
 
 import ColorPickerEditor from "./colorpicker";
 import StrokeSettings from "./ui/StrokeSettings";
+import Textoptions from "./Textoptions";
 
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
@@ -25,6 +26,13 @@ const Objectdetails = () => {
 
     useCanvasStore.getState().setSelectedObject(active);
   };
+
+
+  // Helper function to for textoptions
+  const isTextObject =
+    selectedObject &&
+    ["text", "i-text", "textbox"].includes(selectedObject.type as string);
+
 
   return (
     <div
@@ -54,14 +62,14 @@ const Objectdetails = () => {
           <>
             <div className="flex flex-col w-20 gap-6">
               {/* POSITION */}
-              
-                <Section title="Position" >
-                  <Row>
-                    <Input label="X" value={selectedObject.left} />
-                    <Input label="Y" value={selectedObject.top} />
-                  </Row>
-                </Section>
-              
+
+              <Section title="Position" >
+                <Row>
+                  <Input label="X" value={selectedObject.left} />
+                  <Input label="Y" value={selectedObject.top} />
+                </Row>
+              </Section>
+
 
               {/* SIZE */}
               <Section title="Size">
@@ -138,9 +146,17 @@ const Objectdetails = () => {
 
 
               {/* Stroke sections */}
-              <div className="w-full ">
+              <Section className="w-full ">
                 <StrokeSettings />
-              </div>
+              </Section>
+
+
+              {/* Text Sections */}
+              {isTextObject && (
+                <Section type="text">
+                  <Textoptions />
+                </Section>
+              )}
 
             </div>
           </>
