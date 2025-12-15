@@ -54,12 +54,14 @@ const Objectdetails = () => {
           <>
             <div className="flex flex-col w-20 gap-6">
               {/* POSITION */}
-              <Section title="Position">
-                <Row>
-                  <Input label="X" value={selectedObject.left} />
-                  <Input label="Y" value={selectedObject.top} />
-                </Row>
-              </Section>
+              
+                <Section title="Position" >
+                  <Row>
+                    <Input label="X" value={selectedObject.left} />
+                    <Input label="Y" value={selectedObject.top} />
+                  </Row>
+                </Section>
+              
 
               {/* SIZE */}
               <Section title="Size">
@@ -69,7 +71,7 @@ const Objectdetails = () => {
                 </Row>
               </Section>
 
-              <div className="flex gap-4  ">
+              <div className="flex gap-2">
                 {/* FILL */}
                 <Section title="Fill" >
                   <Popover>
@@ -80,7 +82,7 @@ const Objectdetails = () => {
                                 border border-white/20
                                 bg-white/10
                                 backdrop-blur-md
-                                flex items-center px-1
+                                flex items-center 
                                 cursor-pointer
                               "
                       >
@@ -116,7 +118,7 @@ const Objectdetails = () => {
                   <div className="relative">
                     <input
                       className="
-          h-8 w-full rounded
+          h-8 w-20 rounded
           border border-white/20
           bg-white/10
           backdrop-blur-md

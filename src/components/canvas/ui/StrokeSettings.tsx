@@ -129,7 +129,7 @@ const StrokeSettings = () => {
         <section className="w-full">
 
             {/* WIDTH + COLOR */}
-            <div className="flex w-full items-end gap-4 p-2">
+            <div className="flex w-full items-end gap-2 mb-3 ">
 
                 {/* Width */}
                 <div className="flex flex-col">
@@ -140,7 +140,7 @@ const StrokeSettings = () => {
                     <input
                         type="number"
                         className="
-                            w-20 h-10 mt-1 px-3
+                            w-20 h-8 mt-1 px-3
                             rounded-md border border-white/20 
                             bg-white/10 text-sm 
                             focus:outline-none focus:ring-1 focus:ring-white/40
@@ -160,7 +160,7 @@ const StrokeSettings = () => {
                         <PopoverTrigger asChild>
                             <button
                                 className="
-                                    w-20 h-10 mt-1 rounded-md
+                                    w-20 h-8 mt-1 rounded-md
                                     border border-white/20
                                     bg-white/10
                                     flex items-center justify-start p-2
@@ -168,7 +168,7 @@ const StrokeSettings = () => {
                                 "
                             >
                                 <div
-                                    className="w-6 h-6 rounded-full border border-black/20"
+                                    className="w-6 h-6 rounded-full border border-white/20"
                                     style={{ backgroundColor: strokePreview }}
                                 />
                             </button>
@@ -189,53 +189,53 @@ const StrokeSettings = () => {
             </div>
 
 
-            <div className='flex w-full gap-4'>
-                {/* STROKE STYLE */}
-                <div className=" mt-3 flex flex-col w-full">
-                    <label className="uppercase text-[11px] opacity-60 tracking-wide">
-                        Stroke Style
-                    </label>
+            {/* STROKE STYLE */}
+            <div className=" mt-5 flex flex-col w-full">
+                <label className="uppercase text-[11px] opacity-60 tracking-wide">
+                    Stroke Style
+                </label>
 
-                    <select
-                        value={currentStyle}
-                        onChange={updateStrokeStyle}
-                        className="
-                    mt-1 w-20 h-10
+                <select
+                    value={currentStyle}
+                    onChange={updateStrokeStyle}
+                    className="
+                    mt-1 w-43 h-10
                         bg-white/10 border border-white/20
-                        rounded-md px-3 text-sm
+                        rounded-md px-2
                         focus:outline-none focus:ring-1 focus:ring-white/40
                         p-2
+                        cursor-pointer
                         "
-                    >
-                        {STROKE_STYLES.map((item) => (
-                            <option key={item.value} value={item.value} className='dark:bg-black dark:text-white mt-2'>
-                                {item.label}
-                            </option>
-                        ))}
-                    </select>
+                >
+                    {STROKE_STYLES.map((item) => (
+                        <option key={item.value} value={item.value} className='dark:bg-black dark:text-white mt-2'>
+                            {item.label}
+                        </option>
+                    ))}
+                </select>
 
-                </div>
-                {/* STROKE ALIGN */}
-                <div className=" mt-3 flex flex-col w-full">
-                    <label className='uppercase text-[11px] opacity-60 tracking-wide'>stroke align</label>
-                    <select
-                        onChange={updateStrokeAlign as any}
-                        className="
-                    mt-1 w-20 h-10
+            </div>
+            {/* STROKE ALIGN */}
+            <div className=" mt-5 flex flex-col w-full">
+                <label className='uppercase text-[11px] opacity-60 tracking-wide'>stroke align</label>
+                <select
+                    onChange={updateStrokeAlign as any}
+                    className="
+                    mt-1 w-43 h-10
                         bg-white/10 border border-white/20
-                        rounded-md px-3 text-sm
+                        rounded-md px-2
                         focus:outline-none focus:ring-1 focus:ring-white/40
                         p-2
+                        cursor-pointer
                         "
-                        defaultValue={"center"}
-                    >
-                        {STROKE_ALIGNS.map((item) => (
-                            <option key={item.value} value={item.value} className='dark:bg-black dark:text-white mt-2'>
-                                {item.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                    defaultValue={"center"}
+                >
+                    {STROKE_ALIGNS.map((item) => (
+                        <option key={item.value} value={item.value} className='dark:bg-black dark:text-white mt-2'>
+                            {item.label}
+                        </option>
+                    ))}
+                </select>
             </div>
 
         </section>
