@@ -24,6 +24,7 @@ export const SANS_SERIF_FONTS = [
   "Rubik",
   "Urbanist",
   "Archivo",
+  "Arial",
 ];
 
 export const SERIF_FONTS = [
