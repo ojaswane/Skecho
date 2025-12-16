@@ -237,7 +237,6 @@ const StrokeSettings = () => {
                     ))}
                 </select>
             </div>
-
         </section>
     );
 };
