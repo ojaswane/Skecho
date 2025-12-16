@@ -32,7 +32,7 @@ export function Combobox() {
 
         if (!obj) return
 
-        // ✅ Ensure it's a text object
+        // Ensure it's a text object
         if (
             obj.type !== "text" &&
             obj.type !== "i-text" &&
@@ -90,6 +90,7 @@ export function Combobox() {
                                         setOpen(false)
                                         applyFonts(currentValue)
                                     }}
+                                    defaultValue="Arial"
                                 >
                                     {font}
                                     <Check
