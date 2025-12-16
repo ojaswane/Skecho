@@ -19,6 +19,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import { loadGoogleFont } from "../canvas/data/Fontfamily"
 
 import { ALL_FONTS } from "../canvas/data/Fontfamily"
 export function Combobox() {
@@ -43,10 +44,13 @@ export function Combobox() {
 
         const textObj = obj as fabric.Text
 
-        // Load font
-        await document.fonts.load(`16px "${font}"`)
+        loadGoogleFont(font)
 
-        textObj.set("fontFamily", font)
+        // wait till you are ready
+        await document.fonts.ready
+
+        const fontsetted = textObj.set({ fontFamily: font });
+        console.log(`Font setted as ${fontsetted}`)
         canvas?.renderAll()
 
         useCanvasStore.getState().setSelectedObject(textObj)
