@@ -171,7 +171,6 @@ const Textoptions = () => {
                   <input
                     type="text"
                     value={letterSpace.toFixed()}
-                    readOnly
                     className="
                   w-10 h-8 text-center text-sm
                   bg-white/10 border border-white/20
@@ -184,7 +183,7 @@ const Textoptions = () => {
                     min={-100}
                     max={100}
                     step={1}
-                    className="flex-1"
+                    className="flex-1 cursor-pointer"
                     onValueChange={updateLetterSpacing}
                   />
                 </div>
@@ -195,7 +194,6 @@ const Textoptions = () => {
                   <input
                     type="text"
                     value={LineSpace.toFixed()}
-                    readOnly
                     className="
                   w-10 h-8 text-center text-sm
                   bg-white/10 border border-white/20
@@ -208,7 +206,7 @@ const Textoptions = () => {
                     min={-10.00}
                     max={10.00}
                     step={1}
-                    className="flex-1"
+                    className="flex-1 cursor-pointer"
                     onValueChange={updateLineSpacing}
                   />
                 </div>
