@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Text, IText, Textbox } from "fabric"
 import { Combobox } from "../ui/Combobox"
 import {
@@ -60,6 +60,34 @@ const Textoptions = () => {
     obj.setCoords()
     canvas.requestRenderAll()
   }
+
+
+// when ever i de-select the object then the ui should hold the value of prev
+
+  useEffect(() => {
+    if (!canvas) return
+
+    const syncFromCanvas = () => {
+      const obj = canvas.getActiveObject()
+      if (!isFabricTextObject(obj)) {
+        setLetterSpace(0)
+        return
+      }
+
+      setLetterSpace(obj.charSpacing / 10)
+    }
+
+    canvas.on("selection:created", syncFromCanvas)
+    canvas.on("selection:updated", syncFromCanvas)
+    canvas.on("selection:cleared", syncFromCanvas)
+
+    return () => {
+      canvas.off("selection:created", syncFromCanvas)
+      canvas.off("selection:updated", syncFromCanvas)
+      canvas.off("selection:cleared", syncFromCanvas)
+    }
+  }, [canvas])
+
 
   return (
     <div className="space-y-5">
@@ -129,7 +157,7 @@ const Textoptions = () => {
 
                 <input
                   type="text"
-                  value={letterSpace.toFixed(0)}
+                  value={letterSpace.toFixed()}
                   readOnly
                   className="
                     w-10 h-8 text-center text-sm
