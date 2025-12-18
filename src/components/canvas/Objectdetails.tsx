@@ -181,7 +181,6 @@ const Objectdetails = () => {
               )}
 
               {/* blend mode */}
-              {/* Blend Mode */}
               <Section>
                 <div className="flex flex-col gap-2">
                   <label className="text-[11px] uppercase tracking-wide opacity-60">
@@ -194,9 +193,9 @@ const Objectdetails = () => {
                         variant="outline"
                         className="
                         bg-white/10 
-                        h-12 w-43
+                        h-10 w-43
                         flex items-center justify-between 
-                        border border-white/20 dark:border-zinc-800 "
+                        border border-white/20 cursor-pointer  "
 
                       >
                         <span className="text-sm capitalize">
@@ -213,7 +212,8 @@ const Objectdetails = () => {
                               w-44 p-1
                               bg-zinc-900
                               border border-zinc-800
-                              shadow-xl
+                              shadow-xl 
+                              
                             "
                       onOpenAutoFocus={(e) => e.preventDefault()}
                     >
@@ -225,6 +225,7 @@ const Objectdetails = () => {
                             w-full px-3 py-2 text-left text-sm rounded
                             capitalize
                             transition
+                            cursor-pointer
                             ${selectedObject?.globalCompositeOperation === blend
                                 ? "bg-white/20 text-white"
                                 : "hover:bg-white/10 text-white/80"
