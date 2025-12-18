@@ -1,7 +1,6 @@
 'use client'
 import React from 'react'
 import { Text, IText, Textbox } from 'fabric'
-import * as fabric from 'fabric'
 import { Combobox } from '../ui/Combobox'
 import {
   TextAlignStart,
@@ -20,6 +19,10 @@ import { useCanvasStore } from '../../../lib/store/canvasStore'
 import { SelectValue } from '@radix-ui/react-select'
 import Icon from '@mdi/react';
 import { mdiFormatLineSpacing } from '@mdi/js';
+import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from '../ui/popover'
+import { Button } from '../ui/button'
+import { Slider } from '../ui/slider'
+import { UnfoldHorizontal } from 'lucide-react';
 
 
 type TextAlign = 'left' | 'center' | 'right'
@@ -50,6 +53,10 @@ const Textoptions = () => {
 
     obj.textAlign = value
     canvas.requestRenderAll()
+  }
+
+  const UpdateLetterSpacing = () => {
+
   }
 
 
@@ -98,13 +105,30 @@ const Textoptions = () => {
 
         </div>
         <div className='flex flex-col'>
-          {/* <Icon path={mdiFormatLineSpacing} size={1} /> */}
           <label className="uppercase text-[11px] opacity-60 tracking-wide mb-1">
             Line spacing
           </label>
-
-          
-
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant='outline'>
+                <Icon path={mdiFormatLineSpacing} size={1} />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <div className='flex gap-4'>
+                <UnfoldHorizontal className='w-5' type='letter spacing' />
+                <input type="text" className='w-5 border text-center' defaultValue={0} readOnly />
+                <Slider
+                  defaultValue={[1]}
+                  min={0.5}
+                  max={3}
+                  step={0.1}
+                  className="w-40 cursor-pointer"
+                  onChange={UpdateLetterSpacing}
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     </div>
