@@ -9,6 +9,8 @@ import {
   TextAlignEnd,
   UnfoldHorizontal,
   UnfoldVertical,
+  Bold,
+  Italic,
 } from "lucide-react"
 
 import {
@@ -81,7 +83,6 @@ const Textoptions = () => {
     canvas.requestRenderAll()
   }
 
-  // Sync UI when selection changes
   useEffect(() => {
     if (!canvas) return
 
@@ -110,21 +111,10 @@ const Textoptions = () => {
         <label className="text-[11px] uppercase tracking-wide opacity-60">
           Font Family
         </label>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>
-              <Combobox />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            Change font family
-          </TooltipContent>
-        </Tooltip>
+        <Combobox />
       </div>
 
       <div className="flex gap-3 items-end">
-
         {/* Text Align */}
         <div className="flex flex-col gap-1">
           <label className="text-[11px] uppercase tracking-wide opacity-60">
@@ -169,7 +159,7 @@ const Textoptions = () => {
               </Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-64 p-3">
+            <PopoverContent className="w-64 p-3 bg-zinc-900 border border-zinc-800">
               <div className="flex flex-col gap-4">
 
                 {/* Letter Spacing */}
@@ -230,10 +220,45 @@ const Textoptions = () => {
             </PopoverContent>
           </Popover>
         </div>
+      </div>
+
+      <div className="flex items-end gap-3">
+        {/* Bold & Italic */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[11px] uppercase tracking-wide opacity-60">
+            Style
+          </label>
+
+          <div className="flex gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-9 w-20 p-0 bg-white/10 border-white/20"
+                >
+                  <Bold size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Bold</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-9 w-20 p-0 bg-white/10 border-white/20"
+                >
+                  <Italic size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Italic</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
 
       </div>
     </div>
   )
 }
 
-export default Textoptions  
+export default Textoptions
