@@ -39,6 +39,8 @@ const Textoptions = () => {
   const canvas = useCanvasStore((s) => s.canvas)
   const [letterSpace, setLetterSpace] = useState(0)
   const [lineSpace, setLineSpace] = useState(1.2)
+  const [isBold, setIsBold] = useState(false)
+  const [isItalic, setIsItalic] = useState(false)
 
   type FabricTextObject = Text | IText | Textbox
 
@@ -83,6 +85,32 @@ const Textoptions = () => {
     canvas.requestRenderAll()
   }
 
+  const toggleBold = () => {
+    if (!canvas) return
+    const obj = canvas.getActiveObject()
+    if (!isFabricTextObject(obj)) return
+
+    const next = obj.fontWeight === "bold" ? "normal" : "bold"
+    obj.set("fontWeight", next)
+    setIsBold(next === "bold")
+
+    obj.initDimensions()
+    canvas.requestRenderAll()
+  }
+
+  const toggleItalic = () => {
+    if (!canvas) return
+    const obj = canvas.getActiveObject()
+    if (!isFabricTextObject(obj)) return
+
+    const next = obj.fontWeight === "italic" ? "normal" : "italic";
+    obj.set("fontWeight", next);
+    setIsItalic(next === "italic");
+
+    obj.initDimensions()
+    canvas.requestRenderAll()
+  }
+
   useEffect(() => {
     if (!canvas) return
 
@@ -92,6 +120,8 @@ const Textoptions = () => {
 
       setLetterSpace((obj.charSpacing ?? 0) / 10)
       setLineSpace(obj.lineHeight ?? 1.2)
+      setIsBold(obj.fontWeight === "bold")
+      setIsItalic(obj.fontWeight === "italic")
     }
 
     canvas.on("selection:created", syncFromCanvas)
@@ -233,8 +263,10 @@ const Textoptions = () => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  value="bold"
                   variant="outline"
                   className="h-9 w-20 p-0 bg-white/10 border-white/20"
+                  onClick={toggleBold}
                 >
                   <Bold size={16} />
                 </Button>
@@ -247,6 +279,8 @@ const Textoptions = () => {
                 <Button
                   variant="outline"
                   className="h-9 w-20 p-0 bg-white/10 border-white/20"
+                  onClick={toggleItalic}
+
                 >
                   <Italic size={16} />
                 </Button>
