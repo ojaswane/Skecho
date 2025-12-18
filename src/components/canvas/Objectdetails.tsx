@@ -10,6 +10,27 @@ import {
 import ColorPickerEditor from "./colorpicker";
 import StrokeSettings from "./ui/StrokeSettings";
 import Textoptions from "./Textoptions";
+import { Button } from "../ui/button";
+import { ChevronsUpDown } from 'lucide-react';
+
+const BLEND_MODES = [
+  "normal",
+  "multiply",
+  "screen",
+  "overlay",
+  "darken",
+  "lighten",
+  "color-dodge",
+  "color-burn",
+  "hard-light",
+  "soft-light",
+  "difference",
+  "exclusion",
+  "hue",
+  "saturation",
+  "color",
+  "luminosity",
+]
 
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
@@ -28,6 +49,7 @@ const Objectdetails = () => {
   };
 
 
+
   // Helper function to for textoptions
   const isTextObject =
     selectedObject &&
@@ -37,17 +59,17 @@ const Objectdetails = () => {
   return (
     <div
       className="
-        w-64 
-        h-full 
-        mt-10
-        rounded-xl
-        border border-white/20
-        bg-white/10 
-        dark:bg-white/5
-        backdrop-blur-2xl
-        shadow-[0_8px_32px_rgba(0,0,0,0.15)]
-        flex flex-col
-      "
+          w-64 
+          h-full 
+          mt-10
+          rounded-xl
+          border border-white/20
+          bg-white/10 
+          dark:bg-white/5
+          backdrop-blur-2xl
+          shadow-[0_8px_32px_rgba(0,0,0,0.15)]
+          flex flex-col
+        "
     >
       {/* Header */}
       <div className="p-4 border-b border-white/20 font-semibold backdrop-blur-xl">
@@ -86,13 +108,13 @@ const Objectdetails = () => {
                     <PopoverTrigger asChild>
                       <button
                         className="
-                                h-8 w-20 rounded
-                                border border-white/20
-                                bg-white/10
-                                backdrop-blur-md
-                                flex items-center 
-                                cursor-pointer
-                              "
+                                  h-8 w-20 rounded
+                                  border border-white/20
+                                  bg-white/10
+                                  backdrop-blur-md
+                                  flex items-center 
+                                  cursor-pointer
+                                "
                       >
                         <div
                           className="w-full h-full rounded"
@@ -126,13 +148,13 @@ const Objectdetails = () => {
                   <div className="relative">
                     <input
                       className="
-          h-8 w-20 rounded
-          border border-white/20
-          bg-white/10
-          backdrop-blur-md
-          px-2 pr-6 text-sm
-          focus:outline-none
-        "
+            h-8 w-20 rounded
+            border border-white/20
+            bg-white/10
+            backdrop-blur-md
+            px-2 pr-6 text-sm
+            focus:outline-none
+          "
                       value={Math.round(selectedObject.angle || 0)}
                       readOnly
                     />
@@ -158,6 +180,66 @@ const Objectdetails = () => {
                 </Section>
               )}
 
+              {/* blend mode */}
+              {/* Blend Mode */}
+              <Section>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[11px] uppercase tracking-wide opacity-60">
+                    Blend
+                  </label>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="
+                        bg-white/10 
+                        h-12 w-43
+                        flex items-center justify-between 
+                        border border-white/20 dark:border-zinc-800 "
+
+                      >
+                        <span className="text-sm capitalize">
+                          {selectedObject?.globalCompositeOperation || "normal"}
+                        </span>
+                        <ChevronsUpDown className="w-4 h-4 opacity-60" />
+                      </Button>
+                    </PopoverTrigger>
+
+                    <PopoverContent
+                      side="right"
+                      align="start"
+                      className="
+                              w-44 p-1
+                              bg-zinc-900
+                              border border-zinc-800
+                              shadow-xl
+                            "
+                      onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
+                      <div className="max-h-72 overflow-y-auto">
+                        {BLEND_MODES.map((blend) => (
+                          <button
+                            key={blend}
+                            className={`
+                            w-full px-3 py-2 text-left text-sm rounded
+                            capitalize
+                            transition
+                            ${selectedObject?.globalCompositeOperation === blend
+                                ? "bg-white/20 text-white"
+                                : "hover:bg-white/10 text-white/80"
+                              }
+              `}
+                          >
+                            {blend}
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </Section>
+
             </div>
           </>
         )}
@@ -180,13 +262,13 @@ const Input = ({ label, value }: { label: string; value: any }) => (
     <label className="text-[10px] uppercase opacity-60">{label}</label>
     <input
       className="
-        h-8 rounded 
-        border border-white/20
-        bg-white/10 dark:bg-white/10
-        backdrop-blur-md
-        px-2 text-sm
-        focus:outline-none
-      "
+          h-8 rounded 
+          border border-white/20
+          bg-white/10 dark:bg-white/10
+          backdrop-blur-md
+          px-2 text-sm
+          focus:outline-none
+        "
       value={Math.round(value)}
       readOnly
     />
