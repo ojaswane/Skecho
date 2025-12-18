@@ -23,12 +23,14 @@ import { mdiFormatLineSpacing } from "@mdi/js"
 import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover"
 import { Button } from "../ui/button"
 import { Slider } from "../ui/slider"
+import { UnfoldVertical } from 'lucide-react';
 
 type TextAlign = "left" | "center" | "right"
 
 const Textoptions = () => {
   const canvas = useCanvasStore((s) => s.canvas)
   const [letterSpace, setLetterSpace] = useState(0)
+  const [LineSpace, setLineSpace] = useState(0)
 
   type FabricTextObject = Text | IText | Textbox
 
@@ -61,32 +63,41 @@ const Textoptions = () => {
     canvas.requestRenderAll()
   }
 
+  const updateLineSpacing = (value: number[]) => {
+    if (!canvas) return
+    const obj = canvas.getActiveObject()
+    if (!isFabricTextObject(obj)) return
 
-// when ever i de-select the object then the ui should hold the value of prev
+    setLineSpace(value[0])
+    obj.set("lineHeight", value[0])
+    obj.initDimensions()
+    obj.setCoords()
+    canvas.requestRenderAll()
+  }
+
+
+  // UI resets when deselecting
 
   useEffect(() => {
     if (!canvas) return
 
     const syncFromCanvas = () => {
       const obj = canvas.getActiveObject()
-      if (!isFabricTextObject(obj)) {
-        setLetterSpace(0)
-        return
-      }
+      if (!isFabricTextObject(obj)) return
 
-      setLetterSpace(obj.charSpacing / 10)
+      setLineSpace(obj.lineHeight ?? 1.2)
+      setLetterSpace(obj.charSpacing ?? 0)
     }
 
     canvas.on("selection:created", syncFromCanvas)
     canvas.on("selection:updated", syncFromCanvas)
-    canvas.on("selection:cleared", syncFromCanvas)
 
     return () => {
       canvas.off("selection:created", syncFromCanvas)
       canvas.off("selection:updated", syncFromCanvas)
-      canvas.off("selection:cleared", syncFromCanvas)
     }
   }, [canvas])
+
 
 
   return (
@@ -137,7 +148,7 @@ const Textoptions = () => {
         <div className="flex flex-col gap-1">
           <label className="text-[11px] uppercase tracking-wide opacity-60">
             <div className=" w-30">
-              Letter Spacing
+              Spacing
             </div>
           </label>
 
@@ -145,35 +156,62 @@ const Textoptions = () => {
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="h-9   w-20 bg-white/10 border-white/20"
+                className="h-9  flex justify-start items-center cursor-pointer w-20 bg-white/10 border-white/20"
               >
                 <Icon path={mdiFormatLineSpacing} size={0.9} />
               </Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-64 p-3">
-              <div className="flex items-center gap-3">
-                <UnfoldHorizontal className="w-4 opacity-70" />
+            <PopoverContent className="w-64 p-3 ">
+              <div className="flex flex-col gap-4">
+                {/* letter spacing */}
+                <div className="flex items-center gap-3">
+                  <UnfoldHorizontal className="w-4 opacity-70" />
 
-                <input
-                  type="text"
-                  value={letterSpace.toFixed()}
-                  readOnly
-                  className="
-                    w-10 h-8 text-center text-sm
-                    bg-white/10 border border-white/20
-                    rounded
+                  <input
+                    type="text"
+                    value={letterSpace.toFixed()}
+                    readOnly
+                    className="
+                  w-10 h-8 text-center text-sm
+                  bg-white/10 border border-white/20
+                  rounded
                   "
-                />
+                  />
 
-                <Slider
-                  value={[letterSpace]}
-                  min={-100}
-                  max={100}
-                  step={1}
-                  className="flex-1"
-                  onValueChange={updateLetterSpacing}
-                />
+                  <Slider
+                    value={[letterSpace]}
+                    min={-100}
+                    max={100}
+                    step={1}
+                    className="flex-1"
+                    onValueChange={updateLetterSpacing}
+                  />
+                </div>
+                {/* line spacing */}
+                <div className="flex items-center gap-3">
+                  <UnfoldVertical className="w-4 opacity-70" />
+
+                  <input
+                    type="text"
+                    value={LineSpace.toFixed()}
+                    readOnly
+                    className="
+                  w-10 h-8 text-center text-sm
+                  bg-white/10 border border-white/20
+                  rounded
+                  "
+                  />
+
+                  <Slider
+                    value={[LineSpace]}
+                    min={-10.00}
+                    max={10.00}
+                    step={1}
+                    className="flex-1"
+                    onValueChange={updateLineSpacing}
+                  />
+                </div>
               </div>
             </PopoverContent>
           </Popover>
