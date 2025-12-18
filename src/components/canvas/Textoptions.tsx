@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import { Text, IText, Textbox } from 'fabric'
 import { Combobox } from '../ui/Combobox'
 import {
@@ -28,6 +28,7 @@ import { UnfoldHorizontal } from 'lucide-react';
 type TextAlign = 'left' | 'center' | 'right'
 const Textoptions = () => {
   const canvas = useCanvasStore((s) => s.canvas)
+  const [LetterSpace, setLetterSpacing] = useState(1.2)
 
   type FabricTextObject = Text | IText | Textbox
 
@@ -55,9 +56,21 @@ const Textoptions = () => {
     canvas.requestRenderAll()
   }
 
-  const UpdateLetterSpacing = () => {
+  const UpdateLetterSpacing = (value: number[]) => {
+    if (!canvas) return
 
+    const obj = canvas.getActiveObject()
+    if (!isFabricTextObject(obj)) return
+
+    // slider -100 to 100 to Fabric charSpacing
+    obj.set("charSpacing", value[0] * 10)
+
+    obj.initDimensions()
+    obj.setCoords()
+
+    canvas.requestRenderAll()
   }
+
 
 
   return (
@@ -106,7 +119,7 @@ const Textoptions = () => {
         </div>
         <div className='flex flex-col'>
           <label className="uppercase text-[11px] opacity-60 tracking-wide mb-1">
-            Line spacing
+            letter spacing
           </label>
           <Popover>
             <PopoverTrigger asChild>
@@ -117,14 +130,14 @@ const Textoptions = () => {
             <PopoverContent>
               <div className='flex gap-4'>
                 <UnfoldHorizontal className='w-5' type='letter spacing' />
-                <input type="text" className='w-5 border text-center' defaultValue={0} readOnly />
+                <input type="text" className='w-5 border text-center' value={LetterSpace.toFixed(0)} readOnly />
                 <Slider
                   defaultValue={[1]}
-                  min={0.5}
-                  max={3}
+                  min={-100}
+                  max={100}
                   step={0.1}
                   className="w-40 cursor-pointer"
-                  onChange={UpdateLetterSpacing}
+                  onValueChange={UpdateLetterSpacing}
                 />
               </div>
             </PopoverContent>
