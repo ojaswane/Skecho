@@ -10,8 +10,6 @@ import {
 import ColorPickerEditor from "./colorpicker";
 import StrokeSettings from "./ui/StrokeSettings";
 import Textoptions from "./Textoptions";
-import { Button } from "../ui/button";
-import { ChevronsUpDown } from 'lucide-react';
 import { Select } from "@radix-ui/react-select";
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
