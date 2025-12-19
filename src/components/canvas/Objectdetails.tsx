@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useCanvasStore } from "../../../lib/store/canvasStore";
 import {
   Popover,
@@ -37,7 +37,8 @@ const BLEND_MODES = [
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
   const [colorSet, setColor] = useState("#ffffff");
-  const [BlendMode , setBlendMode] = useState("normal");
+  const [BlendMode, setBlendMode] = useState("normal");
+  const previewRef = useRef<string | null>(null)
 
   const updateFillColor = (color: any) => {
     const canvas = useCanvasStore.getState().canvas;
@@ -62,12 +63,37 @@ const Objectdetails = () => {
     const canvas = useCanvasStore.getState().canvas;
     const obj = canvas?.getActiveObject();
 
-    if(!obj) return
+    if (!obj) return
+    obj.set({ globalCompositeOperation: mode });
 
-    obj.set({globalCompositeOperation : mode});
     setBlendMode(mode);
     canvas?.renderAll();
   }
+
+  const PreviewBlend = (mode: string) => {
+    const canvas = useCanvasStore.getState().canvas;
+    const obj = canvas?.getActiveObject();
+
+    if (!obj) return
+    if (previewRef.current === null) {
+      previewRef.current = obj.globalCompositeOperation || "Normal"
+    }
+    obj.set({ globalCompositeOperation: mode });
+    canvas?.renderAll();
+  }
+
+  const ResetPreview = () => {
+    const canvas = useCanvasStore.getState().canvas;
+    const obj = canvas?.getActiveObject();
+
+    if (!obj || !previewRef.current) return;
+
+    obj.set({ globalCompositeOperation: previewRef.current });
+    canvas?.renderAll();
+    previewRef.current = null;
+
+  }
+
 
 
   return (
@@ -199,6 +225,7 @@ const Objectdetails = () => {
                 <Select
                   value={selectedObject?.globalCompositeOperation || "normal"}
                   onValueChange={UpdateBlend}
+
                 >
                   <SelectTrigger
                     className="
@@ -220,6 +247,8 @@ const Objectdetails = () => {
                         key={blend}
                         value={blend}
                         className="capitalize cursor-pointer"
+                        onMouseEnter={(() => PreviewBlend(blend))}
+                        onMouseDown={ResetPreview}
                       >
                         {blend}
                       </SelectItem>
