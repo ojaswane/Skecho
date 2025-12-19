@@ -239,7 +239,7 @@ const Objectdetails = () => {
                 </Section>
               )}
 
-
+              {/* =============== TODO : FIX THE PLACEHOLDER FOR THE TRIGGER WITHOUT ANY REFRESH =========================== */}
               {/* Blend mode */}
               <Section title="Blend">
                 <Select
@@ -249,7 +249,7 @@ const Objectdetails = () => {
                 >
                   <SelectTrigger
                     className="
-                        h-9 w-full
+                        h-10 w-43
                         bg-white/10
                         border border-white/20
                         text-sm capitalize
