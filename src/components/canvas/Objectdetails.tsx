@@ -194,11 +194,11 @@ const Objectdetails = () => {
                 >
                   <SelectTrigger
                     className="
-        h-9 w-full
-        bg-white/10
-        border border-white/20
-        text-sm capitalize
-      "
+                        h-9 w-full
+                        bg-white/10
+                        border border-white/20
+                        text-sm capitalize
+                      "
                   >
                     <SelectValue placeholder="Normal" />
                   </SelectTrigger>
@@ -216,8 +216,6 @@ const Objectdetails = () => {
                   </SelectContent>
                 </Select>
               </Section>
-
-
 
             </div>
           </>
