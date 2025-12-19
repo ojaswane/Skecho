@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState , useEffect} from "react";
 import { useCanvasStore } from "../../../lib/store/canvasStore";
 import {
   Popover,
@@ -37,8 +37,8 @@ const BLEND_MODES = [
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
   const [colorSet, setColor] = useState("#ffffff");
-  const [BlendMode, setBlendMode] = useState("normal");
-  const previewRef = useRef<string | null>(null)
+  const [BlendMode, setBlendMode] = useState("Normal");
+  const previewRef = useRef<string >('Normal')
 
   const updateFillColor = (color: any) => {
     const canvas = useCanvasStore.getState().canvas;
@@ -75,9 +75,6 @@ const Objectdetails = () => {
     const obj = canvas?.getActiveObject();
 
     if (!obj) return
-    if (previewRef.current === null) {
-      previewRef.current = obj.globalCompositeOperation || "Normal"
-    }
     obj.set({ globalCompositeOperation: mode });
     canvas?.renderAll();
   }
@@ -90,9 +87,14 @@ const Objectdetails = () => {
 
     obj.set({ globalCompositeOperation: previewRef.current });
     canvas?.renderAll();
-    previewRef.current = null;
 
   }
+
+  useEffect(()=>{
+    if(selectedObject?.globalCompositeOperation){
+      previewRef.current = selectedObject?.globalCompositeOperation
+    }
+  } , [selectedObject])
 
 
 
