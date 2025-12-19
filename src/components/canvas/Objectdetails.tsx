@@ -12,6 +12,8 @@ import StrokeSettings from "./ui/StrokeSettings";
 import Textoptions from "./Textoptions";
 import { Button } from "../ui/button";
 import { ChevronsUpDown } from 'lucide-react';
+import { Select } from "@radix-ui/react-select";
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 const BLEND_MODES = [
   "normal",
@@ -54,6 +56,10 @@ const Objectdetails = () => {
   const isTextObject =
     selectedObject &&
     ["text", "i-text", "textbox"].includes(selectedObject.type as string);
+
+  const UpdateBlend = (mode: string) => {
+
+  }
 
 
   return (
@@ -166,7 +172,6 @@ const Objectdetails = () => {
               </div>
 
 
-
               {/* Stroke sections */}
               <Section className="w-full ">
                 <StrokeSettings />
@@ -180,66 +185,39 @@ const Objectdetails = () => {
                 </Section>
               )}
 
-              {/* blend mode */}
-              <Section>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] uppercase tracking-wide opacity-60">
-                    Blend
-                  </label>
 
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="
-                        bg-white/10 
-                        h-10 w-43
-                        flex items-center justify-between 
-                        border border-white/20 cursor-pointer  "
+              {/* Blend mode */}
+              <Section title="Blend">
+                <Select
+                  value={selectedObject?.globalCompositeOperation || "normal"}
+                  onValueChange={UpdateBlend}
+                >
+                  <SelectTrigger
+                    className="
+        h-9 w-full
+        bg-white/10
+        border border-white/20
+        text-sm capitalize
+      "
+                  >
+                    <SelectValue placeholder="Normal" />
+                  </SelectTrigger>
 
+                  <SelectContent className="bg-zinc-900 border border-zinc-800">
+                    {BLEND_MODES.map((blend) => (
+                      <SelectItem
+                        key={blend}
+                        value={blend}
+                        className="capitalize"
                       >
-                        <span className="text-sm capitalize">
-                          {selectedObject?.globalCompositeOperation || "normal"}
-                        </span>
-                        <ChevronsUpDown className="w-4 h-4 opacity-60" />
-                      </Button>
-                    </PopoverTrigger>
-
-                    <PopoverContent
-                      side="right"
-                      align="start"
-                      className="
-                              w-44 p-1
-                              bg-zinc-900
-                              border border-zinc-800
-                              shadow-xl 
-                              
-                            "
-                      onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                      <div className="max-h-72 overflow-y-auto">
-                        {BLEND_MODES.map((blend) => (
-                          <button
-                            key={blend}
-                            className={`
-                            w-full px-3 py-2 text-left text-sm rounded
-                            capitalize
-                            transition
-                            cursor-pointer
-                            ${selectedObject?.globalCompositeOperation === blend
-                                ? "bg-white/20 text-white"
-                                : "hover:bg-white/10 text-white/80"
-                              }
-              `}
-                          >
-                            {blend}
-                          </button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                        {blend}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Section>
+
+
 
             </div>
           </>
