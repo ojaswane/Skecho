@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useCanvasStore } from "../../../lib/store/canvasStore";
 import {
   Popover,
@@ -36,7 +36,8 @@ const BLEND_MODES = [
 
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
-  const [colorSet, setColor] = React.useState("#ffffff");
+  const [colorSet, setColor] = useState("#ffffff");
+  const [BlendMode , setBlendMode] = useState("normal");
 
   const updateFillColor = (color: any) => {
     const canvas = useCanvasStore.getState().canvas;
@@ -58,7 +59,14 @@ const Objectdetails = () => {
     ["text", "i-text", "textbox"].includes(selectedObject.type as string);
 
   const UpdateBlend = (mode: string) => {
+    const canvas = useCanvasStore.getState().canvas;
+    const obj = canvas?.getActiveObject();
 
+    if(!obj) return
+
+    obj.set({globalCompositeOperation : mode});
+    setBlendMode(mode);
+    canvas?.renderAll();
   }
 
 
@@ -198,9 +206,12 @@ const Objectdetails = () => {
                         bg-white/10
                         border border-white/20
                         text-sm capitalize
+                        cursor-pointer
                       "
                   >
-                    <SelectValue placeholder="Normal" />
+                    <SelectValue defaultValue="normal">
+                      {BlendMode}
+                    </SelectValue>
                   </SelectTrigger>
 
                   <SelectContent className="bg-zinc-900 border border-zinc-800">
@@ -208,7 +219,7 @@ const Objectdetails = () => {
                       <SelectItem
                         key={blend}
                         value={blend}
-                        className="capitalize"
+                        className="capitalize cursor-pointer"
                       >
                         {blend}
                       </SelectItem>
