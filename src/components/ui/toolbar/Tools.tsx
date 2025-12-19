@@ -9,7 +9,8 @@ import {
     ArrowRight,
     Frame
 } from "lucide-react"
-import { Circle as FabricCircle, Rect as FabricRect, Line as FabricLine , IText as text} from "fabric"
+import { Circle as FabricCircle, Rect as FabricRect, Line as FabricLine, IText as text, FabricImage } from "fabric"
+import * as fabric from "fabric"
 import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
 type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow"
@@ -136,7 +137,7 @@ const Tools = () => {
             }
         } else if (toolName === "Text") {
             console.log("Text tool selected");
-            if(!canvas) {
+            if (!canvas) {
                 console.error("Canvas is not available");
                 return;
             }
@@ -158,9 +159,57 @@ const Tools = () => {
                 console.log("Text added and rendered");
             } catch (e) {
                 console.error("Error creating text:", e);
+
+            }
+        } else if (toolName === "Image") {
+            if (!canvas) return console.error("Canvas is not available");
+
+            try {
+                document.getElementById("fileInput")?.click();
+
+            } catch (err) {
+                console.error("error importing image", err)
             }
         }
     }
+
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!canvas) return;
+
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            FabricImage.fromURL(reader.result as string).then((img: any) => {
+                img.set({
+                    left: canvas.width! / 2 - img.width! / 2,
+                    top: canvas.height! / 2 - img.height! / 2,
+                    scaleX: 0.5,
+                    scaleY: 0.5,
+                    selectable: true,
+                });
+
+                canvas.add(img);
+                canvas.setActiveObject(img);
+                canvas.renderAll();
+            });
+        };
+
+        reader.readAsDataURL(file);
+        e.target.value = "";
+    };
+
+
+    <input
+        id="fileInput"
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={handleImageUpload}
+    />
 
     return (
         <div className="col-span-1 flex justify-center items-center">

@@ -84,7 +84,7 @@ export default function ImageUploader() {
         setLoading(false)
     }
 
-    // 🗑️ Delete image (both DB + Storage)
+    //  Delete image (both DB + Storage)
     const removeImage = async (url: string) => {
         setImages((prev) => prev.filter((img) => img !== url))
 
@@ -123,7 +123,6 @@ export default function ImageUploader() {
     }
 
     //  AI Analysis
-    // 🧠 AI Analysis
     const handleAi = async () => {
         if (images.length === 0) {
             toast.error("Please upload an image first.");
@@ -132,7 +131,7 @@ export default function ImageUploader() {
 
         setLoading(true);
         try {
-            const imageUrl = images[0]; // 👈 analyze only the first image for now
+            const imageUrl = images[0]; // nalyze only the first image for now
 
             // Convert image to base64 (browser safe)
             const imgRes = await fetch(imageUrl);
