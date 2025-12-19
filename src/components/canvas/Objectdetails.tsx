@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState , useEffect} from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useCanvasStore } from "../../../lib/store/canvasStore";
 import {
   Popover,
@@ -38,7 +38,7 @@ const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
   const [colorSet, setColor] = useState("#ffffff");
   const [BlendMode, setBlendMode] = useState("Normal");
-  const previewRef = useRef<string >('Normal')
+  const previewRef = useRef<string>('Normal')
 
   const updateFillColor = (color: any) => {
     const canvas = useCanvasStore.getState().canvas;
@@ -66,7 +66,6 @@ const Objectdetails = () => {
     if (!obj) return
     obj.set({ globalCompositeOperation: mode });
 
-    setBlendMode(mode);
     canvas?.renderAll();
   }
 
@@ -90,11 +89,30 @@ const Objectdetails = () => {
 
   }
 
-  useEffect(()=>{
-    if(selectedObject?.globalCompositeOperation){
-      previewRef.current = selectedObject?.globalCompositeOperation
-    }
-  } , [selectedObject])
+  useEffect(() => {
+    const canvas = useCanvasStore.getState().canvas;
+    if (!canvas) return;
+
+    const handleSelection = () => {
+      const obj = canvas.getActiveObject();
+      if (!obj) return;
+
+      const blend = obj.globalCompositeOperation || "normal";
+
+      previewRef.current = blend;
+      setBlendMode(blend);
+
+      useCanvasStore.getState().setSelectedObject(obj);
+    };
+
+    canvas.on("selection:created", handleSelection);
+    canvas.on("selection:updated", handleSelection);
+
+    return () => {
+      canvas.off("selection:created", handleSelection);
+      canvas.off("selection:updated", handleSelection);
+    };
+  }, []);
 
 
 
@@ -238,7 +256,7 @@ const Objectdetails = () => {
                         cursor-pointer
                       "
                   >
-                    <SelectValue defaultValue="normal">
+                    <SelectValue defaultValue="Normal"  >
                       {BlendMode}
                     </SelectValue>
                   </SelectTrigger>
