@@ -104,7 +104,7 @@ const Tools = () => {
         }
     }
 
-    
+
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!canvas) return
         const file = e.target.files?.[0]
@@ -135,9 +135,6 @@ const Tools = () => {
         e.target.value = ""
     }
 
-    useEffect((() => {
-        
-    }), [])
 
     return (
         <>
