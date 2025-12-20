@@ -37,7 +37,7 @@ const Layout = () => {
       top: frame.top,
       width: frame.width,
       height: frame.height,
-      fill: "#fff",
+      fill: "#d1d1d1",
       stroke: "#888",
       strokeDashArray: [6, 6],
       selectable: false,
