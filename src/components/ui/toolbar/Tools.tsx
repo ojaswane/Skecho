@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useEffect } from "react"
 import {
     MousePointer2,
     Square,
@@ -134,6 +134,10 @@ const Tools = () => {
         reader.readAsDataURL(file)
         e.target.value = ""
     }
+
+    useEffect((() => {
+        
+    }), [])
 
     return (
         <>
