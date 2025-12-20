@@ -12,25 +12,8 @@ import StrokeSettings from "./ui/StrokeSettings";
 import Textoptions from "./Textoptions";
 import { Select } from "@radix-ui/react-select";
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-
-const BLEND_MODES = [
-  "normal",
-  "multiply",
-  "screen",
-  "overlay",
-  "darken",
-  "lighten",
-  "color-dodge",
-  "color-burn",
-  "hard-light",
-  "soft-light",
-  "difference",
-  "exclusion",
-  "hue",
-  "saturation",
-  "color",
-  "luminosity",
-]
+import { Crop } from 'lucide-react';
+import { BLEND_MODES } from "./data/data";
 
 const Objectdetails = () => {
   const selectedObject = useCanvasStore((s) => s.selectedObject);
@@ -273,6 +256,11 @@ const Objectdetails = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </Section>
+
+              {/* crop section */}
+              <Section>
+
               </Section>
 
             </div>
