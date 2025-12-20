@@ -7,6 +7,7 @@ import Objectdetails from "@/components/canvas/Objectdetails";
 import { useCanvasStore } from "../../../../../lib/store/canvasStore";
 import { useEffect } from "react";
 import * as fabric from 'fabric';
+import Layers from "@/components/canvas/Layers";
 
 const Layout = () => {
   const theme = useCanvasStore((s) => s.theme);
@@ -57,6 +58,11 @@ const Layout = () => {
 
       {/* MAIN EDITOR AREA */}
       <div className="flex flex-1 overflow-hidden">
+
+        {/* Layers */}
+        <div className="w-72">
+          <Layers />
+        </div>
 
         {/* CANVAS AREA */}
         <div className="flex-1 overflow-hidden">
