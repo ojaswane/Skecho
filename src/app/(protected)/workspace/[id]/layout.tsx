@@ -19,8 +19,8 @@ const Layout = () => {
 
     const id = crypto.randomUUID();
 
-    const width = 1440
-    const height = 1024
+    const width = 320
+    const height = 800
 
     const frame = {
       id,
@@ -31,6 +31,7 @@ const Layout = () => {
       left: canvas.getWidth() / 2 - width / 2,
       top: 80,
       locked: false,
+      
     }
 
     const rect = new fabric.Rect({
