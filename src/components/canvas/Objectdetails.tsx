@@ -43,9 +43,6 @@ const Objectdetails = () => {
     selectedObject &&
     ["text", "i-text", "textbox"].includes(selectedObject.type as string);
 
-  const isCropObject =
-    selectedObject &&
-    ["rectangle", "image", "circle"].includes(selectedObject.type as string);
 
 
   const UpdateBlend = (mode: string) => {
@@ -101,6 +98,11 @@ const Objectdetails = () => {
 
 
   // Handle crop
+  const isCropObject =
+    selectedObject &&
+    ["image"].includes(selectedObject.type as string);
+
+
   const previewCrop = () => {
     const canvas = useCanvasStore.getState().canvas;
     const img = croppedObjectRef.current;
