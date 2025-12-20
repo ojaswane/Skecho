@@ -104,7 +104,7 @@ const Tools = () => {
         }
     }
 
-    /* ✅ FIXED IMAGE UPLOADER (FABRIC v5 SAFE) */
+    
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!canvas) return
         const file = e.target.files?.[0]
