@@ -22,7 +22,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       setCanvas(initCanvas);
       setStoreCanvas(initCanvas as any);
 
-      // Delete key handler (attach once and clean up)
+      // Delete key handler 
       const onKeyDown = (e: KeyboardEvent) => {
         const key = e.key;
 
@@ -69,6 +69,43 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     }
   }, []);
 
+  useEffect((() => {
+      const { canvas, frames, addFrame, setActiveFrame } = useCanvasStore.getState()
+      if (!canvas || frames.length > 0) return;
+  
+      const id = crypto.randomUUID();
+  
+      const width = 320
+      const height = 800
+  
+      const frame = {
+        id,
+        device: "desktop",
+        badge: "idea",
+        width,
+        height,
+        left: canvas.getWidth() / 2 - width / 2,
+        top: 80,
+        locked: false,
+        
+      }
+  
+      const rect = new fabric.Rect({
+        left: frame.left,
+        top: frame.top,
+        width: frame.width,
+        height: frame.height,
+        fill: "#d1d1d1",
+        stroke: "#888",
+        strokeDashArray: [6, 6],
+        selectable: false,
+        evented: false,
+      })
+  
+      rect.set("frameId", id)
+      canvas.add(rect)
+      canvas.renderAll()
+    }), []) 
   // ======================= TODO : Add this back later =======================
 
   // useEffect(() => {
@@ -88,7 +125,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   // }, [canvas]);
 
   return (
-    <div>
+    <div  className="w-full " >
       <canvas ref={canvasRef} id='canvas' />
     </div>
   )
