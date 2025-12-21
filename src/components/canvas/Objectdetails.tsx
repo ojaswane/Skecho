@@ -43,8 +43,6 @@ const Objectdetails = () => {
     selectedObject &&
     ["text", "i-text", "textbox"].includes(selectedObject.type as string);
 
-
-
   const UpdateBlend = (mode: string) => {
     const canvas = useCanvasStore.getState().canvas;
     const obj = canvas?.getActiveObject();
