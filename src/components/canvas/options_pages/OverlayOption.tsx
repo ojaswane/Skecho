@@ -3,7 +3,7 @@ import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import * as fabric from 'fabric';
 
 
-const overlays = ({ frame }: any) => {
+const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
     if (!canvas) return null
 
@@ -54,4 +54,4 @@ const overlays = ({ frame }: any) => {
     )
 }
 
-export default overlays
+export default FramesOverlay

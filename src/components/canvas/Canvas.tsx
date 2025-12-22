@@ -105,6 +105,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     })
 
     rect.set("frameId", id)
+    // addFrame(frame)
     canvas.add(rect)
     canvas.renderAll()
   }), [])
