@@ -3,12 +3,13 @@ import React, { useEffect } from 'react'
 import { useRef } from 'react';
 import * as fabric from 'fabric';
 import { useCanvasStore } from '../../../lib/store/canvasStore'
+import FrameOverlays from './options_pages/FrameOverlays';
 
 const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   const canvasRef = useRef(null);
   const [canvas, setCanvas] = React.useState<any>(null);
   const { setCanvas: setStoreCanvas, setSelectedObject } = useCanvasStore();
-  
+
 
   useEffect(() => {
     if (canvasRef.current && !canvas) {
@@ -26,7 +27,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       const onKeyDown = (e: KeyboardEvent) => {
         const key = e.key;
 
-        if (key === "Delete" ) {
+        if (key === "Delete") {
           const active = initCanvas.getActiveObject();
           if (active) {
             initCanvas.remove(active);
@@ -70,42 +71,42 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   }, []);
 
   useEffect((() => {
-      const { canvas, frames, addFrame, setActiveFrame } = useCanvasStore.getState()
-      if (!canvas || frames.length > 0) return;
-  
-      const id = crypto.randomUUID();
-  
-      const width = 320
-      const height = 800
-  
-      const frame = {
-        id,
-        device: "desktop",
-        badge: "idea",
-        width,
-        height,
-        left: canvas.getWidth() / 2 - width / 2,
-        top: 80,
-        locked: false,
-        
-      }
-  
-      const rect = new fabric.Rect({
-        left: frame.left,
-        top: frame.top,
-        width: frame.width,
-        height: frame.height,
-        fill: "#d1d1d1",
-        stroke: "#888",
-        strokeDashArray: [6, 6],
-        selectable: false,
-        evented: false,
-      })
-  
-      rect.set("frameId", id)
-      canvas.add(rect)
-      canvas.renderAll()
-    }), []) 
+    const { canvas, frames, addFrame, setActiveFrame } = useCanvasStore.getState()
+    if (!canvas || frames.length > 0) return;
+
+    const id = crypto.randomUUID();
+
+    const width = 320
+    const height = 800
+
+    const frame = {
+      id,
+      device: "desktop",
+      badge: "idea",
+      width,
+      height,
+      left: canvas.getWidth() / 2 - width / 2,
+      top: 80,
+      locked: false,
+
+    }
+
+    const rect = new fabric.Rect({
+      left: frame.left,
+      top: frame.top,
+      width: frame.width,
+      height: frame.height,
+      fill: "#d1d1d1",
+      stroke: "#888",
+      strokeDashArray: [6, 6],
+      selectable: false,
+      evented: false,
+    })
+
+    rect.set("frameId", id)
+    canvas.add(rect)
+    canvas.renderAll()
+  }), [])
   // ======================= TODO : Add this back later =======================
 
   // useEffect(() => {
@@ -125,9 +126,16 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   // }, [canvas]);
 
   return (
-    <div  className="w-full " >
-      <canvas ref={canvasRef} id='canvas' />
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Fabric Canvas */}
+      <canvas ref={canvasRef} />
+
+      {/* HTML Overlay Layer at the frame */}
+      <div className="absolute inset-0 pointer-events-none">
+        <FrameOverlays />
+      </div>
     </div>
+
   )
 }
 

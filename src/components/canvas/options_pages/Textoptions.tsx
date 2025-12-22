@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { Text, IText, Textbox } from "fabric"
-import { Combobox } from "../ui/Combobox"
+import { Combobox } from "../../ui/Combobox"
 import {
   TextAlignStart,
   TextAlignCenter,
@@ -19,19 +19,19 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select"
+} from "../../ui/select"
 
-import { useCanvasStore } from "../../../lib/store/canvasStore"
+import { useCanvasStore } from "../../../../lib/store/canvasStore"
 import Icon from "@mdi/react"
 import { mdiFormatLineSpacing } from "@mdi/js"
-import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover"
-import { Button } from "../ui/button"
-import { Slider } from "../ui/slider"
+import { Popover, PopoverTrigger, PopoverContent } from "../../ui/popover"
+import { Button } from "../../ui/button"
+import { Slider } from "../../ui/slider"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "../ui/tooltip"
+} from "../../ui/tooltip"
 
 type TextAlign = "left" | "center" | "right"
 

@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import { useCanvasStore } from "../../../lib/store/canvasStore";
+import { useCanvasStore } from "../../../../lib/store/canvasStore";
 import {
   Popover,
   PopoverContent,
@@ -8,13 +8,13 @@ import {
 } from "@/components/ui/popover";
 import { Rect } from "fabric";
 import ColorPickerEditor from "./colorpicker";
-import StrokeSettings from "./ui/StrokeSettings";
+import StrokeSettings from "./StrokeSettings";
 import Textoptions from "./Textoptions";
 import { Select } from "@radix-ui/react-select";
-import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { Crop } from "lucide-react";
-import { BLEND_MODES } from "./data/data";
-import { Button } from "../ui/button";
+import { BLEND_MODES } from "../data/data";
+import { Button } from "../../ui/button";
 
 
 const Objectdetails = () => {

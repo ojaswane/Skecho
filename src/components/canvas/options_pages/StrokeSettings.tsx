@@ -6,7 +6,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import ColorPickerEditor from '../colorpicker';
+import ColorPickerEditor from './colorpicker';
 
 const STROKE_STYLES = [
     { label: "Solid", value: "solid", dash: [] },
