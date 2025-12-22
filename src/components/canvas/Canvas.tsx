@@ -3,7 +3,7 @@ import React, { useEffect } from 'react'
 import { useRef } from 'react';
 import * as fabric from 'fabric';
 import { useCanvasStore } from '../../../lib/store/canvasStore'
-import FrameOverlays from './options_pages/FrameOverlays';
+import FrameOverlays from './FrameOverlays';
 
 const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   const canvasRef = useRef(null);
@@ -76,8 +76,8 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
 
     const id = crypto.randomUUID();
 
-    const width = 320
-    const height = 800
+    const width = 1440
+    const height = 1024
 
     const frame = {
       id,
@@ -85,7 +85,8 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       badge: "idea",
       width,
       height,
-      left: canvas.getWidth() / 2 - width / 2,
+      // left: canvas.getWidth() / 2 - width / 2,
+      left: 50,
       top: 80,
       locked: false,
 
@@ -107,23 +108,6 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     canvas.add(rect)
     canvas.renderAll()
   }), [])
-  // ======================= TODO : Add this back later =======================
-
-  // useEffect(() => {
-  //   if (!canvas) return;
-
-  //   const updateProps = (obj: fabric.Object) => {
-  //     useCanvasStore.getState().setSelectedObject({
-  //       left: obj.left ?? 0,
-  //       top: obj.top ?? 0,
-  //       width: (obj.width ?? 0) * (obj.scaleX ?? 1),
-  //       height: (obj.height ?? 0) * (obj.scaleY ?? 1),
-  //       fill: obj.fill as string, 
-  //       stroke: obj.stroke as string,
-  //       strokeWidth: obj.strokeWidth,
-  //     });
-  //   };
-  // }, [canvas]);
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -138,9 +122,26 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
 
   )
 }
-
 export default CanvasRender;
 
+
+// ======================= TODO : Add this back later =======================
+
+// useEffect(() => {
+//   if (!canvas) return;
+
+//   const updateProps = (obj: fabric.Object) => {
+//     useCanvasStore.getState().setSelectedObject({
+//       left: obj.left ?? 0,
+//       top: obj.top ?? 0,
+//       width: (obj.width ?? 0) * (obj.scaleX ?? 1),
+//       height: (obj.height ?? 0) * (obj.scaleY ?? 1),
+//       fill: obj.fill as string,
+//       stroke: obj.stroke as string,
+//       strokeWidth: obj.strokeWidth,
+//     });
+//   };
+// }, [canvas]);
 
 // useEffect(() => {
 //   if (!canvas) return;
