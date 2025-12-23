@@ -9,6 +9,11 @@ const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
     if (!canvas) return null
 
+
+    //Canvas handles infinite space and transformations.
+    // HTML handles UI.
+    // I sync them using the canvas transformation matrix so the UI appears locked to frames during zoom and pan.
+
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
         const vpt = canvas.viewportTransform!
         return {
@@ -67,7 +72,7 @@ const FramesOverlay = ({ frame }: any) => {
                         Inspiration
                     </button>
                     <button className="px-2 py-1 rounded flex justify-center items-center gap-2  bg-white text-black">
-                        <Sparkles className='w-5'/>
+                        <Sparkles className='w-5' />
                         Generate Wireframe
                     </button>
                 </div>
