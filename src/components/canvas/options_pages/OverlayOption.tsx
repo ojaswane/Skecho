@@ -46,6 +46,8 @@ const FramesOverlay = ({ frame }: any) => {
     const BAR_HEIGHT = 44
     const BAR_GAP = 18 //margin
 
+    // adding the default text to the freame section
+
     return (
 
         <div
