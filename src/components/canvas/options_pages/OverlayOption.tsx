@@ -44,14 +44,16 @@ const FramesOverlay = ({ frame }: any) => {
 
     const zoom = canvas.getZoom()
     const pos = canvasToScreen(canvas, frame.left, frame.top)
+    const BAR_HEIGHT = 44
+    const BAR_GAP = 12 //margin
 
     return (
 
         <div
-            className="absolute pointer-events-auto"
+            className="absolute pointer-events-auto "
             style={{
                 left: pos.x,
-                top: pos.y - 44 * zoom,
+                top: pos.y - (BAR_HEIGHT + BAR_GAP) * zoom,
             }}
         >
             {/* SCALE LAYER */}
