@@ -12,6 +12,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   const { setCanvas: setStoreCanvas, setSelectedObject } = useCanvasStore();
 
 
+  // besic functionality for canvas
   useEffect(() => {
     if (canvasRef.current && !canvas) {
       const initCanvas = new fabric.Canvas(canvasRef.current as HTMLCanvasElement, {
@@ -71,8 +72,9 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     }
   }, []);
 
+  // for default frame 
   useEffect(() => {
-    const { canvas, frames, addFrame, setActiveFrame } = useCanvasStore.getState()
+    const { canvas, frames, addFrame } = useCanvasStore.getState()
     if (!canvas || frames.length > 0) return;
 
     const id = crypto.randomUUID();
@@ -112,6 +114,67 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     addFrame(frame)
     canvas.renderAll()
   }, [])
+
+  //for zooming and panning
+
+  // this prevents the zoom for browser
+  useEffect(() => {
+    const preventZoom = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("wheel", preventZoom, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", preventZoom);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!canvas) return;
+
+    const onWheel = (opt: any) => {
+      const e = opt.e;
+      const delta = e.deltaY;
+      const zoom = canvas.getZoom();
+      const vpt = canvas.viewportTransform!;
+
+      if (e.ctrlKey) {
+        let newZoom = zoom * (delta > 0 ? 0.95 : 1.05);
+
+        // clamp zoom (important)
+        newZoom = Math.min(Math.max(newZoom, 0.1), 6);
+
+        const pointer = canvas.getPointer(e);
+
+        canvas.zoomToPoint(
+          new fabric.Point(pointer.x, pointer.y),
+          newZoom
+        );
+      }
+      else if (e.shiftKey) {
+        vpt[4] -= delta;
+      }
+
+      else {
+        vpt[5] -= delta;
+      }
+
+      canvas.requestRenderAll();
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    canvas.on("mouse:wheel", onWheel);
+
+    return () => {
+      canvas.off("mouse:wheel", onWheel);
+    };
+  }, [canvas]);
+
+
 
   return (
     <div className="relative w-full h-full overflow-hidden">
