@@ -46,35 +46,42 @@ const FramesOverlay = ({ frame }: any) => {
     const pos = canvasToScreen(canvas, frame.left, frame.top)
 
     return (
+
         <div
-            className="absolute pointer-events-auto "
+            className="absolute pointer-events-auto"
             style={{
                 left: pos.x,
                 top: pos.y - 44 * zoom,
-                width: frame.width * zoom,
-                transform: `scale(${zoom})`,
-                transformOrigin: "top left",
             }}
         >
-            {/* TOP BAR */}
-            <div className="flex items-center justify-between mb-2 gap-2 px-3 py-2 rounded-lg bg-black/70 text-white tracking-tight">
-                <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-white/20">
-                        {frame.device}
-                    </span>
-                    <span className="opacity-70">
-                        {frame.badge}
-                    </span>
-                </div>
+            {/* SCALE LAYER */}
+            <div
+                style={{
+                    transform: `scale(${zoom})`,
+                    transformOrigin: "top left",
+                    width: frame.width,
+                }}
+            >
+                {/* TOP BAR */}
+                <div className="flex items-center justify-between mb-2 gap-2 px-3 py-2 rounded-lg bg-black/70 text-white tracking-tight">
+                    <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-white/20">
+                            {frame.device}
+                        </span>
+                        <span className="opacity-70">
+                            {frame.badge}
+                        </span>
+                    </div>
 
-                <div className="flex gap-2">
-                    <button className="px-2 py-1 rounded bg-white/20">
-                        Inspiration
-                    </button>
-                    <button className="px-2 py-1 rounded flex justify-center items-center gap-2  bg-white text-black">
-                        <Sparkles className='w-5' />
-                        Generate Wireframe
-                    </button>
+                    <div className="flex gap-2">
+                        <button className="px-2 py-1 rounded bg-white/20">
+                            Inspiration
+                        </button>
+                        <button className="px-2 py-1 rounded flex items-center gap-2 bg-white text-black">
+                            <Sparkles className="w-5" />
+                            Generate Wireframe
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -88,8 +88,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       badge: "idea",
       width,
       height,
-      // left: canvas.getWidth() / 2 - width / 2,
-      left: 50,
+      left: canvas.getWidth() / 2 - width / 2,
       top: 80,
       locked: false,
 
@@ -140,11 +139,12 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       const delta = e.deltaY;
       const zoom = canvas.getZoom();
       const vpt = canvas.viewportTransform!;
+      let isPanning = false
 
       if (e.ctrlKey) {
         let newZoom = zoom * (delta > 0 ? 0.95 : 1.05);
 
-        // clamp zoom (important)
+        // clamp zoom 
         newZoom = Math.min(Math.max(newZoom, 0.1), 6);
 
         const pointer = canvas.getPointer(e);
@@ -168,13 +168,10 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     };
 
     canvas.on("mouse:wheel", onWheel);
-
     return () => {
       canvas.off("mouse:wheel", onWheel);
     };
   }, [canvas]);
-
-
 
   return (
     <div className="relative w-full h-full overflow-hidden">
