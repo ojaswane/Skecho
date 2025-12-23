@@ -63,7 +63,7 @@ const FramesOverlay = ({ frame }: any) => {
                 }}
             >
                 {/* TOP BAR */}
-                <div className="flex items-center justify-between mb-2 gap-2 px-3 py-2 rounded-lg bg-black/70 text-white tracking-tight">
+                <div className="flex items-center justify-between mb-2 gap-2 px-3 py-2 rounded-lg bg-black/70 text-white text-xl tracking-tight">
                     <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 rounded bg-white/20">
                             {frame.device}
