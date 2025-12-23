@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import * as fabric from 'fabric';
 import { useCanvasStore } from '../../../lib/store/canvasStore'
 import FrameOverlays from './FrameOverlays';
+import type { Frame } from '../../../lib/store/canvasStore'
 
 const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   const canvasRef = useRef(null);
@@ -70,7 +71,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     }
   }, []);
 
-  useEffect((() => {
+  useEffect(() => {
     const { canvas, frames, addFrame, setActiveFrame } = useCanvasStore.getState()
     if (!canvas || frames.length > 0) return;
 
@@ -79,7 +80,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     const width = 1440
     const height = 1024
 
-    const frame = {
+    const frame: Frame = {
       id,
       device: "desktop",
       badge: "idea",
@@ -105,10 +106,12 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     })
 
     rect.set("frameId", id)
-    // addFrame(frame)
     canvas.add(rect)
+    console.log("frame created")
+    console.log(frame)
+    addFrame(frame)
     canvas.renderAll()
-  }), [])
+  }, [])
 
   return (
     <div className="relative w-full h-full overflow-hidden">

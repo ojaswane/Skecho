@@ -15,7 +15,7 @@ type ToolType =
     | "Frame"
     | null
 
-interface Frame {
+export type Frame = {
     id: string
     device: FrameType
     badge: FrameBadge

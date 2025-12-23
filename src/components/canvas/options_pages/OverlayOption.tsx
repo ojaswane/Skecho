@@ -1,4 +1,5 @@
-import React from 'react'
+'use client'
+import React, { useEffect } from 'react'
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import * as fabric from 'fabric';
 
@@ -15,6 +16,25 @@ const FramesOverlay = ({ frame }: any) => {
         }
     }
 
+    const [, forceUpdate] = React.useState(0)
+
+    useEffect(() => {
+        const canvas = useCanvasStore.getState().canvas
+        if (!canvas) return
+
+        const update = () => forceUpdate((n) => n + 1)
+
+        canvas.on("mouse:wheel", update)
+        canvas.on("object:moving", update)
+        canvas.on("after:render", update)
+        console.log(frames)
+
+        return () => {
+            canvas.off("mouse:wheel", update)
+            canvas.off("object:moving", update)
+            canvas.off("after:render", update)
+        }
+    }, [])
 
     const zoom = canvas.getZoom()
     const pos = canvasToScreen(canvas, frame.left, frame.top)

@@ -20,3 +20,4 @@ export type Shape = {
   type: string,
   rotation: number
 }
+
