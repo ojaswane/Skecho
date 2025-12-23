@@ -3,8 +3,7 @@ import React, { useEffect } from 'react'
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import * as fabric from 'fabric';
 import { Sparkles } from 'lucide-react';
-
-
+import { CircleFadingPlus } from 'lucide-react';
 const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
     if (!canvas) return null
@@ -45,7 +44,7 @@ const FramesOverlay = ({ frame }: any) => {
     const zoom = canvas.getZoom()
     const pos = canvasToScreen(canvas, frame.left, frame.top)
     const BAR_HEIGHT = 44
-    const BAR_GAP = 12 //margin
+    const BAR_GAP = 18 //margin
 
     return (
 
@@ -75,11 +74,12 @@ const FramesOverlay = ({ frame }: any) => {
                         </span>
                     </div>
 
-                    <div className="flex gap-2">
-                        <button className="px-2 py-1 rounded bg-white/20">
+                    <div className="flex gap-2 ">
+                        <button className="px-2 py-1 flex gap-2 items-center justify-center rounded bg-white/20 cursor-pointer">
+                            <CircleFadingPlus className="w-5"/>
                             Inspiration
                         </button>
-                        <button className="px-2 py-1 rounded flex items-center gap-2 bg-white text-black">
+                        <button className="px-2 py-1 rounded flex items-center gap-2 bg-white cursor-pointer text-black">
                             <Sparkles className="w-5" />
                             Generate Wireframe
                         </button>

@@ -117,19 +117,19 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   //for zooming and panning
 
   // this prevents the zoom for browser
-  // useEffect(() => {
-  //   const preventZoom = (e: WheelEvent) => {
-  //     if (e.ctrlKey) {
-  //       e.preventDefault();
-  //     }
-  //   };
+  useEffect(() => {
+    const preventZoom = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+      }
+    };
 
-  //   window.addEventListener("wheel", preventZoom, { passive: false });
+    window.addEventListener("wheel", preventZoom, { passive: false });
 
-  //   return () => {
-  //     window.removeEventListener("wheel", preventZoom);
-  //   };
-  // }, []);
+    return () => {
+      window.removeEventListener("wheel", preventZoom);
+    };
+  }, []);
 
   useEffect(() => {
     if (!canvas) return;
