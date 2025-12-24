@@ -3,7 +3,14 @@ import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import * as fabric from 'fabric'
 import React, { useEffect, useState } from 'react'
 
+const DEFAULT_TEXT = {
+    text: "Sketch Your Design's Here",
+    font: "inter",
+    fontWidth : 32,
+    letterSpacing : -9
+}
 export default function PromptButtonOverlay({ textObj }: { textObj: fabric.Text }) {
+
     const canvas = useCanvasStore(s => s.canvas)
     const [, forceUpdate] = useState(0)
 
@@ -29,6 +36,8 @@ export default function PromptButtonOverlay({ textObj }: { textObj: fabric.Text 
     const y = textObj.top! * vpt[3] + vpt[5]
 
     return (
+
+        //adding the canvas component
 
 
         //For Buttons (This is a Html component)
