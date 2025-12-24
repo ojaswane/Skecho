@@ -2,16 +2,19 @@
 import React, { useEffect } from 'react'
 import { useCanvasStore } from '../../../lib/store/canvasStore'
 import FramesOverlay from './options_pages/OverlayOption';
+import DefaultText from './options_pages/FrameDefaultText';
 
 
 const FrameOverlays = () => {
   const frames = useCanvasStore((s) => s.frames);
+  const textObj = useCanvasStore((s) => s.defaultTextObject)
 
   return (
     <>
       {frames.map((frame) => (
         <FramesOverlay frame={frame} key={frame.id} />
       ))}
+      {textObj && <DefaultText textObj={textObj} />}
     </>
   )
 }

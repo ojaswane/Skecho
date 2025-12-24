@@ -45,6 +45,10 @@ interface CanvasState {
     updateFrame: (id: string, data: Partial<Frame>) => void
 
     setSelectedObject: (obj: fabric.Object | null) => void
+
+
+    defaultTextObject: fabric.Text | null
+    setDefaultTextObject: (text: fabric.Text) => void
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
@@ -61,6 +65,10 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     activeFrameId: null,
 
     selectedObject: null,
+    
+    defaultTextObject: null,
+    setDefaultTextObject: (text) =>
+        set(() => ({ defaultTextObject: text })),
 
     setCanvas: (canvas) => set({ canvas }),
 

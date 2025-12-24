@@ -38,6 +38,7 @@ export default function DefaultText({ textObj }: { textObj: fabric.Text }) {
     const y = textObj.top! * vpt[3] + vpt[5]
 
     //setting the default text
+
     const frame = frames[0] // default frame
     const centerX = frame.left + frame.width / 2
     const centerY = frame.top + frame.height / 2
@@ -65,6 +66,22 @@ export default function DefaultText({ textObj }: { textObj: fabric.Text }) {
                 canvas.renderAll()
             }
         })
+    }, [canvas])
+
+    useEffect(() => {
+        canvas.on("text:changed", (e) => {
+            const obj = e.target
+            if (obj?.get("isPlaceholder")) {
+                obj.set("opacity", 1)
+                obj.set("isPlaceholder", false)
+            }
+        })
+        canvas.getObjects().forEach(obj => {
+            if (obj.get("isPlaceholder")) {
+                canvas.remove(obj)
+            }
+        })
+
     }, [canvas])
 
     return (
