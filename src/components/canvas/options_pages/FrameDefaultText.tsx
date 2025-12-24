@@ -8,7 +8,8 @@ const DEFAULT_TEXT = {
     text: "Sketch Your Design's Here",
     fontFamily: "inter",
     fontSize: 32,
-    letterSpacing: -4
+    letterSpacing: -4,
+    fill : "#000"
 }
 export default function DefaultText({ textObj }: { textObj: fabric.Text }) {
 
@@ -44,29 +45,31 @@ export default function DefaultText({ textObj }: { textObj: fabric.Text }) {
     const centerY = frame.top + frame.height / 2
 
     useEffect(() => {
-        frames.map((frame) => {
+        if (!canvas || !frame) return
 
-            if (canvas) {
-                const titleText = new fabric.Text(DEFAULT_TEXT.text, {
-                    left: centerX,
-                    top: centerY - 20,
-                    originX: "center",
-                    originY: "center",
-                    fontSize: DEFAULT_TEXT.fontSize,
-                    fontWeight: "bold",
-                    fill: "#000",
-                    fontFamily: DEFAULT_TEXT.fontFamily,
-                    selectable: false,
-                    evented: false
-                })
-
-                titleText.set('frameId', frame.id);
-                titleText.set("isPlaceholder", true);
-                canvas.add(titleText)
-                canvas.renderAll()
-            }
+        const placeholder = new fabric.Text(DEFAULT_TEXT.text, {
+            left: frame.left + frame.width / 2,
+            top: frame.top + frame.height / 2,
+            originX: "center",
+            originY: "center",
+            fontSize: DEFAULT_TEXT.fontSize,
+            fontFamily: DEFAULT_TEXT.fontFamily,
+            fill: DEFAULT_TEXT.fill,
+            selectable: false,
+            evented: false,
+            opacity: 0.6,
         })
+
+        placeholder.set("frameId", frame.id)
+        placeholder.set("isPlaceholder", true)
+
+        canvas.add(placeholder)
+        canvas.renderAll()
+
+        useCanvasStore.getState().setDefaultTextObject(placeholder)
+
     }, [canvas])
+
 
     useEffect(() => {
         canvas.on("text:changed", (e) => {
@@ -85,8 +88,6 @@ export default function DefaultText({ textObj }: { textObj: fabric.Text }) {
     }, [canvas])
 
     return (
-
-        //adding the canvas component
 
         //For Buttons (This is a Html component)
         <button
