@@ -12,7 +12,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   const { setCanvas: setStoreCanvas, setSelectedObject } = useCanvasStore();
 
 
-  // besic functionality for canvas
+  // basic functionality for canvas
   useEffect(() => {
     if (canvasRef.current && !canvas) {
       const initCanvas = new fabric.Canvas(canvasRef.current as HTMLCanvasElement, {
@@ -99,7 +99,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       top: frame.top,
       width: frame.width,
       height: frame.height,
-      fill: "#d1d1d1",
+      fill: "#d9d9d9",
       stroke: "#888",
       strokeDashArray: [6, 6],
       selectable: false,

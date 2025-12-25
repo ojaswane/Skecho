@@ -31,15 +31,18 @@ const Layers = () => {
 
     return (
         <div
-            className='w-64 h-full mt-10 rounded-xl
-            border border-white/20
-            bg-white/10 dark:bg-white/5
-            backdrop-blur-2xl
-            shadow-[0_8px_32px_rgba(0,0,0,0.15)]
-            flex flex-col ml-3'
+            className="
+        w-64 h-full mt-10 rounded-xl
+        border border-white/20
+        bg-white/10 dark:bg-white/5
+        backdrop-blur-2xl
+        shadow-[0_8px_32px_rgba(0,0,0,0.15)]
+        flex flex-col
+      "
         >
-            <h3 className="text-md font-semibold p-2">Layers</h3>
-
+            <div className="p-4 border-b border-white/20 font-semibold backdrop-blur-xl">
+                Layers
+            </div>
             {layers.map(layer => (
                 <div
                     key={layer.id}
@@ -47,7 +50,7 @@ const Layers = () => {
                         canvas?.setActiveObject(layer.object)
                         canvas?.renderAll()
                     }}
-                    className="p-2 text-sm hover:bg-black/10 rounded cursor-pointer"
+                    className="p-4 text-sm hover:bg-black/10 rounded cursor-pointer"
                 >
                     {layer.name}
                 </div>
