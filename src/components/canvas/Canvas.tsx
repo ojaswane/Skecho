@@ -5,11 +5,13 @@ import * as fabric from 'fabric';
 import { useCanvasStore } from '../../../lib/store/canvasStore'
 import FrameOverlays from './FrameOverlays';
 import type { Frame } from '../../../lib/store/canvasStore'
+import { FabricObject } from 'fabric';
 
 const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   const canvasRef = useRef(null);
   const [canvas, setCanvas] = React.useState<any>(null);
   const { setCanvas: setStoreCanvas, setSelectedObject } = useCanvasStore();
+
 
 
   // basic functionality for canvas
@@ -18,12 +20,14 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       const initCanvas = new fabric.Canvas(canvasRef.current as HTMLCanvasElement, {
         backgroundColor: theme === "dark" ? "#1a1a1a" : "#ffffff",
         selection: true,
-      });
+      })
+      
       initCanvas.setWidth(window.innerWidth);
       initCanvas.setHeight(window.innerHeight - 120);
       initCanvas.renderAll();
       setCanvas(initCanvas);
       setStoreCanvas(initCanvas as any);
+
 
       // Delete key handler 
       const onKeyDown = (e: KeyboardEvent) => {
