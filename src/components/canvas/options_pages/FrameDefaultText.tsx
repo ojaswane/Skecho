@@ -48,7 +48,7 @@ export default function DefaultText() {
             fill: DEFAULT_TEXT.fill,
             selectable: false,
             evented: false,
-            fontFamily : DEFAULT_TEXT.fontFamily
+            fontFamily: DEFAULT_TEXT.fontFamily
         })
 
         placeholder.set("frameId", frame.id)
@@ -82,8 +82,10 @@ export default function DefaultText() {
     const zoom = canvas.getZoom()
     const vpt = canvas.viewportTransform!
 
+    const centerY = frame.top + frame.height / 2 // this is the margin for the y pos
+
     const x = (frame.left + frame.width / 2) * vpt[0] + vpt[4]
-    const y = (frame.top - 10) * vpt[3] + vpt[5]
+    const y = (frame.top + centerY) * vpt[3] + vpt[5]
 
     return (
         <button
@@ -97,7 +99,7 @@ export default function DefaultText() {
                 pointerEvents: 'auto',
                 whiteSpace: 'nowrap'
             }}
-            className="px-3 py-1 rounded-full text-sm bg-black/10 hover:bg-black/20 cursor-pointer"
+            className=" rounded-full text-4xl p-4 bg-black/80 -mt-2 fixed tracking-tighter hover:bg-black/20 cursor-pointer"
         >
             Type your prompt instead
         </button>
