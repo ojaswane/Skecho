@@ -2,11 +2,12 @@
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Text } from 'fabric'
 import React, { useEffect, useState } from 'react'
+import { CircleChevronRight } from 'lucide-react';
 
 const DEFAULT_TEXT = {
-    text: "Sketch Your Design Here",
+    text: "Sketch Your Idea Here!",
     fontSize: 65,
-    letterSpacing: -5,
+    letterSpacing: -20,
     fill: "#000",
     fontFamily: "arial"
 }
@@ -99,9 +100,10 @@ export default function DefaultText() {
                 pointerEvents: 'auto',
                 whiteSpace: 'nowrap'
             }}
-            className=" rounded-full text-4xl p-4 bg-black/80 -mt-2 fixed tracking-tighter hover:bg-black/20 cursor-pointer"
+            className=" rounded-full flex items-center justify-center gap-2 text-4xl p-4 bg-black/80 -mt-2 fixed tracking-tighter hover:bg-black/70 cursor-pointer"
         >
             Type your prompt instead
+            <CircleChevronRight className='w-10'/>
         </button>
     )
 }
