@@ -115,6 +115,14 @@ export default function DefaultText() {
                     Type your prompt instead
                     <CircleChevronRight className='text-2xl' />
                 </DialogTrigger>
+
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className='text-3xl tracking-tighter'>
+                            Great! Type Your Prompt Here .
+                        </DialogTitle>
+                    </DialogHeader>
+                </DialogContent>
             </Dialog>
         </div >
     )
