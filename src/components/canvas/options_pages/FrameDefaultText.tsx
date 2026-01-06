@@ -98,7 +98,7 @@ export default function DefaultText() {
     const y = (frame.top + centerY) * vpt[3] + vpt[5]
 
     return (
-        <button
+        <div
             onClick={() => console.log("Ai prompt button")}
             style={{
                 position: 'absolute',
@@ -111,8 +111,12 @@ export default function DefaultText() {
             }}
             className=" rounded-full flex items-center justify-center gap-2 text-4xl p-4 bg-black/80 -mt-2 fixed tracking-tighter hover:bg-black/70 cursor-pointer"
         >
-            Type your prompt instead
-            <CircleChevronRight />
-        </button >
+            <Select>
+                <SelectTrigger className="w-full h-full text-4xl bg-transparent border-0 outline-0 focus:ring-0 p-0">
+                    Type your prompt instead
+                    <CircleChevronRight />
+                </SelectTrigger>
+            </Select>
+        </div >
     )
 }
