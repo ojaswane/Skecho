@@ -2,21 +2,17 @@
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Text } from 'fabric'
 import React, { useEffect, useState } from 'react'
-import { CircleChevronRight } from 'lucide-react';
+import { CircleChevronRight } from 'lucide-react'
 import {
     Select,
     SelectContent,
-    SelectGroup,
     SelectItem,
-    SelectLabel,
     SelectTrigger,
-    SelectValue,
 } from "@/components/ui/select"
 
 const DEFAULT_TEXT = {
     text: "Sketch Your Idea Here!",
     fontSize: 65,
-    letterSpacing: -20,
     fill: "#000",
     fontFamily: "arial"
 }
@@ -38,13 +34,11 @@ export default function DefaultText() {
         }
     }, [canvas])
 
-    // Add default text only when frame exists
+    // Add default placeholder text
     useEffect(() => {
         if (!canvas || frames.length === 0) return
-
         const frame = frames[0]
 
-        // Remove previous placeholder to avoid duplicates
         canvas.getObjects().forEach(obj => {
             if (obj.get("isPlaceholder")) canvas.remove(obj)
         })
@@ -68,16 +62,14 @@ export default function DefaultText() {
         canvas.renderAll()
 
         useCanvasStore.getState().setDefaultTextObject(placeholder)
-
     }, [canvas, frames])
 
-    // When user types
+    // Remove placeholder flag on typing
     useEffect(() => {
         if (!canvas) return
         const handler = (e: any) => {
             const obj = e.target
             if (obj?.get("isPlaceholder")) {
-                obj.set({ opacity: 1 })
                 obj.set("isPlaceholder", false)
                 canvas.renderAll()
             }
@@ -89,13 +81,13 @@ export default function DefaultText() {
     if (!canvas || frames.length === 0) return null
 
     const frame = frames[0]
-    const zoom = canvas.getZoom()
     const vpt = canvas.viewportTransform!
 
-    const centerY = frame.top + frame.height / 2 // this is the margin for the y pos
+    const centerX = frame.left + frame.width / 2
+    const centerY = frame.top + frame.height / 2
 
-    const x = (frame.left + frame.width / 2) * vpt[0] + vpt[4]
-    const y = (frame.top + centerY) * vpt[3] + vpt[5]
+    const x = centerX * vpt[0] + vpt[4]
+    const y = centerY * vpt[3] + vpt[5] + 40
 
     return (
         <div
