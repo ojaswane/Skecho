@@ -119,33 +119,34 @@ export default function DefaultText() {
 
                 <DialogContent className="bg-[#1e1e1e] border border-white/10 rounded-3xl p-6 w-[420px] text-white">
                     <DialogHeader className="space-y-4">
-                        <DialogTitle className="text-3xl font-semibold tracking-tight leading-tight">
+                        <div className="text-3xl tracking-tighter ">
                             Great! Type your<br />prompt here .
-                        </DialogTitle>
+                        </div>
                     </DialogHeader>
 
-                    {/* Small input */}
-                    <input
-                        placeholder="Your Idea"
-                        className="mt-4 w-full rounded-full bg-white/10 px-4 py-2 text-sm outline-none placeholder:text-white/60"
-                    />
+                    <div className="mt-4 flex flex-col gap-2 text-2xl" >
 
-                    {/* Textarea */}
-                    <Textarea
-                        placeholder="Type here"
-                        rows={4}
-                        className="mt-4 w-full rounded-2xl bg-white/10 px-4 py-3 text-sm outline-none resize-none placeholder:text-white/60"
-                    />
+                        {/* Small input */}
+                        <input
+                            placeholder="Your Idea"
+                            className="mt-4 w-full rounded-full bg-white/10 px-4 py-2 text-sm outline-none placeholder:text-white/60"
+                        />
 
-                    {/* Buttons */}
-                    <div className="mt-6 flex items-center justify-between gap-3">
-                        <button className="rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/10 transition">
-                            Inspired image
-                        </button>
+                        {/* Textarea */}
+                        <Textarea
+                            placeholder="Type here..."
+                        />
 
-                        <button className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium hover:bg-white/90 transition">
-                            Generate wireframe<br />with this prompt
-                        </button>
+                        {/* Buttons */}
+                        <div className="mt-6 flex items-center justify-between gap-3">
+                            <button className="rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/10 transition">
+                                Inspired image
+                            </button>
+
+                            <button className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium hover:bg-white/90 transition">
+                                Generate wireframe<br />with this prompt
+                            </button>
+                        </div>
                     </div>
                 </DialogContent>
 
