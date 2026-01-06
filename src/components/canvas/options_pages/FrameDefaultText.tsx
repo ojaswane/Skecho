@@ -2,17 +2,21 @@
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Text } from 'fabric'
 import React, { useEffect, useState } from 'react'
-import { CircleChevronRight } from 'lucide-react'
+import { CircleChevronRight } from 'lucide-react';
 import {
     Select,
     SelectContent,
+    SelectGroup,
     SelectItem,
+    SelectLabel,
     SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 
 const DEFAULT_TEXT = {
     text: "Sketch Your Idea Here!",
     fontSize: 65,
+    letterSpacing: -20,
     fill: "#000",
     fontFamily: "arial"
 }
@@ -34,11 +38,13 @@ export default function DefaultText() {
         }
     }, [canvas])
 
-    // Add default placeholder text
+    // Add default text only when frame exists
     useEffect(() => {
         if (!canvas || frames.length === 0) return
+
         const frame = frames[0]
 
+        // Remove previous placeholder to avoid duplicates
         canvas.getObjects().forEach(obj => {
             if (obj.get("isPlaceholder")) canvas.remove(obj)
         })
@@ -62,14 +68,16 @@ export default function DefaultText() {
         canvas.renderAll()
 
         useCanvasStore.getState().setDefaultTextObject(placeholder)
+
     }, [canvas, frames])
 
-    // Remove placeholder flag on typing
+    // When user types
     useEffect(() => {
         if (!canvas) return
         const handler = (e: any) => {
             const obj = e.target
             if (obj?.get("isPlaceholder")) {
+                obj.set({ opacity: 1 })
                 obj.set("isPlaceholder", false)
                 canvas.renderAll()
             }
@@ -81,39 +89,30 @@ export default function DefaultText() {
     if (!canvas || frames.length === 0) return null
 
     const frame = frames[0]
+    const zoom = canvas.getZoom()
     const vpt = canvas.viewportTransform!
 
-    const centerX = frame.left + frame.width / 2
-    const centerY = frame.top + frame.height / 2
+    const centerY = frame.top + frame.height / 2 // this is the margin for the y pos
 
-    const x = centerX * vpt[0] + vpt[4]
-    const y = centerY * vpt[3] + vpt[5] + 40
+    const x = (frame.left + frame.width / 2) * vpt[0] + vpt[4]
+    const y = (frame.top + centerY) * vpt[3] + vpt[5]
 
     return (
-        <div
+        <button
+            onClick={() => console.log("Ai prompt button")}
             style={{
                 position: 'absolute',
                 left: x,
                 top: y,
-                transform: 'translate(-50%, 0)',
+                transform: `translate(-50%, 0) scale(${zoom})`,
+                transformOrigin: 'top center',
                 pointerEvents: 'auto',
                 whiteSpace: 'nowrap'
             }}
-            className="z-50"
+            className=" rounded-full flex items-center justify-center gap-2 text-4xl p-4 bg-black/80 -mt-2 fixed tracking-tighter hover:bg-black/70 cursor-pointer"
         >
-            <Select onValueChange={(value) => console.log("AI prompt type:", value)}>
-                <SelectTrigger className="rounded-full flex items-center gap-2 text-2xl px-5 py-3 bg-black/80 text-white hover:bg-black/70 tracking-tight">
-                    Type your prompt instead
-                    <CircleChevronRight className="w-6 h-6" />
-                </SelectTrigger>
-
-                <SelectContent>
-                    <SelectItem value="landing">Landing Page</SelectItem>
-                    <SelectItem value="dashboard">Dashboard</SelectItem>
-                    <SelectItem value="mobile">Mobile App</SelectItem>
-                    <SelectItem value="saas">SaaS Website</SelectItem>
-                </SelectContent>
-            </Select>
-        </div>
+            Type your prompt instead
+            <CircleChevronRight />
+        </button >
     )
 }
