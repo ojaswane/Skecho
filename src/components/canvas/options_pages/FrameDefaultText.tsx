@@ -3,6 +3,15 @@ import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Text } from 'fabric'
 import React, { useEffect, useState } from 'react'
 import { CircleChevronRight } from 'lucide-react';
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 const DEFAULT_TEXT = {
     text: "Sketch Your Idea Here!",
@@ -89,21 +98,30 @@ export default function DefaultText() {
     const y = (frame.top + centerY) * vpt[3] + vpt[5]
 
     return (
-        <button
-            onClick={() => console.log("Ai prompt button")}
+        <div
             style={{
                 position: 'absolute',
                 left: x,
                 top: y,
-                transform: `translate(-50%, 0) scale(${zoom})`,
-                transformOrigin: 'top center',
+                transform: 'translate(-50%, 0)',
                 pointerEvents: 'auto',
                 whiteSpace: 'nowrap'
             }}
-            className=" rounded-full flex items-center justify-center gap-2 text-4xl p-4 bg-black/80 -mt-2 fixed tracking-tighter hover:bg-black/70 cursor-pointer"
+            className="z-50"
         >
-            Type your prompt instead
-            <CircleChevronRight className='w-10'/>
-        </button>
+            <Select onValueChange={(value) => console.log("AI prompt type:", value)}>
+                <SelectTrigger className="rounded-full flex items-center gap-2 text-2xl px-5 py-3 bg-black/80 text-white hover:bg-black/70 tracking-tight">
+                    Type your prompt instead
+                    <CircleChevronRight className="w-6 h-6" />
+                </SelectTrigger>
+
+                <SelectContent>
+                    <SelectItem value="landing">Landing Page</SelectItem>
+                    <SelectItem value="dashboard">Dashboard</SelectItem>
+                    <SelectItem value="mobile">Mobile App</SelectItem>
+                    <SelectItem value="saas">SaaS Website</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
     )
 }
