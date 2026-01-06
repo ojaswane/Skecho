@@ -6,11 +6,12 @@ import { CircleChevronRight } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
+import { Textarea } from '@/components/ui/textarea';
+
 
 const DEFAULT_TEXT = {
     text: "Sketch Your Idea Here!",
@@ -116,13 +117,38 @@ export default function DefaultText() {
                     <CircleChevronRight className='text-2xl' />
                 </DialogTrigger>
 
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle className='text-3xl tracking-tighter'>
-                            Great! Type Your Prompt Here .
+                <DialogContent className="bg-[#1e1e1e] border border-white/10 rounded-3xl p-6 w-[420px] text-white">
+                    <DialogHeader className="space-y-4">
+                        <DialogTitle className="text-3xl font-semibold tracking-tight leading-tight">
+                            Great! Type your<br />prompt here .
                         </DialogTitle>
                     </DialogHeader>
+
+                    {/* Small input */}
+                    <input
+                        placeholder="Your Idea"
+                        className="mt-4 w-full rounded-full bg-white/10 px-4 py-2 text-sm outline-none placeholder:text-white/60"
+                    />
+
+                    {/* Textarea */}
+                    <Textarea
+                        placeholder="Type here"
+                        rows={4}
+                        className="mt-4 w-full rounded-2xl bg-white/10 px-4 py-3 text-sm outline-none resize-none placeholder:text-white/60"
+                    />
+
+                    {/* Buttons */}
+                    <div className="mt-6 flex items-center justify-between gap-3">
+                        <button className="rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/10 transition">
+                            Inspired image
+                        </button>
+
+                        <button className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium hover:bg-white/90 transition">
+                            Generate wireframe<br />with this prompt
+                        </button>
+                    </div>
                 </DialogContent>
+
             </Dialog>
         </div >
     )
