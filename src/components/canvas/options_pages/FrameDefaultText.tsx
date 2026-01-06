@@ -4,14 +4,13 @@ import { Text } from 'fabric'
 import React, { useEffect, useState } from 'react'
 import { CircleChevronRight } from 'lucide-react';
 import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 
 const DEFAULT_TEXT = {
     text: "Sketch Your Idea Here!",
@@ -111,12 +110,12 @@ export default function DefaultText() {
             }}
             className=" rounded-full flex items-center justify-center gap-2 text-4xl p-4 bg-black/80 -mt-2 fixed tracking-tighter hover:bg-black/70 cursor-pointer"
         >
-            <Select>
-                <SelectTrigger className="w-full h-full text-4xl bg-transparent border-0 outline-0 focus:ring-0 p-0">
+            <Dialog>
+                <DialogTrigger className="w-full flex justify-center items-center gap-2 cursor-pointer h-full text-4xl bg-transparent border-0 outline-0 focus:ring-0 p-0">
                     Type your prompt instead
-                    <CircleChevronRight />
-                </SelectTrigger>
-            </Select>
+                    <CircleChevronRight className='text-2xl' />
+                </DialogTrigger>
+            </Dialog>
         </div >
     )
 }
