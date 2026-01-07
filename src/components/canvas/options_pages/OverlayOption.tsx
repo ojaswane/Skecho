@@ -42,30 +42,34 @@ const FramesOverlay = ({ frame }: any) => {
         switch (frame.badge) {
             case 'idea':
                 return (
-                    <Badge className="bg-yellow-500/20 text-yellow-300">
+                    <Badge className="bg-yellow-500/20 text-lg text-yellow-300">
                         Idea
                     </Badge>
                 )
             case 'wireframe':
                 return (
-                    <Badge className="bg-blue-500/20 text-blue-300">
+                    <Badge className="bg-blue-500/20 text-lg text-blue-300">
                         Wireframe
                     </Badge>
                 )
             case 'final':
                 return (
-                    <Badge className="bg-green-500/20 text-green-300">
+                    <Badge className="bg-green-500/20 text-lg text-green-300">
                         Final
                     </Badge>
                 )
             default:
-                return null
+                return (
+                    <Badge className="bg-yellow-500/20 text-lg text-yellow-300">
+                        Idea
+                    </Badge>
+                )
         }
     }
 
     return (
         <div
-            className="absolute pointer-events-auto"
+            className="absolute pointer-events-auto "
             style={{
                 left: pos.x,
                 top: pos.y - (BAR_HEIGHT + BAR_GAP) * zoom,
@@ -80,11 +84,11 @@ const FramesOverlay = ({ frame }: any) => {
                 }}
             >
                 {/* TOP BAR */}
-                <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-black/70 text-white text-sm tracking-tight">
+                <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-black/70 text-white text-lg tracking-tight">
 
                     {/* LEFT */}
                     <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded bg-white/20 text-xs">
+                        <span className="px-2 py-0.5 rounded text-lg bg-white/20">
                             {frame.device}
                         </span>
 
@@ -93,12 +97,12 @@ const FramesOverlay = ({ frame }: any) => {
 
                     {/* RIGHT */}
                     <div className="flex gap-2">
-                        <button className="px-2 py-1 flex gap-2 items-center rounded bg-white/20 hover:bg-white/30 transition">
+                        <button className="px-2 py-1 flex cursor-pointer gap-2 items-center rounded bg-white/20 hover:bg-white/30 transition">
                             <ImagePlus className="w-4" />
                             Inspiration
                         </button>
 
-                        <button className="px-2 py-1 flex gap-2 items-center rounded bg-white text-black hover:bg-white/90 transition">
+                        <button className="px-2 py-1 flex gap-2 cursor-pointer items-center rounded bg-white text-black hover:bg-white/90 transition">
                             <Sparkles className="w-4" />
                             Generate
                         </button>
