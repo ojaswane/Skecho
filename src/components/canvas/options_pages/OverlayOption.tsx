@@ -117,38 +117,38 @@ const FramesOverlay = ({ frame }: any) => {
                         <Separator orientation="vertical" className="h-5 bg-white/20" />
 
                         {/* Project Name */}
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition">
-                            <span className="text-xs uppercase opacity-60 tracking-wide">
+                        <div className="flex items-center gap-2 text-lg px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition">
+                            <span className=" uppercase opacity-60 tracking-wide">
                                 Project
                             </span>
                             <input
                                 type="text"
                                 placeholder="Ecommerce Website"
-                                className="bg-transparent outline-none text-sm placeholder:text-white/40 w-36"
+                                className="bg-transparent outline-none  placeholder:text-white/40 w-40"
                             />
                         </div>
 
                         {/* Description */}
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition">
-                            <span className="text-xs uppercase opacity-60 tracking-wide">
+                        <div className="flex items-center text-lg gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition">
+                            <span className=" uppercase opacity-60 tracking-wide">
                                 Notes
                             </span>
                             <input
                                 type="text"
-                                placeholder="Quick idea sketch"
-                                className="bg-transparent outline-none text-sm placeholder:text-white/40 w-44"
+                                placeholder="Describe your idea..."
+                                className="bg-transparent outline-none  placeholder:text-white/40 w-44"
                             />
                         </div>
                     </div>
 
                     {/* RIGHT */}
-                    <div className="flex gap-2">
-                        <button className="px-3 py-1.5 flex items-center gap-2 rounded-md bg-white/20 hover:bg-white/30 transition text-sm">
+                    <div className="flex gap-2 text-lg">
+                        <button className="px-3 cursor-pointer py-1.5 flex items-center gap-2 rounded-md bg-white/20 hover:bg-white/30 transition ">
                             <ImagePlus className="w-4 h-4" />
                             Inspiration
                         </button>
 
-                        <button className="px-3 py-1.5 flex items-center gap-2 rounded-md bg-white text-black hover:bg-white/90 transition text-sm">
+                        <button className="px-3 py-1.5 flex cursor-pointer items-center gap-2 rounded-md bg-white text-black hover:bg-white/90 transition ">
                             <Sparkles className="w-4 h-4" />
                             Generate
                         </button>
