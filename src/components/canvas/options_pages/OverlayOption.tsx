@@ -4,7 +4,7 @@ import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import * as fabric from 'fabric'
 import { Sparkles, ImagePlus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-
+import { Separator } from '@/components/ui/separator'
 const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
     if (!canvas) return null
@@ -93,6 +93,12 @@ const FramesOverlay = ({ frame }: any) => {
                         </span>
 
                         {renderBadge()}
+                        <Separator orientation="vertical" />
+                        <input
+                            type="text"
+                            placeholder='Project Name'
+                            className="bg-transparent outline-none placeholder:text-white/60 text-lg tracking-tight w-48"
+                        />
                     </div>
 
                     {/* RIGHT */}
@@ -107,7 +113,6 @@ const FramesOverlay = ({ frame }: any) => {
                             Generate
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>
