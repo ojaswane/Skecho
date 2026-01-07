@@ -146,7 +146,19 @@ export default function DefaultText() {
                                 <TooltipTrigger asChild>
                                     <button className="flex w-full items-center cursor-pointer gap-2 rounded-full border border-white/20 px-4 py-2 hover:bg-white/10 transition">
                                         <ImagePlus className="w-4 h-4" />
-                                        Inspired image
+                                        <label
+                                            htmlFor="fileInput"
+                                            className='cursor-pointer text-sm'
+                                        >
+                                            Inspiration Image
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            multiple
+                                            className="hidden  cursor-pointer"
+                                            id="fileInput"
+                                        />
                                     </button>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -156,7 +168,7 @@ export default function DefaultText() {
 
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <button className="flex w-full items-center justify-center gap-2 cursor-pointer rounded-full bg-white text-black px-5 py-2 font-medium hover:bg-white/90 transition">
+                                    <button className="flex w-full items-center text-sm justify-center gap-2 cursor-pointer rounded-full bg-white text-black px-5 py-2 font-medium hover:bg-white/90 transition">
                                         <Sparkles className="w-4 h-4" />
                                         Generate
                                     </button>
