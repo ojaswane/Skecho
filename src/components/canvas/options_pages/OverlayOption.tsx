@@ -87,19 +87,43 @@ const FramesOverlay = ({ frame }: any) => {
                 <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-black/70 text-white text-lg tracking-tight">
 
                     {/* LEFT */}
-                    <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded text-lg bg-white/20">
+                    {/* LEFT */}
+                    <div className="flex items-center gap-3">
+
+                        {/* Device */}
+                        <span className="px-2 py-0.5 rounded bg-white/20 text-sm">
                             {frame.device}
                         </span>
 
                         {renderBadge()}
-                        <Separator orientation="vertical" />
-                        <input
-                            type="text"
-                            placeholder='Project Name'
-                            className="bg-transparent outline-none placeholder:text-white/60 text-lg tracking-tight w-48"
-                        />
+
+                        <Separator orientation="vertical" className="h-6 bg-white/20" />
+
+                        {/* Project Name */}
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition">
+                            <span className="text-xs uppercase opacity-60 tracking-wide">
+                                Project
+                            </span>
+                            <input
+                                type="text"
+                                placeholder="Landing Page"
+                                className="bg-transparent outline-none text-sm placeholder:text-white/40 w-36"
+                            />
+                        </div>
+
+                        {/* Description */}
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition">
+                            <span className="text-xs uppercase opacity-60 tracking-wide">
+                                Notes
+                            </span>
+                            <input
+                                type="text"
+                                placeholder="Quick idea sketch"
+                                className="bg-transparent outline-none text-sm placeholder:text-white/40 w-44"
+                            />
+                        </div>
                     </div>
+
 
                     {/* RIGHT */}
                     <div className="flex gap-2">
