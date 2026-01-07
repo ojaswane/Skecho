@@ -118,7 +118,7 @@ export default function DefaultText() {
             className=" rounded-full flex items-center justify-center gap-2 text-4xl p-4 bg-black/80 -mt-2 fixed tracking-tighter hover:bg-black/70 cursor-pointer"
         >
             <Dialog>
-                <DialogTrigger className="rounded-full flex items-center gap-2 text-2xl px-5 py-3 bg-black/80 text-white hover:bg-black/70">
+                <DialogTrigger className="rounded-full flex items-center gap-2 text-4xl justify-center px-5 py-2 cursor-pointer text-white ">
                     Type your prompt instead
                     <CircleChevronRight className="w-5 h-5" />
                 </DialogTrigger>
@@ -130,40 +130,42 @@ export default function DefaultText() {
                         </div>
                     </DialogHeader>
 
-                    <div className="mt-4 flex flex-col gap-3">
+                    <div className="mt-6 flex flex-col gap-3">
                         <input
                             placeholder="Your Idea"
-                            className="w-full rounded-full bg-white/10 px-4 py-2 outline-none placeholder:text-white/60"
+                            className="w-2/3 rounded-full text-lg  bg-white/10 px-4 py-2 outline-none placeholder:text-white/60"
                         />
 
                         <Textarea
                             placeholder="Type here..."
-                            className="bg-white/10 border-0 rounded-2xl placeholder:text-white/60"
+                            className="bg-white/10 border-0  text-lg placeholder:text-lg rounded-2xl placeholder:text-white/60"
                         />
 
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button className="flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 hover:bg-white/10 transition">
-                                    <ImagePlus className="w-4 h-4" />
-                                    Inspired image
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                Add your inspired image for better results
-                            </TooltipContent>
-                        </Tooltip>
+                        <div className="flex items-center gap-2 text-lg justify-between mt-2 ">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button className="flex w-full items-center cursor-pointer gap-2 rounded-full border border-white/20 px-4 py-2 hover:bg-white/10 transition">
+                                        <ImagePlus className="w-4 h-4" />
+                                        Inspired image
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Add your inspired image for better results
+                                </TooltipContent>
+                            </Tooltip>
 
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button className="flex items-center gap-2 justify-center rounded-full bg-white text-black px-5 py-2 font-medium hover:bg-white/90 transition">
-                                    <Sparkles className="w-4 h-4" />
-                                    Generate wireframe
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                Generate wireframe using this prompt
-                            </TooltipContent>
-                        </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button className="flex w-full items-center justify-center gap-2 cursor-pointer rounded-full bg-white text-black px-5 py-2 font-medium hover:bg-white/90 transition">
+                                        <Sparkles className="w-4 h-4" />
+                                        Generate
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Generate wireframe using this prompt
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
