@@ -145,7 +145,19 @@ const FramesOverlay = ({ frame }: any) => {
                     <div className="flex gap-2 text-lg">
                         <button className="px-3 cursor-pointer py-1.5 flex items-center gap-2 rounded-md bg-white/20 hover:bg-white/30 transition ">
                             <ImagePlus className="w-4 h-4" />
-                            Inspiration
+                            <label
+                                htmlFor="fileInput"
+                                className='cursor-pointer'
+                            >
+                                Inspiration
+                            </label>
+                            <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden cursor-pointer"
+                            id="fileInput"
+                        />
                         </button>
 
                         <button className="px-3 py-1.5 flex cursor-pointer items-center gap-2 rounded-md bg-white text-black hover:bg-white/90 transition ">

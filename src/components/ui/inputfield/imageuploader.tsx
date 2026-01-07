@@ -39,7 +39,7 @@ export default function ImageUploader() {
         fetchImages()
     }, [])
 
-    // ✅ Upload new images
+    //  Upload new images
     const uploadFiles = async (files: FileList | File[]) => {
         setLoading(true)
         const uploadedUrls: string[] = []
@@ -157,7 +157,7 @@ export default function ImageUploader() {
             const data = await response.json();
 
             if (response.ok) {
-                console.log("🎨 AI Design Analysis:", data.output);
+                console.log(" AI Design Analysis:", data.output);
                 toast.success("AI analysis completed! Check console for details.");
             } else {
                 console.error("AI error:", data);
