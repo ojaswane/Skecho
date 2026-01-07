@@ -11,7 +11,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Textarea } from '@/components/ui/textarea';
-
+import { ImagePlus } from 'lucide-react';
 
 const DEFAULT_TEXT = {
     text: "Sketch Your Idea Here!",
@@ -124,12 +124,12 @@ export default function DefaultText() {
                         </div>
                     </DialogHeader>
 
-                    <div className="mt-4 flex flex-col gap-2 text-2xl" >
+                    <div className="mt-4 flex flex-col gap-2 text-lg tracking-tight" >
 
                         {/* Small input */}
                         <input
                             placeholder="Your Idea"
-                            className="mt-4 w-full rounded-full bg-white/10 px-4 py-2 text-sm outline-none placeholder:text-white/60"
+                            className="mt-4 w-full rounded-full bg-white/10 px-4 py-2  outline-none placeholder:text-white/60"
                         />
 
                         {/* Textarea */}
@@ -138,13 +138,14 @@ export default function DefaultText() {
                         />
 
                         {/* Buttons */}
-                        <div className="mt-6 flex items-center justify-between gap-3">
-                            <button className="rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/10 transition">
+                        <div className="mt-6 flex items-center justify-between gap-2">
+                            <button className="flex justify-center items-center gap-2 rounded-full border border-white/20 px-4 py-2  hover:bg-white/10 transition">
+                                <ImagePlus/>
                                 Inspired image
                             </button>
 
-                            <button className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium hover:bg-white/90 transition">
-                                Generate wireframe<br />with this prompt
+                            <button className="rounded-full bg-white text-black px-5 py-2   font-medium hover:bg-white/90 transition">
+                                Generate wireframe
                             </button>
                         </div>
                     </div>
