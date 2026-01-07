@@ -91,7 +91,7 @@ const FramesOverlay = ({ frame }: any) => {
                     <div className="flex items-center gap-3">
 
                         {/* Device */}
-                        <span className="px-2 py-0.5 rounded bg-white/20 text-sm">
+                        <span className="px-2 py-0.5 rounded-full bg-white/20 ">
                             {frame.device}
                         </span>
 
@@ -100,30 +100,29 @@ const FramesOverlay = ({ frame }: any) => {
                         <Separator orientation="vertical" className="h-6 bg-white/20" />
 
                         {/* Project Name */}
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition">
-                            <span className="text-xs uppercase opacity-60 tracking-wide">
+                        <div className="flex items-center  gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition">
+                            <span className="text-lg uppercase opacity-60 tracking-wide">
                                 Project
                             </span>
                             <input
                                 type="text"
-                                placeholder="Landing Page"
-                                className="bg-transparent outline-none text-sm placeholder:text-white/40 w-36"
+                                placeholder="Ecommerce Website"
+                                className="bg-transparent outline-none text-lg placeholder:text-white/40 w-36"
                             />
                         </div>
 
                         {/* Description */}
                         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition">
-                            <span className="text-xs uppercase opacity-60 tracking-wide">
+                            <span className=" uppercase opacity-60 tracking-wide">
                                 Notes
                             </span>
                             <input
                                 type="text"
                                 placeholder="Quick idea sketch"
-                                className="bg-transparent outline-none text-sm placeholder:text-white/40 w-44"
+                                className="bg-transparent outline-none  placeholder:text-white/40 w-44"
                             />
                         </div>
                     </div>
-
 
                     {/* RIGHT */}
                     <div className="flex gap-2">
