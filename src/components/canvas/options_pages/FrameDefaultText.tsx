@@ -132,7 +132,7 @@ export default function DefaultText() {
 
                     <div className="mt-6 flex flex-col gap-3">
                         <input
-                            placeholder="Your Idea"
+                            placeholder="Idea Title (eg. Saas App)"
                             className="w-2/3 rounded-full text-lg  bg-white/10 px-4 py-2 outline-none placeholder:text-white/60"
                         />
 
