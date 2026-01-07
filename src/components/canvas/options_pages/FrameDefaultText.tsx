@@ -105,37 +105,38 @@ export default function DefaultText() {
                     <div className="mt-4 flex flex-col gap-3">
                         <input
                             placeholder="Your Idea"
-                            className="w-full rounded-full bg-white/10 px-4 py-2 outline-none placeholder:text-white/60"
+                            className="w-1/2 border-1 focus:border-2 rounded-full bg-white/10 px-4 py-2 outline-none placeholder:text-white/60"
                         />
 
                         <Textarea
                             placeholder="Type here..."
                             className="bg-white/10 border-0 rounded-2xl placeholder:text-white/60"
                         />
+                        <div className='flex gap-3 mt-3'>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button className="flex items-center text-sm gap-2 rounded-full border border-white/20 px-4 py-2 hover:bg-white/10 transition">
+                                        <ImagePlus className="w-4 h-4" />
+                                        Inspired image
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Add your inspired image for better results
+                                </TooltipContent>
+                            </Tooltip>
 
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button className="flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 hover:bg-white/10 transition">
-                                    <ImagePlus className="w-4 h-4" />
-                                    Inspired image
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                Add your inspired image for better results
-                            </TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button className="flex items-center gap-2 justify-center rounded-full bg-white text-black px-5 py-2 font-medium hover:bg-white/90 transition">
-                                    <Sparkles className="w-4 h-4" />
-                                    Generate wireframe
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                Generate wireframe using this prompt
-                            </TooltipContent>
-                        </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button className="flex items-center gap-2 justify-center rounded-full bg-white text-black px-5 py-2 font-medium hover:bg-white/90 transition">
+                                        <Sparkles className="w-4 h-4" />
+                                        Generate wireframe
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Generate wireframe using this prompt
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
