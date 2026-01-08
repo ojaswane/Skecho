@@ -206,7 +206,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       if (e.ctrlKey) {
         let newZoom = zoom * (delta > 0 ? 0.95 : 1.05);
 
-        // clamp zoom 
+        // clamp zoom
         newZoom = Math.min(Math.max(newZoom, 0.1), 6);
 
         const pointer = canvas.getPointer(e);
