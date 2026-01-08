@@ -99,9 +99,10 @@ const FramesOverlay = ({ frame }: any) => {
                     <div className="flex items-center gap-3">
 
                         {/* Device Selector */}
-                        <div className="px-3 py-1 rounded-full bg-white/15 hover:bg-white/20 transition">
-                            <Select defaultValue={frame.device}>
-                                <SelectTrigger className="h-auto p-0 bg-transparent border-0 focus:ring-0 text-sm text-white gap-1">
+                        <div className=" bg-white/10 rounded-full   transition">
+                            <Select defaultValue="Desktop">
+                                <SelectTrigger
+                                    className="h-auto cursor-pointer  p-4 rounded-full   border-0  text-sm text-white gap-1">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#1e1e1e] border border-white/10 text-white">
@@ -152,12 +153,12 @@ const FramesOverlay = ({ frame }: any) => {
                                 Inspiration
                             </label>
                             <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            className="hidden cursor-pointer"
-                            id="fileInput"
-                        />
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden cursor-pointer"
+                                id="fileInput"
+                            />
                         </button>
 
                         <button className="px-3 py-1.5 flex cursor-pointer items-center gap-2 rounded-md bg-white text-black hover:bg-white/90 transition ">
