@@ -177,7 +177,6 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   }, [canvas]);
 
 
-
   //for zooming and panning
 
   // this prevents the zoom for browser
