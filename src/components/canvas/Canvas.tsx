@@ -21,7 +21,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
         backgroundColor: theme === "dark" ? "#1a1a1a" : "#ffffff",
         selection: true,
       })
-      
+
       initCanvas.setWidth(window.innerWidth);
       initCanvas.setHeight(window.innerHeight - 120);
       initCanvas.renderAll();
@@ -76,13 +76,12 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     }
   }, []);
 
-  // for default frame 
+  // for default frame
   useEffect(() => {
-    const { canvas, frames, addFrame } = useCanvasStore.getState()
-    if (!canvas || frames.length > 0) return;
+    const store = useCanvasStore.getState()
+    if (!canvas || store.frames.length > 0) return
 
-    const id = crypto.randomUUID();
-
+    const id = crypto.randomUUID()
     const width = 1440
     const height = 1024
 
@@ -95,10 +94,10 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       left: canvas.getWidth() / 2 - width / 2,
       top: 80,
       locked: false,
-
     }
 
-    const rect = new fabric.Rect({
+    /* Frame border (NOT clipped) */
+    const frameRect = new fabric.Rect({
       left: frame.left,
       top: frame.top,
       width: frame.width,
@@ -110,13 +109,76 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       evented: false,
     })
 
-    rect.set("frameId", id)
-    canvas.add(rect)
-    console.log("frame created")
-    console.log(frame)
-    addFrame(frame)
-    canvas.renderAll()
-  }, [])
+    frameRect.set("frameId", id)
+    frameRect.set("isFrame", true)
+
+    canvas.add(frameRect)
+
+    /* Clip path */
+    const clipRect = new fabric.Rect({
+      left: frame.left,
+      top: frame.top,
+      width: frame.width,
+      height: frame.height,
+      absolutePositioned: true,
+    })
+
+    /* CLIPPED */
+    const contentGroup = new fabric.Group([], {
+      clipPath: clipRect,
+
+    })
+
+    contentGroup.set("frameId", id)
+    contentGroup.set("isFrameContent", true)
+
+    canvas.add(contentGroup)
+    store.addFrame(frame)
+
+    canvas.requestRenderAll()
+  }, [canvas])
+
+
+  /* Automatically move objects into frame content group if they are inside frame */
+  useEffect(() => {
+    if (!canvas) return;
+
+    const onObjectAdded = (e: any) => {
+      const obj = e.target as fabric.Object;
+
+      // ignore frame elements
+      if (
+        obj.get("isFrame") ||
+        obj.get("isFrameContent")
+      ) {
+        return;
+      }
+
+      const frames = canvas.getObjects().filter(
+        (o: FabricObject) => o.get("isFrameContent")
+      ) as fabric.Group[];
+
+      const center = obj.getCenterPoint();
+
+      const targetFrame = frames.find((frame) =>
+        frame.clipPath?.containsPoint(center)
+      );
+
+      if (targetFrame) {
+        canvas.remove(obj);
+        targetFrame.add(obj);
+        targetFrame.setCoords();
+        canvas.requestRenderAll();
+      }
+    };
+
+    canvas.on("object:added", onObjectAdded);
+
+    return () => {
+      canvas.off("object:added", onObjectAdded);
+    };
+  }, [canvas]);
+
 
   //for zooming and panning
 
@@ -190,31 +252,3 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   )
 }
 export default CanvasRender;
-
-
-// ======================= TODO : Add this back later =======================
-
-// useEffect(() => {
-//   if (!canvas) return;
-
-//   const updateProps = (obj: fabric.Object) => {
-//     useCanvasStore.getState().setSelectedObject({
-//       left: obj.left ?? 0,
-//       top: obj.top ?? 0,
-//       width: (obj.width ?? 0) * (obj.scaleX ?? 1),
-//       height: (obj.height ?? 0) * (obj.scaleY ?? 1),
-//       fill: obj.fill as string,
-//       stroke: obj.stroke as string,
-//       strokeWidth: obj.strokeWidth,
-//     });
-//   };
-// }, [canvas]);
-
-// useEffect(() => {
-//   if (!canvas) return;
-
-//   canvas.setBackgroundColor(
-//     theme === "dark" ? "#1a1a1a" : "#ffffff",
-//     () => canvas.renderAll()
-//   );
-// }, [theme, canvas]);
