@@ -146,13 +146,9 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     const onObjectAdded = (e: any) => {
       const obj = e.target as fabric.Object;
 
-      // ignore frame elements
-      if (
-        obj.get("isFrame") ||
-        obj.get("isFrameContent")
-      ) {
-        return;
-      }
+      if (obj.get("isFrame") || obj.get("isFrameContent")) return;
+
+      if (obj.type === "activeSelection") return;
 
       const frames = canvas.getObjects().filter(
         (o: FabricObject) => o.get("isFrameContent")
@@ -167,6 +163,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       if (targetFrame) {
         canvas.remove(obj);
         targetFrame.add(obj);
+        obj.setCoords();
         targetFrame.setCoords();
         canvas.requestRenderAll();
       }
@@ -178,6 +175,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       canvas.off("object:added", onObjectAdded);
     };
   }, [canvas]);
+
 
 
   //for zooming and panning
