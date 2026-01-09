@@ -118,7 +118,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       top: frame.top,
       width: frame.width,
       height: frame.height,
-      selectable: false,
+      selectable: true,
       evented: true,
     })
 
@@ -133,7 +133,7 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     clipGroup.set("frameId", id)
     clipGroup.set("isFrame", true)
     clipGroup.set("isFrameContent", true)
-    
+
     canvas.add(clipGroup)
     store.addFrame(frame)
     canvas.requestRenderAll()
@@ -145,65 +145,41 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   useEffect(() => {
     if (!canvas) return;
 
-    const onObjectAdded = (e: any) => {
+    const handler = (e: any) => {
       const obj = e.target as fabric.Object;
-
-      if (obj.get("isFrame") || obj.get("isFrameContent")) return;
-
+      if (obj.get("isFrame")) return;
       if (obj.type === "activeSelection") return;
+
+      const center = obj.getCenterPoint();
 
       const frames = canvas.getObjects().filter(
         (o: FabricObject) => o.get("isFrameContent")
       ) as fabric.Group[];
 
-      const center = obj.getCenterPoint();
-
-      const targetFrame = frames.find((frame) =>
+      const targetFrame = frames.find(frame =>
         frame.clipPath?.containsPoint(center)
       );
 
       if (targetFrame) {
         canvas.remove(obj);
         targetFrame.add(obj);
+        obj.set("isFrameContent", true);
         obj.setCoords();
         targetFrame.setCoords();
         canvas.requestRenderAll();
       }
     };
 
-    canvas.on("object:added", (e: any) => {
-      const obj = e.target as fabric.Object
-
-      if (obj.get("isFrame")) return
-      if (obj.type === "activeSelection") return
-
-      const center = obj.getCenterPoint()
-
-      const frames = canvas.getObjects().filter(
-        (o: FabricObject) => o.get("isFrame")
-      ) as fabric.Group[]
-
-      const targetFrame = frames.find(frame =>
-        frame.clipPath?.containsPoint(center)
-      )
-
-      if (targetFrame) {
-        canvas.remove(obj)
-        targetFrame.add(obj)
-        obj.set("isFrameContent", true)
-        obj.setCoords()
-        targetFrame.setCoords()
-        canvas.requestRenderAll()
-      }
-    })
+    canvas.on("object:added", handler);
 
     return () => {
-      canvas.off("object:added", onObjectAdded);
+      canvas.off("object:added", handler);
     };
   }, [canvas]);
 
 
-  //for zooming and panning
+
+  /*Zooming And Panning*/
 
   // this prevents the zoom for browser
   useEffect(() => {
