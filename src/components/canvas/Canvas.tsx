@@ -113,7 +113,16 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     canvas.add(frameRect)
 
     // /* Clip path This is the transperent rect with clipping in it*/
-    const clipRect = new fabric.Rect({
+    const clipGroup = new fabric.Group([], {
+      left: frame.left,
+      top: frame.top,
+      width: frame.width,
+      height: frame.height,
+      selectable: false,
+      evented: true,
+    })
+
+    clipGroup.clipPath = new fabric.Rect({
       left: frame.left,
       top: frame.top,
       width: frame.width,
@@ -121,13 +130,14 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       absolutePositioned: true,
     })
 
-    clipRect.set("frameId", id)
-    clipRect.set("isClipPath", true)
-
-
+    clipGroup.set("frameId", id)
+    clipGroup.set("isFrame", true)
+    clipGroup.set("isFrameContent", true)
+    
+    canvas.add(clipGroup)
     store.addFrame(frame)
-
     canvas.requestRenderAll()
+
   }, [canvas])
 
 
@@ -161,7 +171,31 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
       }
     };
 
-    canvas.on("object:added", onObjectAdded);
+    canvas.on("object:added", (e: any) => {
+      const obj = e.target as fabric.Object
+
+      if (obj.get("isFrame")) return
+      if (obj.type === "activeSelection") return
+
+      const center = obj.getCenterPoint()
+
+      const frames = canvas.getObjects().filter(
+        (o: FabricObject) => o.get("isFrame")
+      ) as fabric.Group[]
+
+      const targetFrame = frames.find(frame =>
+        frame.clipPath?.containsPoint(center)
+      )
+
+      if (targetFrame) {
+        canvas.remove(obj)
+        targetFrame.add(obj)
+        obj.set("isFrameContent", true)
+        obj.setCoords()
+        targetFrame.setCoords()
+        canvas.requestRenderAll()
+      }
+    })
 
     return () => {
       canvas.off("object:added", onObjectAdded);
