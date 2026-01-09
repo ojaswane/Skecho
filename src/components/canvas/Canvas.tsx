@@ -113,12 +113,18 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
     canvas.add(frameRect)
 
     // /* Clip path This is the transperent rect with clipping in it*/
-    const clipRecr = new fabric.Rect({
+    const clipRect = new fabric.Rect({
       left: frame.left,
       top: frame.top,
       width: frame.width,
       height: frame.height,
+      absolutePositioned: true,
     })
+
+    clipRect.set("frameId", id)
+    clipRect.set("isClipPath", true)
+
+
     store.addFrame(frame)
 
     canvas.requestRenderAll()
