@@ -12,8 +12,6 @@ const CanvasRender = ({ theme }: { theme: "light" | "dark" }) => {
   const [canvas, setCanvas] = React.useState<any>(null);
   const { setCanvas: setStoreCanvas, setSelectedObject } = useCanvasStore();
 
-
-
   // basic functionality for canvas
   useEffect(() => {
     if (canvasRef.current && !canvas) {
