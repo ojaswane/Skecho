@@ -22,7 +22,7 @@ import {
 const DEFAULT_TEXT = {
     text: "Sketch Your Idea Here!",
     fontSize: 65,
-    letterSpacing: -20,
+    charSpacing: -70,
     fill: "#000",
     fontFamily: "arial"
 }
@@ -64,6 +64,7 @@ export default function DefaultText() {
             fill: DEFAULT_TEXT.fill,
             selectable: false,
             evented: false,
+            charSpacing: DEFAULT_TEXT.charSpacing,
             fontFamily: DEFAULT_TEXT.fontFamily
         })
 
