@@ -101,8 +101,41 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
       fill: '#d9d9d9',
       stroke: '#888',
       strokeDashArray: [6, 6],
-      selectable: false,
-      evented: false,
+      selectable: true,
+      evented: true,
+      deletable: false,
+      lockMovementX: true,
+      lockMovementY: true,
+      lockScalingX: true,
+      lockScalingY: false,
+      lockRotation: true,
+    })
+
+    frameRect.setControlsVisibility({
+      mt: false,
+      mb: true, // only scallable to the bottom
+      ml: false,
+      mr: false,
+      bl: false,
+      br: false,
+      tl: false,
+      tr: false,
+      mtr: false,
+    })
+
+    canvas.on('object:scaling', e => {
+      const obj = e.target as fabric.Object
+      if (!obj || !obj.get('isFrame')) return // only frame is scalable
+
+      const newHeight = obj.height! * obj.scaleY!
+
+      obj.set({
+        height: newHeight,
+        scaleY: 1,
+      })
+
+      obj.setCoords()
+      canvas.requestRenderAll()
     })
 
     frameRect.set('isFrame', true)
