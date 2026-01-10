@@ -27,7 +27,7 @@ export default function SelectionOverlay() {
 
     const { left, top, width, height } =
         getScreenBounds(canvas, selectedObject)
-
+ 
     return (
         <div
             className="absolute pointer-events-none"
