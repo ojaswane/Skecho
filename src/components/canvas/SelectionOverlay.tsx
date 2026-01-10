@@ -1,15 +1,32 @@
 'use client'
 
 import { useCanvasStore } from '../../../lib/store/canvasStore'
-import { getObjectScreenBounds } from '@/utils/getObjectScreenBounds'
+import fabric from 'fabric'
 
-const SelectionOverlay = () => {
+function getScreenBounds(
+    canvas: fabric.Canvas,
+    obj: fabric.Object
+) {
+    obj.setCoords()
+
+    const rect = obj.getBoundingRect()
+    const vpt = canvas.viewportTransform!
+
+    return {
+        left: rect.left * vpt[0] + vpt[4],
+        top: rect.top * vpt[3] + vpt[5],
+        width: rect.width * vpt[0],
+        height: rect.height * vpt[3],
+    }
+}
+
+export default function SelectionOverlay() {
     const { canvas, selectedObject } = useCanvasStore()
 
     if (!canvas || !selectedObject) return null
 
     const { left, top, width, height } =
-        getObjectScreenBounds(canvas, selectedObject)
+        getScreenBounds(canvas, selectedObject)
 
     return (
         <div
@@ -23,7 +40,6 @@ const SelectionOverlay = () => {
                 boxSizing: 'border-box',
             }}
         >
-            {/* Handles */}
             <Handle pos="tl" />
             <Handle pos="tr" />
             <Handle pos="bl" />
@@ -32,18 +48,24 @@ const SelectionOverlay = () => {
     )
 }
 
-export default SelectionOverlay
-
-const Handle = ({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) => {
-    const base =
-        'absolute w-[8px] h-[8px] bg-white border border-blue-600'
-
+function Handle({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
     const map = {
-        tl: 'top-[-4px] left-[-4px]',
-        tr: 'top-[-4px] right-[-4px]',
-        bl: 'bottom-[-4px] left-[-4px]',
-        br: 'bottom-[-4px] right-[-4px]',
+        tl: { top: -4, left: -4 },
+        tr: { top: -4, right: -4 },
+        bl: { bottom: -4, left: -4 },
+        br: { bottom: -4, right: -4 },
     }
 
-    return <div className={`${base} ${map[pos]}`} />
+    return (
+        <div
+            style={{
+                position: 'absolute',
+                width: 8,
+                height: 8,
+                background: '#fff',
+                border: '1px solid #2563eb',
+                ...map[pos],
+            }}
+        />
+    )
 }

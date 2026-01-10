@@ -5,7 +5,11 @@ import * as fabric from 'fabric'
 import { useCanvasStore } from '../../../lib/store/canvasStore'
 import FrameOverlays from './FrameOverlays'
 import type { Frame } from '../../../lib/store/canvasStore'
+import SelectionOverlay from './SelectionOverlay'
 
+fabric.Object.prototype.hasBorders = false
+fabric.Object.prototype.hasControls = false
+fabric.Object.prototype.objectCaching = false
 
 const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -13,7 +17,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   const { setCanvas: setStoreCanvas, setSelectedObject } = useCanvasStore()
 
   /* =========================
-      CANVAS INIT 
+      CANVAS INIT
   ========================= */
 
   useEffect(() => {
@@ -21,10 +25,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
 
     const c = new fabric.Canvas(canvasRef.current, {
       backgroundColor: theme === 'dark' ? '#1a1a1a' : '#ffffff',
-      selection: true,
-      selectionColor: 'rgba(37,99,235,0.12)',
-      selectionBorderColor: '#2563eb',
-      selectionLineWidth: 1,
+      selection: false
     })
 
     c.setWidth(window.innerWidth)
@@ -43,6 +44,17 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
         }
       }
     }
+    c.on('selection:created', e => {
+      setSelectedObject(e.selected?.[0] || null)
+    })
+
+    c.on('selection:updated', e => {
+      setSelectedObject(e.selected?.[0] || null)
+    })
+
+    c.on('selection:cleared', () => {
+      setSelectedObject(null)
+    })
 
     window.addEventListener('keydown', onKeyDown)
 
@@ -61,7 +73,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [theme, canvas])
 
   /* =========================
-      DEFAULT FRAME 
+      DEFAULT FRAME
   ========================= */
 
   useEffect(() => {
@@ -204,6 +216,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
     <div className="relative w-full h-full overflow-hidden">
       <canvas ref={canvasRef} />
       <div className="absolute inset-0 pointer-events-none">
+        <SelectionOverlay />
         <FrameOverlays />
       </div>
     </div>

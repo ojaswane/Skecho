@@ -7,7 +7,7 @@ import DefaultText from './options_pages/FrameDefaultText';
 
 const FrameOverlays = () => {
   const frames = useCanvasStore((s) => s.frames);
-  // const textObj = useCanvasStore((s) => s.defaultTextObject)
+
 
   return (
     <>
