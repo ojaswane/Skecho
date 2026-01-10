@@ -7,10 +7,6 @@ import FrameOverlays from './FrameOverlays'
 import type { Frame } from '../../../lib/store/canvasStore'
 import SelectionOverlay from './SelectionOverlay'
 
-fabric.Object.prototype.hasBorders = false
-fabric.Object.prototype.hasControls = false
-fabric.Object.prototype.objectCaching = false
-
 const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null)
@@ -158,7 +154,6 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
           width: targetFrame.width,
           height: targetFrame.height,
           absolutePositioned: true,
-          selectable:true
         }),
         isFrameContent: true,
         frameId: targetFrame.get('frameId'),
