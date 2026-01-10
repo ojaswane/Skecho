@@ -113,70 +113,70 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
     frameRect.set('frameId', id)
 
     canvas.add(frameRect)
-
-    // Frame content : clipped
-    const clipGroup = new fabric.Group([], {
-      left: frame.left,
-      top: frame.top,
-      width: frame.width,
-      height: frame.height,
-      selectable: true,
-      evented: true,
-    })
-
-    clipGroup.clipPath = new fabric.Rect({
-      left: frame.left,
-      top: frame.top,
-      width: frame.width,
-      height: frame.height,
-      absolutePositioned: true,
-    })
-
-    clipGroup.set('isFrame', true)
-    clipGroup.set('isFrameContent', true)
-    clipGroup.set('frameId', id)
-
-    canvas.add(clipGroup)
     store.addFrame(frame)
 
     canvas.requestRenderAll()
   }, [canvas])
 
   /* =========================
-     AUTO MOVE INTO FRAME
-  ========================= */
+   FRAME CLIPPING 
+========================= */
 
   useEffect(() => {
     if (!canvas) return
 
     const handler = (e: any) => {
       const obj = e.target as fabric.Object
-      if (obj.get('isFrame')) return
+      if (!obj || obj.get('isFrame')) return
       if (obj.type === 'activeSelection') return
 
       const center = obj.getCenterPoint()
 
-      const frames = canvas
-        .getObjects()
-        .filter(o => o.get('isFrameContent')) as fabric.Group[]
+      const frames = canvas.getObjects().filter(o => o.get('isFrame')) as fabric.Rect[]
 
       const targetFrame = frames.find(frame =>
-        frame.clipPath?.containsPoint(center)
+        frame.containsPoint(center)
       )
 
-      if (targetFrame) {
-        canvas.remove(obj)
-        targetFrame.add(obj)
-        obj.set('isFrameContent', true)
-        obj.setCoords()
-        targetFrame.setCoords()
-        canvas.requestRenderAll()
+      if (!targetFrame) {
+        if (obj.get('isFrameContent')) {
+          obj.set({
+            clipPath: undefined,
+            isFrameContent: false,
+            frameId: undefined,
+          })
+          obj.setCoords()
+          canvas.requestRenderAll()
+        }
+        return
       }
+
+      obj.set({
+        clipPath: new fabric.Rect({
+          left: targetFrame.left,
+          top: targetFrame.top,
+          width: targetFrame.width,
+          height: targetFrame.height,
+          absolutePositioned: true,
+          selectable:true
+        }),
+        isFrameContent: true,
+        frameId: targetFrame.get('frameId'),
+      })
+
+      obj.setCoords()
+      canvas.requestRenderAll()
     }
 
     canvas.on('object:added', handler)
-    return () => canvas.off('object:added', handler)
+    canvas.on('object:moving', handler)
+
+    return () => {
+      canvas.off('object:added', handler)
+      canvas.off('object:moving', handler)
+    }
   }, [canvas])
+
 
   /* =========================
      ZOOM & PAN
