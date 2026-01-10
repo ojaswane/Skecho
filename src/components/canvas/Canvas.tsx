@@ -25,7 +25,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
 
     const c = new fabric.Canvas(canvasRef.current, {
       backgroundColor: theme === 'dark' ? '#1a1a1a' : '#ffffff',
-      selection: false
+      selection: true
     })
 
     c.setWidth(window.innerWidth)

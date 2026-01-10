@@ -58,7 +58,7 @@ export default function SelectionOverlay() {
                 top,
                 width,
                 height,
-                border: '1px solid #2563eb',
+                border: '1px solid #B6B6E4',
                 boxSizing: 'border-box',
             }}
         >
@@ -70,7 +70,7 @@ export default function SelectionOverlay() {
                     left: '50%',
                     width: 1,
                     height: rotateOffset - 8,
-                    background: '#2563eb',
+                    background: '#B6B6E4',
                     transform: 'translateX(-50%)',
                 }}
             />
@@ -92,7 +92,7 @@ export default function SelectionOverlay() {
 }
 
 /* =========================
-   HANDLE COMPONENT
+HANDLE COMPONENT
 ========================= */
 
 function Handle({
