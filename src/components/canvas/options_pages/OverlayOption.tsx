@@ -13,6 +13,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 
+// 390x844px  : for tablet
+
 const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
     if (!canvas) return null
