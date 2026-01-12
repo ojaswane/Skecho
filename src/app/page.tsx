@@ -84,7 +84,7 @@ const Landingpage = () => {
                 <DrawerContent>
                   <DrawerHeader>
                     <DrawerTitle>Are you absolutely sure?</DrawerTitle>
-                    <DrawerDescription>This action cannot be undone.</DrawerDescription>
+                    <DrawerDescription>Once you presigned-in , you'll be notified the moment the App is launched</DrawerDescription>
                   </DrawerHeader>
                   <DrawerFooter>
                     <Button>Submit</Button>
