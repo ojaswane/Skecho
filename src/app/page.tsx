@@ -9,8 +9,10 @@ const Landingpage = () => {
       {/* Global spring cursor */}
       <SpringMouseFollow />
 
+
+
       {/* Hero Section */}
-      <main className="w-full h-full flex items-center justify-center">
+      <main className="relative z-10 w-full h-full flex items-center justify-center">
         <h1 className="text-8xl font-medium tracking-tighter leading-tight text-center">
 
           {/* Line 1 */}
@@ -25,12 +27,13 @@ const Landingpage = () => {
             <span className="opacity-60">is</span>
             <span>the</span>
 
-            <div className="w-60 h-24 rounded-full bg-black/20 overflow-hidden">
+            <div className="relative w-60 h-24 rounded-full bg-black/20 overflow-hidden">
               <Image
-                src="/image.jpg"
-                width={10}
-                height={10}
-                alt="Description of the image"
+                src="/FigmaImage.jpg"
+                alt="Design preview"
+                fill
+                className="object-cover"
+                priority
               />
             </div>
 
@@ -46,6 +49,12 @@ const Landingpage = () => {
           </div>
 
         </h1>
+
+        <div className="pointer-events-none fixed bottom-[-120px] left-[-80px] z-0 select-none">
+          <span className="text-[420px] font-extrabold tracking-tighter text-black/5">
+            Sketcho
+          </span>
+        </div>
       </main>
 
     </div>
