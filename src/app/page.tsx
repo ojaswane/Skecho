@@ -1,11 +1,12 @@
 import React from 'react'
-
-// Landing Page – Sketcho
-// Headline: "A great design is the result of a structured idea / sketch / wireframe"
+import { SpringMouseFollow } from "../components/ui/skiper-ui/skiper61"
 
 const Landingpage = () => {
   return (
-    <div className="w-full h-screen bg-white text-black">
+    <div className="relative w-full h-screen bg-white text-black overflow-hidden">
+
+      {/* Global spring cursor */}
+      <SpringMouseFollow />
 
       {/* Hero Section */}
       <main className="w-full h-full flex items-center justify-center">
@@ -19,36 +20,23 @@ const Landingpage = () => {
           </div>
 
           {/* Line 2 */}
-          <div className="flex  justify-center items-center gap-3 ">
-            <span className='opacity-70'>
-              is
-            </span>
-            <span className='opacity-100'>
-              the
-            </span>
+          <div className="flex justify-center items-center gap-3">
+            <span className="opacity-70">is</span>
+            <span>the</span>
 
-            {/* Image / visual placeholder */}
-            <div className="w-60 h-25 rounded-full bg-black/20">
-              {/* image goes here */}
-              <img src="" />
+            <div className="w-60 h-24 rounded-full bg-black/20 overflow-hidden">
+              <img src="" alt="" />
             </div>
 
-            <span>
-              result 
-            </span>
-            <span className='opacity-70'>of</span>
-            <span className='opacity-50'>a</span>
+            <span>result</span>
+            <span className="opacity-70">of</span>
+            <span className="opacity-50">a</span>
           </div>
 
           {/* Line 3 */}
           <div className="flex justify-center gap-3 -mt-4">
             <span>structured</span>
-
-            {/* Animated word */}
-            <span className="relative">
-              idea
-              {/* animated underline / word swap here */}
-            </span>
+            <span className="relative">idea</span>
           </div>
 
         </h1>
