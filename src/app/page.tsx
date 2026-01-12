@@ -54,7 +54,9 @@ const Landingpage = () => {
 
             <div className="flex justify-center gap-3 -mt-4">
               <span>structured</span>
-              <span>idea</span>
+              <span className=''>
+                <p className='font-parisienne'>Idea</p>
+              </span>
             </div>
           </h1>
 
@@ -70,12 +72,11 @@ const Landingpage = () => {
             {/* Input Wrapper */}
             <div className="relative w-full max-w-2xl">
               <Input
-                placeholder="Enter your email"
+                placeholder="xyz@gmail.com"
                 className="
                   h-20
                   rounded-full
                   pl-8 pr-56
-                  text-xl
                   font-medium
                   shadow-[0_20px_50px_rgba(0,0,0,0.12)]
                   border border-black/10

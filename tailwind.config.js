@@ -3,6 +3,7 @@ module.exports = {
     extend: {
       fontFamily: {
         bricolage: ['var(--font-bricolage)'],
+        parisienne: ['var(--font-parisienne)'],
       },
       keyframes: {
         shine: {
