@@ -13,6 +13,7 @@ import {
   DrawerTrigger,
 } from "../components/ui/Drawer"
 import { ArrowRight } from 'lucide-react';
+import { Input } from '@/components/ui/input'
 
 const Landingpage = () => {
   return (
@@ -69,31 +70,67 @@ const Landingpage = () => {
 
           <div className="mt-16 flex flex-col items-center gap-8 text-center">
             <p className="max-w-2xl text-2xl text-black/80 text-left leading-tight">
-              Sketcho helps you turn rough ideas into structured, editable designs instantly.
-              Prompt, sketch, or experiment freely, then refine everything visually in one seamless canvas.
+              Turn rough ideas into structured, editable designs.
+              Prompt, sketch, and refine in one seamless canvas.
             </p>
 
             <div className="flex items-center gap-4">
-              <Drawer >
-                <Button className="bg-black text-white hover:bg-black/20 cursor-pointer px-8 py-6 text-lg rounded-full hover:scale-[1.02] transition">
-                  <DrawerTrigger className='cursor-pointer flex justify-center items-center'>
-                    Join Early Access
-                    <ArrowRight className="ml-2" />
-                  </DrawerTrigger>
+              {/* Input + Button */}
+              <div className="relative w-full max-w-xl">
+                <Input
+                  placeholder="Your Email"
+                  className="
+            h-14 rounded-full pl-6 pr-40 text-base
+            shadow-[0_12px_30px_rgba(0,0,0,0.08)]
+            border border-black/5
+          "
+                />
+
+                <Button
+                  className="
+            absolute right-2 top-1/2 -translate-y-1/2
+            h-10 px-6 rounded-full
+            bg-black text-white
+            shadow-[0_10px_25px_rgba(0,0,0,0.25)]
+            hover:bg-black/90
+          "
+                >
+                  Join Waitlist
                 </Button>
-                <DrawerContent className='tracking-tighter '>
-                  <DrawerHeader>
-                    <DrawerTitle className='text-2xl'>Join Early Access</DrawerTitle>
-                    <DrawerDescription className='text-lg'>Once you presigned-in , you'll be notified the moment the App is launched .</DrawerDescription>
-                  </DrawerHeader>
-                  <DrawerFooter className='p-10 flex justify-between gap-3 items-center'>
-                    <Button className='w-100 '>Submit</Button>
-                    <DrawerClose>
-                      <Button variant="outline">Cancel</Button>
-                    </DrawerClose>
-                  </DrawerFooter>
-                </DrawerContent>
-              </Drawer>
+              </div>
+
+              {/* Social Proof */}
+              <div className="flex items-center gap-3 text-sm text-black/70">
+
+                {/* Avatars */}
+                <div className="flex -space-x-2">
+                  <Image
+                    src="/avatar1.jpg"
+                    alt=""
+                    width={28}
+                    height={28}
+                    className="rounded-full border border-white"
+                  />
+                  <Image
+                    src="/avatar2.jpg"
+                    alt=""
+                    width={28}
+                    height={28}
+                    className="rounded-full border border-white"
+                  />
+                  <Image
+                    src="/avatar3.jpg"
+                    alt=""
+                    width={28}
+                    height={28}
+                    className="rounded-full border border-white"
+                  />
+                </div>
+
+                <span>
+                  Joined by <strong>500+</strong> Designer's & Saas founders
+                </span>
+              </div>
             </div>
           </div>
         </div>
