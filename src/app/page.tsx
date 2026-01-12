@@ -9,8 +9,6 @@ const Landingpage = () => {
       {/* Global spring cursor */}
       <SpringMouseFollow />
 
-
-
       {/* Hero Section */}
       <main className="relative z-10 w-full h-full flex items-center justify-center">
 
@@ -19,42 +17,51 @@ const Landingpage = () => {
             Sketcho
           </span>
         </div>
-        <h1 className="text-8xl font-medium tracking-tighter leading-tight text-center">
 
-          {/* Line 1 */}
-          <div className="flex justify-center gap-3">
-            <span className="opacity-40">A</span>
-            <span className="opacity-60">great</span>
-            <span>design</span>
-          </div>
-
-          {/* Line 2 */}
-          <div className="flex justify-center items-center gap-3">
-            <span className="opacity-60">is</span>
-            <span>the</span>
-
-            <div className="relative w-60 h-24 rounded-full bg-black/20 overflow-hidden">
-              <Image
-                src="/FigmaImage.jpg"
-                alt="Design preview"
-                fill
-                className="object-cover"
-                priority
-              />
+        <div className='flex flex-col'>
+          <h1 className="text-8xl font-medium tracking-tighter leading-tight text-center">
+            {/* Line 1 */}
+            <div className="flex justify-center gap-3">
+              <span className="opacity-40">A</span>
+              <span className="opacity-60">great</span>
+              <span>design</span>
             </div>
 
-            <span>result</span>
-            <span className="opacity-50">of</span>
-            <span className="opacity-40">a</span>
-          </div>
+            {/* Line 2 */}
+            <div className="flex justify-center items-center gap-3">
+              <span className="opacity-60">is</span>
+              <span>the</span>
 
-          {/* Line 3 */}
-          <div className="flex justify-center gap-3 -mt-4">
-            <span>structured</span>
-            <span className="relative">idea</span>
-          </div>
+              <div className="relative w-60 h-24 rounded-full bg-black/20 overflow-hidden">
+                <Image
+                  src="/FigmaImage.jpg"
+                  alt="Design preview"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
 
-        </h1>
+              <span>result</span>
+              <span className="opacity-50">of</span>
+              <span className="opacity-40">a</span>
+            </div>
+
+            {/* Line 3 */}
+            <div className="flex justify-center gap-3 -mt-4">
+              <span>structured</span>
+              <span className="relative">idea</span>
+            </div>
+
+          </h1>
+
+          <div className='mt-20 text-2xl ml-50'>
+            <p className='w-1/2'>
+              Sketcho helps you turn rough ideas into structured, editable designs instantly.
+              Prompt, sketch, or experiment freely, then refine everything visually in one seamless canvas.
+            </p>
+          </div>
+        </div>
 
         <div className="pointer-events-none fixed bottom-[-150px] left-[-80px] z-0 select-none">
           <span className="text-[350px] font-bold tracking-tighter text-black/5">
