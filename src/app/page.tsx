@@ -1,15 +1,21 @@
-import { CircleArrowOutUpRight } from 'lucide-react';
-import Link from 'next/link';
-export default function Home() {
+import React from 'react'
+// Bricolage Grotesque
+// A great design is the result of a structured idea ,  sketch , wireframe
+const Landingpage = () => {
   return (
-    <div className="h-screen flex flex-col tracking-tighter justify-center items-center m-0">
-      <h1 className="text-6xl font-bold  ">Welcome to Sketcho</h1>
-      <h3 className="text-3xl mt-4">This App is Under development</h3>
-      <button className="mt-6 text-xl bg-gray-400 p-3 rounded-2xl text-black   border-2 border-gray-300  cursor-pointer ">
-        <Link href="/dashboard" className='flex items-center gap-2'>
-          Get to the dashboard <CircleArrowOutUpRight className='w-5' />
-        </Link>
-      </button>
-    </div>
-  );
+    <>
+      <div className='bg-white w-full h-screen text-black font-Bricolage '>
+        {/* Nav bar */}
+        {/* <div className='p-4 bg-amber-200 text-2xl'>
+          Sketcho
+        </div> */}
+
+        <div className='w-full h-screen flex tracking-tighter font-medium items-center justify-center text-8xl  '>
+          A great design
+        </div>
+      </div>
+    </>
+  )
 }
+
+export default Landingpage
