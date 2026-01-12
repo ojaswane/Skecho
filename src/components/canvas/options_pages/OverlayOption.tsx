@@ -85,6 +85,8 @@ const FramesOverlay = ({ frame }: any) => {
                 .getObjects()
                 .find(obj => (obj as any).data?.id === frame.id)
 
+            const updateFrame = useCanvasStore.getState().updateFrame
+
             if (!fabricFrame) return
 
             fabricFrame.set({
@@ -96,6 +98,11 @@ const FramesOverlay = ({ frame }: any) => {
 
             fabricFrame.setCoords()
             canvas.requestRenderAll()
+
+            updateFrame(frame.id, {
+                width: 390,
+                height: 844,
+            })
         }
         else if (value === 'Mobile') {
             const fabricFrame = canvas
