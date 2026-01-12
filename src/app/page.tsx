@@ -2,6 +2,16 @@ import React from 'react'
 import { SpringMouseFollow } from "../components/ui/skiper-ui/skiper61"
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "../components/ui/Drawer"
 
 const Landingpage = () => {
   return (
@@ -63,9 +73,25 @@ const Landingpage = () => {
             </p>
 
             <div className="flex items-center gap-4">
-              <Button className="bg-black text-white hover:bg-black/20 cursor-pointer px-8 py-6 text-lg rounded-full hover:scale-[1.02] transition">
-                Join Early Access
-              </Button>
+              <Drawer >
+                <Button className="bg-black text-white hover:bg-black/20 cursor-pointer px-8 py-6 text-lg rounded-full hover:scale-[1.02] transition">
+                  <DrawerTrigger>
+                    Join Early Access
+                  </DrawerTrigger>
+                </Button>
+                <DrawerContent>
+                  <DrawerHeader>
+                    <DrawerTitle>Are you absolutely sure?</DrawerTitle>
+                    <DrawerDescription>This action cannot be undone.</DrawerDescription>
+                  </DrawerHeader>
+                  <DrawerFooter>
+                    <Button>Submit</Button>
+                    <DrawerClose>
+                      <Button variant="outline">Cancel</Button>
+                    </DrawerClose>
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
 
             </div>
           </div>
