@@ -76,6 +76,45 @@ const FramesOverlay = ({ frame }: any) => {
                 )
         }
     }
+    const HandleFrameSize = (value: string) => {
+        if (value === 'Desktop') return
+
+        else if (value === 'Tablet') {
+
+            const fabricFrame = canvas
+                .getObjects()
+                .find(obj => (obj as any).data?.id === frame.id)
+
+            if (!fabricFrame) return
+
+            fabricFrame.set({
+                width: 390,
+                height: 844,
+                scaleX: 1,
+                scaleY: 1,
+            })
+
+            fabricFrame.setCoords()
+            canvas.requestRenderAll()
+        }
+        else if (value === 'Mobile') {
+            const fabricFrame = canvas
+                .getObjects()
+                .find(obj => (obj as any).data?.id === frame.id)
+
+            if (!fabricFrame) return
+
+            fabricFrame.set({
+                width: 390,
+                height: 844,
+                scaleX: 1,
+                scaleY: 1,
+            })
+
+            fabricFrame.setCoords()
+            canvas.requestRenderAll()
+        }
+    }
 
     return (
         <div
@@ -101,7 +140,7 @@ const FramesOverlay = ({ frame }: any) => {
 
                         {/* Device Selector */}
                         <div className=" bg-white/10 rounded-full   transition">
-                            <Select defaultValue="Desktop">
+                            <Select defaultValue="Desktop" onValueChange={HandleFrameSize}>
                                 <SelectTrigger
                                     className="h-auto cursor-pointer  p-4 rounded-full   border-0  text-sm text-white gap-1">
                                     <SelectValue />
