@@ -12,6 +12,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../components/ui/Drawer"
+import { ArrowRight } from 'lucide-react';
 
 const Landingpage = () => {
   return (
@@ -75,8 +76,9 @@ const Landingpage = () => {
             <div className="flex items-center gap-4">
               <Drawer >
                 <Button className="bg-black text-white hover:bg-black/20 cursor-pointer px-8 py-6 text-lg rounded-full hover:scale-[1.02] transition">
-                  <DrawerTrigger>
+                  <DrawerTrigger className='cursor-pointer flex justify-center items-center'>
                     Join Early Access
+                    <ArrowRight className="ml-2" />
                   </DrawerTrigger>
                 </Button>
                 <DrawerContent>
@@ -92,12 +94,9 @@ const Landingpage = () => {
                   </DrawerFooter>
                 </DrawerContent>
               </Drawer>
-
             </div>
           </div>
-
         </div>
-
         <div className="pointer-events-none fixed bottom-[-150px] left-[-80px] z-0 select-none">
           <span className="text-[350px] font-bold tracking-tighter text-black/5">
             Sketcho
