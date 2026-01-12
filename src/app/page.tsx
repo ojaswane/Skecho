@@ -1,6 +1,7 @@
 import React from 'react'
 import { SpringMouseFollow } from "../components/ui/skiper-ui/skiper61"
 import Image from 'next/image'
+import { Button } from '@/components/ui/button'
 
 const Landingpage = () => {
   return (
@@ -55,12 +56,20 @@ const Landingpage = () => {
 
           </h1>
 
-          <div className='mt-20 text-2xl ml-50'>
-            <p className='w-1/2'>
+          <div className="mt-16 flex flex-col items-center gap-8 text-center">
+            <p className="max-w-2xl text-2xl text-black/80 text-left leading-tight">
               Sketcho helps you turn rough ideas into structured, editable designs instantly.
               Prompt, sketch, or experiment freely, then refine everything visually in one seamless canvas.
             </p>
+
+            <div className="flex items-center gap-4">
+              <Button className="bg-black text-white hover:bg-black/20 cursor-pointer px-8 py-6 text-lg rounded-full hover:scale-[1.02] transition">
+                Join Early Access
+              </Button>
+
+            </div>
           </div>
+
         </div>
 
         <div className="pointer-events-none fixed bottom-[-150px] left-[-80px] z-0 select-none">
