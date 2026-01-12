@@ -13,7 +13,7 @@ const Landingpage = () => {
 
           {/* Line 1 */}
           <div className="flex justify-center gap-3">
-            <span className="opacity-40">A</span>
+            <span className="opacity-50">A</span>
             <span className="opacity-70">great</span>
             <span>design</span>
           </div>
@@ -34,8 +34,10 @@ const Landingpage = () => {
             </div>
 
             <span>
-              result of a
+              result 
             </span>
+            <span className='opacity-70'>of</span>
+            <span className='opacity-50'>a</span>
           </div>
 
           {/* Line 3 */}
