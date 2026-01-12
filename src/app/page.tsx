@@ -6,29 +6,42 @@ import React from 'react'
 const Landingpage = () => {
   return (
     <div className="w-full h-screen bg-white text-black">
-      
-      {/* Navbar */}
-      {/* 
-      <nav className="p-4 text-2xl">
-        Sketcho
-      </nav> 
-      */}
 
       {/* Hero Section */}
-      <main className="w-full h-full flex items-center justify-center text-center">
-        <h1 className="text-8xl font-medium tracking-tighter leading-tight">
+      <main className="w-full h-full flex items-center justify-center">
+        <h1 className="text-8xl font-medium tracking-tighter leading-tight text-center">
 
-          <span className="opacity-40">A</span>{' '}
-          <span className="opacity-70">great</span>{' '}
-          <span>design</span>
-          <br />
+          {/* Line 1 */}
+          <div className="flex justify-center gap-3">
+            <span className="opacity-40">A</span>
+            <span className="opacity-70">great</span>
+            <span>design</span>
+          </div>
 
-          <span className="opacity-50">is the result of a</span>{' '}
-          <span>structured</span>{' '}
-          <span className="relative">
-            idea
-            {/* animated underline / word goes here */}
-          </span>
+          {/* Line 2 */}
+          <div className="flex justify-center items-center gap-3 opacity-50">
+            <span>is the</span>
+
+            {/* Image / visual placeholder */}
+            <div className="w-60 h-25 rounded-full bg-black/20">
+              {/* image goes here */}
+            </div>
+
+            <span>
+              result of a
+            </span>
+          </div>
+
+          {/* Line 3 */}
+          <div className="flex justify-center gap-3 -mt-4">
+            <span>structured</span>
+
+            {/* Animated word */}
+            <span className="relative">
+              idea
+              {/* animated underline / word swap here */}
+            </span>
+          </div>
 
         </h1>
       </main>
