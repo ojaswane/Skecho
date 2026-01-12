@@ -1,5 +1,6 @@
 import React from 'react'
 import { SpringMouseFollow } from "../components/ui/skiper-ui/skiper61"
+import Image from 'next/image'
 
 const Landingpage = () => {
   return (
@@ -14,23 +15,28 @@ const Landingpage = () => {
 
           {/* Line 1 */}
           <div className="flex justify-center gap-3">
-            <span className="opacity-50">A</span>
-            <span className="opacity-70">great</span>
+            <span className="opacity-40">A</span>
+            <span className="opacity-60">great</span>
             <span>design</span>
           </div>
 
           {/* Line 2 */}
           <div className="flex justify-center items-center gap-3">
-            <span className="opacity-70">is</span>
+            <span className="opacity-60">is</span>
             <span>the</span>
 
             <div className="w-60 h-24 rounded-full bg-black/20 overflow-hidden">
-              <img src="" alt="" />
+              <Image
+                src="/image.jpg"
+                width={10}
+                height={10}
+                alt="Description of the image"
+              />
             </div>
 
             <span>result</span>
-            <span className="opacity-70">of</span>
-            <span className="opacity-50">a</span>
+            <span className="opacity-50">of</span>
+            <span className="opacity-40">a</span>
           </div>
 
           {/* Line 3 */}
