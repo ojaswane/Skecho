@@ -13,6 +13,12 @@ const Landingpage = () => {
 
       {/* Hero Section */}
       <main className="relative z-10 w-full h-full flex items-center justify-center">
+
+        <div className="pointer-events-none fixed top-[-200px] right-[-80px] z-0 select-none">
+          <span className="text-[350px] font-bold tracking-tighter text-black/5">
+            Sketcho
+          </span>
+        </div>
         <h1 className="text-8xl font-medium tracking-tighter leading-tight text-center">
 
           {/* Line 1 */}
@@ -50,8 +56,8 @@ const Landingpage = () => {
 
         </h1>
 
-        <div className="pointer-events-none fixed bottom-[-120px] left-[-80px] z-0 select-none">
-          <span className="text-[420px] font-extrabold tracking-tighter text-black/5">
+        <div className="pointer-events-none fixed bottom-[-150px] left-[-80px] z-0 select-none">
+          <span className="text-[350px] font-bold tracking-tighter text-black/5">
             Sketcho
           </span>
         </div>
