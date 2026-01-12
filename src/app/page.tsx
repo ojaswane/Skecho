@@ -81,13 +81,13 @@ const Landingpage = () => {
                     <ArrowRight className="ml-2" />
                   </DrawerTrigger>
                 </Button>
-                <DrawerContent>
+                <DrawerContent className='tracking-tighter '>
                   <DrawerHeader>
-                    <DrawerTitle>Are you absolutely sure?</DrawerTitle>
-                    <DrawerDescription>Once you presigned-in , you'll be notified the moment the App is launched</DrawerDescription>
+                    <DrawerTitle className='text-2xl'>Join Early Access</DrawerTitle>
+                    <DrawerDescription className='text-lg'>Once you presigned-in , you'll be notified the moment the App is launched .</DrawerDescription>
                   </DrawerHeader>
-                  <DrawerFooter>
-                    <Button>Submit</Button>
+                  <DrawerFooter className='p-10 flex justify-between gap-3 items-center'>
+                    <Button className='w-100 '>Submit</Button>
                     <DrawerClose>
                       <Button variant="outline">Cancel</Button>
                     </DrawerClose>
