@@ -19,12 +19,18 @@ const Landingpage = () => {
           </div>
 
           {/* Line 2 */}
-          <div className="flex justify-center items-center gap-3 opacity-50">
-            <span>is the</span>
+          <div className="flex  justify-center items-center gap-3 ">
+            <span className='opacity-70'>
+              is
+            </span>
+            <span className='opacity-100'>
+              the
+            </span>
 
             {/* Image / visual placeholder */}
             <div className="w-60 h-25 rounded-full bg-black/20">
               {/* image goes here */}
+              <img src="" />
             </div>
 
             <span>
