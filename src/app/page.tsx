@@ -5,9 +5,34 @@ import Image from 'next/image'
 import { SpringMouseFollow } from "../components/ui/skiper-ui/skiper61"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { supabase } from '@/lib/supabaseclient'
 
 
 const Landingpage = () => {
+  const [loading, setLoading] = React.useState(false);
+
+  const HandlePresignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const form = e.currentTarget;
+    const input = form.querySelector('input');
+    const email = input ? input.value : '';
+
+    const { data, error } = await supabase.from('PreSignUp')
+      .insert([{ email }]);
+
+    if (error) {
+      console.error('Error inserting email:', error.message);
+      alert('There was an error signing up. Please try again.');
+    } else {
+      console.log('Email inserted successfully:', data);
+    }
+
+    setLoading(false);
+    form.reset()
+  }
+
   return (
     <div className="relative w-full bg-white text-black overflow-hidden">
 
@@ -75,35 +100,46 @@ const Landingpage = () => {
           <div className="mt-10 flex flex-col items-center gap-4 w-full">
 
             <div className="relative w-full max-w-xl">
-              <Input
-                placeholder="xyz@gmail.com"
-                className="
-                  h-16
-                  rounded-full
-                  pl-6 pr-40
-                  text-base
-                  shadow-[0_14px_40px_rgba(0,0,0,0.12)]
-                  border border-black/10
-                  placeholder:text-black/40
-                  focus-visible:ring-0
-                "
-              />
-
-              <Button
-                className="
-                  absolute right-2 top-1/2 -translate-y-1/2
-                  h-12
-                  px-8
-                  text-sm
-                  font-semibold
-                  rounded-full
-                  bg-black text-white
-                  shadow-[0_12px_30px_rgba(0,0,0,0.35)]
-                  hover:bg-black/90
-                "
+              <form
+                className="relative w-full max-w-xl"
+                onSubmit={HandlePresignUp}
               >
-                Join Waitlist
-              </Button>
+                <Input
+                  placeholder="xyz@gmail.com"
+                  className="
+                    h-16
+                    rounded-full
+                    pl-6 pr-40
+                    text-base
+                    shadow-[0_14px_40px_rgba(0,0,0,0.12)]
+                    border border-black/10
+                    placeholder:text-black/40
+                    focus-visible:ring-0
+                  "
+                  name="email"
+                  type="email"
+                  required
+                />
+
+                <Button
+                  type="submit"
+                  className="
+                    absolute right-2 top-1/2 -translate-y-1/2
+                    h-12
+                    px-8
+                    text-sm
+                    font-semibold
+                    rounded-full
+                    bg-black text-white
+                    shadow-[0_12px_30px_rgba(0,0,0,0.35)]
+                    hover:bg-black/90
+                    cursor-pointer
+                  "
+                  disabled={loading}
+                >
+                  {loading ? 'Joining...' : 'Join Waitlist'}
+                </Button>
+              </form>
             </div>
 
             {/* Social proof */}
