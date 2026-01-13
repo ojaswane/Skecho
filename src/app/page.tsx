@@ -39,7 +39,7 @@ const Landingpage = () => {
       {/* Spring cursor */}
       <SpringMouseFollow />
 
-      {/* ================= HERO SECTION ================= */}
+      {/* HERO SECTION */}
       <section className="relative w-full min-h-screen flex items-center justify-center">
 
         {/* Background word (top) */}
@@ -83,8 +83,8 @@ const Landingpage = () => {
 
             <div className="flex justify-center items-end gap-3 mt-1">
               <span>structured</span>
-              <span className="font-parisienne text-8xl text-orange-500 leading-none">
-                Idea.
+              <span className="font-parisienn font-bold e text-8xl text-orange-500 leading-none">
+                Idea .
               </span>
             </div>
 
@@ -177,7 +177,7 @@ const Landingpage = () => {
           </div>
         </div>
 
-        {/* Background word (bottom) */}
+        {/* bottom background */}
         <div className="pointer-events-none fixed bottom-[-160px] left-[-120px] select-none">
           <span className="text-[320px] font-bold tracking-tighter text-black/5">
             Sketcho
