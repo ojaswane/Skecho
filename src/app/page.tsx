@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { supabase } from '@/lib/supabaseclient'
 
-
 const Landingpage = () => {
   const [loading, setLoading] = React.useState(false);
 
@@ -19,7 +18,8 @@ const Landingpage = () => {
     const input = form.querySelector('input');
     const email = input ? input.value : '';
 
-    const { data, error } = await supabase.from('PreSignUp')
+    const { data, error } = await supabase
+      .from('PreSignUp')
       .insert([{ email }]);
 
     if (error) {
@@ -30,7 +30,7 @@ const Landingpage = () => {
     }
 
     setLoading(false);
-    form.reset()
+    form.reset();
   }
 
   return (
@@ -142,16 +142,36 @@ const Landingpage = () => {
               </form>
             </div>
 
-            {/* Social proof */}
-            <div className="flex items-center gap-3 text-sm text-black/70">
-              <div className="flex -space-x-2">
-                <Image src="/avatar1.jpg" alt="" width={36} height={36} className="rounded-full border border-white object-cover" />
-                <Image src="/avatar2.jpg" alt="" width={36} height={36} className="rounded-full border border-white object-cover" />
-                <Image src="/avatar3.jpg" alt="" width={36} height={36} className="rounded-full border border-white object-cover" />
+            <div className="flex items-center gap-4 text-sm text-black/70 mt-2">
+
+              <div className="flex items-center">
+                <div className="flex -space-x-3">
+                  <Image
+                    src="/avatar1.jpg"
+                    alt="User avatar"
+                    width={36}
+                    height={36}
+                    className="rounded-full border-2 border-white shadow-sm object-cover z-30"
+                  />
+                  <Image
+                    src="/avatar2.jpg"
+                    alt="User avatar"
+                    width={36}
+                    height={36}
+                    className="rounded-full border-2 border-white shadow-sm object-cover z-20"
+                  />
+                  <Image
+                    src="/avatar3.jpg"
+                    alt="User avatar"
+                    width={36}
+                    height={36}
+                    className="rounded-full border-2 border-white shadow-sm object-cover z-10"
+                  />
+                </div>
               </div>
 
-              <span>
-                Joined by <strong>500+</strong> designers & SaaS founders
+              <span className="leading-tight">
+                Joined by <strong className="text-black">500+</strong> designers & SaaS founders
               </span>
             </div>
           </div>
