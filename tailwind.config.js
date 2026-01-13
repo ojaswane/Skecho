@@ -4,6 +4,8 @@ module.exports = {
       fontFamily: {
         bricolage: ['var(--font-bricolage)'],
         parisienne: ['var(--font-parisienne)'],
+        instrument: ['var(--font-instrument)'],
+        elsie: ['var(--font-elsie)'],
       },
       keyframes: {
         shine: {

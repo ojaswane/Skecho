@@ -237,6 +237,13 @@
   font-family: var(--font-parisienne);
 }
 
+.font-instrument {
+  font-family: var(--font-instrument);
+}
+.font-elsie {
+  font-family: var(--font-elsie);
+}
+
 
 @layer base {
   * {

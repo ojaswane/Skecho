@@ -1,191 +1,162 @@
 'use client'
 
 import React from 'react'
-import Image from 'next/image'
 import { SpringMouseFollow } from "../components/ui/skiper-ui/skiper61"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { supabase } from '@/lib/supabaseclient'
 
 const Landingpage = () => {
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(false)
 
-  const HandlePresignUp = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
+  const handlePresignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
 
-    const form = e.currentTarget;
-    const input = form.querySelector('input');
-    const email = input ? input.value : '';
+    const form = e.currentTarget
+    const input = form.querySelector('input') as HTMLInputElement | null
+    const email = input?.value.trim()
 
-    const { data, error } = await supabase
-      .from('PreSignUp')
-      .insert([{ email }]);
-
-    if (error) {
-      console.error('Error inserting email:', error.message);
-      alert('There was an error signing up. Please try again.');
-    } else {
-      console.log('Email inserted successfully:', data);
+    if (!email) {
+      setLoading(false)
+      return
     }
 
-    setLoading(false);
-    form.reset();
+    const { error } = await supabase.from('PreSignUp').insert([{ email }])
+
+    if (!error) {
+      form.reset()
+    }
+
+    setLoading(false)
   }
 
   return (
     <div className="relative w-full bg-white text-black overflow-hidden">
-
-      {/* Spring cursor */}
       <SpringMouseFollow />
 
-      {/* HERO SECTION */}
-      <section className="relative w-full min-h-screen flex items-center justify-center">
+      {/* HERO */}
+      <section className="relative w-full min-h-screen">
 
-        {/* Background word (top) */}
-        <div className="pointer-events-none fixed top-[-180px] right-[-120px] select-none">
-          <span className="text-[320px] font-bold tracking-tighter text-black/5">
+        {/* DOTTED CENTER GUIDES */}
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <div className="absolute left-1/2 top-0 h-full border-l border-dotted border-black/20" />
+          <div className="absolute top-[160px] left-0 w-full border-t border-dotted border-black/20" />
+        </div>
+
+        {/* BACKGROUND WORD */}
+        <div className="pointer-events-none fixed top-[-200px] right-[-120px] select-none">
+          <span className="text-[320px] font-medium tracking-[-0.09em] text-black/10">
             Sketcho
           </span>
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 flex flex-col items-center text-center">
+        {/* CONTENT WRAPPER — MOVED LEFT */}
+        <div className="relative  z-10 max-w-[1440px] pl-10 pr-24 pt-[250px]">
 
-          {/* Heading */}
-          <h1 className="text-[88px] font-medium tracking-tighter leading-[0.95]">
+          {/* HEADING + BUTTON ROW */}
+          <div className="flex items-start justify-between">
 
-            <div className="flex justify-center gap-3">
-              <span className="opacity-40">A</span>
-              <span className="opacity-60">great</span>
-              <span>design</span>
-            </div>
+            {/* HEADING FRAME */}
+            <div className="relative">
 
-            <div className="flex justify-center items-center gap-3 mt-2">
-              <span className="opacity-60">is</span>
-              <span>the</span>
-
-              {/* Image pill */}
-              <div className="relative w-56 h-20 rounded-full bg-black/10 overflow-hidden">
-                <Image
-                  src="/FigmaImage.jpg"
-                  alt="Design preview"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-
-              <span>result</span>
-              <span className="opacity-50">of</span>
-              <span className="opacity-40">a</span>
-            </div>
-
-            <div className="flex justify-center items-end gap-3 mt-1">
-              <span>structured</span>
-              <span className="font-parisienn font-bold e text-8xl text-orange-500 leading-none">
-                Idea .
-              </span>
-            </div>
-
-          </h1>
-
-          {/* Description */}
-          <p className="mt-10 max-w-xl text-lg text-black/70 leading-snug">
-            Turn rough ideas into structured, editable designs.
-            Prompt, sketch, and refine — all in one seamless canvas.
-          </p>
-
-          {/* Email CTA */}
-          <div className="mt-10 flex flex-col items-center gap-4 w-full">
-
-            <div className="relative w-full max-w-xl">
-              <form
-                className="relative w-full max-w-xl"
-                onSubmit={HandlePresignUp}
-              >
-                <Input
-                  placeholder="xyz@gmail.com"
-                  className="
-                    h-16
-                    rounded-full
-                    pl-6 pr-40
-                    text-base
-                    shadow-[0_14px_40px_rgba(0,0,0,0.12)]
-                    border border-black/10
-                    placeholder:text-black/40
-                    focus-visible:ring-0
-                  "
-                  name="email"
-                  type="email"
-                  required
-                />
-
-                <Button
-                  type="submit"
-                  className="
-                    absolute right-2 top-1/2 -translate-y-1/2
-                    h-12
-                    px-8
-                    text-sm
-                    font-semibold
-                    rounded-full
-                    bg-black text-white
-                    shadow-[0_12px_30px_rgba(0,0,0,0.35)]
-                    hover:bg-black/90
-                    cursor-pointer
-                  "
-                  disabled={loading}
-                >
-                  {loading ? 'Joining...' : 'Join Waitlist'}
-                </Button>
-              </form>
-            </div>
-
-            <div className="flex items-center gap-4 text-sm text-black/70 mt-2">
-
-              <div className="flex items-center">
-                <div className="flex -space-x-3">
-                  <Image
-                    src="/avatar1.jpg"
-                    alt="User avatar"
-                    width={36}
-                    height={36}
-                    className="rounded-full border-2 border-white shadow-sm object-cover z-30"
-                  />
-                  <Image
-                    src="/avatar2.jpg"
-                    alt="User avatar"
-                    width={36}
-                    height={36}
-                    className="rounded-full border-2 border-white shadow-sm object-cover z-20"
-                  />
-                  <Image
-                    src="/avatar3.jpg"
-                    alt="User avatar"
-                    width={36}
-                    height={36}
-                    className="rounded-full border-2 border-white shadow-sm object-cover z-10"
-                  />
+              {/* SELECTION BOX */}
+              <div className="pointer-events-none absolute inset-0">
+                <div className="w-[1500px] h-[400px] border border-sky-500 rounded relative">
+                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[11px] px-1.5 py-[1px] rounded-sm bg-sky-600 text-white">
+                    1260 × 358
+                  </div>
                 </div>
               </div>
 
-              <span className="leading-tight">
-                Joined by <strong className="text-black">500+</strong> designers & SaaS founders
-              </span>
+              {/* TEXT */}
+              <h1
+                className="
+                  w-[2000px] h-[358px]
+                  flex flex-col justify-center
+                  text-[150px]
+                  font-medium
+                  tracking-[-0.09em]
+                  leading-[0.95]
+                  text-left
+                  font-bricolage
+                "
+              >
+                <span
+                  className="
+                    underline decoration-sky-400 decoration-[2px]
+                    underline-offset-[2px]
+                    relative z-10
+                  "
+                >
+                  A great design
+                </span>
+
+                <div
+                  className="
+                    flex gap-4 mt-[6px]
+                    underline decoration-sky-400 decoration-[2px]
+                    underline-offset-[2px]
+                    relative z-10
+                  "
+                >
+                  <span>is the result of a structured</span>
+                </div>
+
+                <div className="mt-[2px]">
+                  <span
+                    className="
+                      font-instrument
+                      italic
+                      text-[150px]
+                      tracking-[-0.02em]
+                      leading-none
+                    "
+                  >
+                    Sketch of your idea .
+                  </span>
+                </div>
+              </h1>
             </div>
+          </div>
+
+          {/* DESCRIPTION + CTA */}
+          <div className="flex items-center justify-between w-">
+
+            {/* DESCRIPTION */}
+            <p className="mt-25 max-w-[520px] text-[26px] tracking-[-0.09em]  leading-[1.45] text-black/70">
+              Turn rough ideas into structured, editable designs.
+              Prompt, sketch, and refine — all in one seamless canvas.
+            </p>
+
+            {/* CTA BUTTON */}
+            <form
+              onSubmit={handlePresignUp}
+              className="relative mt-6"
+            >
+              <Button
+                type="submit"
+                disabled={loading}
+                className="
+                  h-10 px-6 rounded-full
+                  bg-black text-white mt-25
+                  text-xl tracking-[-0.09em]
+                  p-10
+                "
+              >
+                {loading ? 'Joining...' : 'Join Waitlist'}
+              </Button>
+            </form>
           </div>
         </div>
 
-        {/* bottom background */}
+        {/* BOTTOM BG WORD */}
         <div className="pointer-events-none fixed bottom-[-160px] left-[-120px] select-none">
-          <span className="text-[320px] font-bold tracking-tighter text-black/5">
+          <span className="text-[320px] font-medium tracking-[-0.09em] text-black/10">
             Sketcho
           </span>
         </div>
-
       </section>
-
     </div>
   )
 }
