@@ -1,20 +1,9 @@
-import express from 'express';
-import { Request, Response } from 'express';
+import { Router } from "express";
 
-const router = express.Router();
+const router = Router();
 
-interface GenerateRequest extends Request {
-    // Add any custom properties if needed in the future
-}
-
-interface GenerateResponse {
-    message: string;
-}
-
-router.post('/', async (req: GenerateRequest, res: Response<GenerateResponse>) => {
-    res.json({
-        message: "Api is working fine at generate route"
-    });
+router.post("/generate", (req, res) => {
+    res.json({ message: "Generate route working 🚀" });
 });
-    
+
 export default router;

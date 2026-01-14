@@ -1,18 +1,18 @@
-import dotenv from 'dotenv';
-import express from 'express';
-import generateRoute from './routes/generate';
+import express from "express";
+import cors from "cors";
+import generateRoute from "./routes/generate";
 
-dotenv.config()
-const app = express()
+const app = express();
 
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
-const port = process.env.PORT || 3000
+app.use("/api", generateRoute);
 
-app.use('/generate', generateRoute);
-
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+app.get("/", (_, res) => {
+    res.send("Backend running ");
 });
 
-export default app;
+app.listen(5000, () => {
+    console.log("Server running on http://localhost:5000");
+});
