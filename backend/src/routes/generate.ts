@@ -2,13 +2,18 @@ import Router from "express";
 
 const router = Router();
 
+// just to test in the browser
 router.get("/", (req, res) => {
-  res.send("Backend is live")
+  res.json({
+    status: 'ok' , 
+    message : " Your backend is running sir"
+  })
 })
 
-router.post("/", (req, res) => {
-    res.json({ ok: true })
-})
+
+// router.post("/", (req, res) => {
+//     res.json({ ok: true })
+// })
 export default router;
 
 // For Me:================
