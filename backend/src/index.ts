@@ -1,18 +1,14 @@
-import express from "express";
-import cors from "cors";
-import generateRoute from "./routes/generate.js"
+import express from "express"
+import cors from "cors"
+import generateRoute from "./routes/generate"
 
-const app = express();
+const app = express()
 
-app.use(cors());
-app.use(express.json());
+app.use(cors())
+app.use(express.json())
 
-app.use("/api", generateRoute);
+app.use("/generate", generateRoute)
 
-app.get("/", (_, res) => {
-    res.send("Backend running");
-});
-
-app.listen(5000, () => {
-    console.log("Server running on http://localhost:5000");
-});
+app.listen(3001, () => {
+  console.log("Backend running on http://localhost:3001")
+})
