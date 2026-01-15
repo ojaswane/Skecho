@@ -10,5 +10,5 @@ app.use(express.json())
 app.use("/generate", generateRoute)
 
 app.listen(3001, () => {
-  console.log("Backend running on http://localhost:3001")
+    console.log("Backend running") 
 })
