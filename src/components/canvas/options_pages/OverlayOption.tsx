@@ -20,7 +20,7 @@ const FramesOverlay = ({ frame }: any) => {
     if (!canvas) return null
 
 
-    // backedn -> frontend (ts may include some fake data)
+    // backend -> frontend (ts may include some fake data)
     const GenerateTypeSketch = async () => {
         const fakeSketchData = {
             shapes: ["rectangle", "circle"]
@@ -40,7 +40,6 @@ const FramesOverlay = ({ frame }: any) => {
         const data = await res.json()
         console.log(data)
     }
-
 
 
 
