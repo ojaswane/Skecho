@@ -32,6 +32,24 @@ export default function DefaultText() {
     const frames = useCanvasStore(s => s.frames)
     const [, forceUpdate] = useState(0)
 
+
+    //(This may includes the fake data for now ) Connecting frontend with backend
+    const GenerateFromText = async () => {
+        const res = await fetch("http://localhost:3001/generate", {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                type: "text",
+                prompt: "Login screen with email and password"
+            })
+        })
+
+        const data = await res.json()
+        console.log(data)
+    }
+
     // Sync overlay with zoom/pan
     useEffect(() => {
         if (!canvas) return
@@ -169,7 +187,9 @@ export default function DefaultText() {
 
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <button className="flex w-full items-center text-sm justify-center gap-2 cursor-pointer rounded-full bg-white text-black px-5 py-2 font-medium hover:bg-white/90 transition">
+                                    <button
+                                        onClick={GenerateFromText}
+                                        className="flex w-full items-center text-sm justify-center gap-2 cursor-pointer rounded-full bg-white text-black px-5 py-2 font-medium hover:bg-white/90 transition">
                                         <Sparkles className="w-4 h-4" />
                                         Generate
                                     </button>
