@@ -32,11 +32,13 @@ const FramesOverlay = ({ frame }: any) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                type: "sketch",
-                sketch: fakeSketchData
+                source: "sketch",
+                payload: {
+                    sketch: fakeSketchData
+                }
             })
         })
-
+         
         const data = await res.json()
         console.log(data)
     }

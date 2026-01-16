@@ -33,7 +33,7 @@ router.post("/", (req, res) => {
         return res.json({
             mode: "sketch",
             interpretedIntent: {
-                components: payload.objects
+                components: payload.sketch?.shapes ?? []
             }
         })
     }
