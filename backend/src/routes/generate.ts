@@ -13,38 +13,28 @@ router.get("/", (req, res) => {
 
 // backend build for ai to get the response
 router.post("/", (req, res) => {
-    const { type, sketch, prompt } = req.body
-    if (!type) {
-        return res.status(400).json({
-            error: "prompt is required"
-        })
-    }
+    const { source, payload } = req.body
+
 
     // if user types the prompt 
-    if (type === "text") {
+    if (source === "text") {
         return res.json({
-            source: "text",
-            Prompt: prompt,
-            elements: [
-                { type: "text", value: "Welcome Back" },
-                { type: "input", placeholder: "Email" },
-                { type: "input", placeholder: "Password" },
-                { type: "button", label: "Login" }
-            ]
+            mode: "text",
+            interpretedIntent: {
+                screen: "login",
+                fields: ["email", "password"],
+                buttons: ["login"]
+            }
         })
     }
 
     // if the user does the sketch
-    if (type === "sketch") {
+    if (source === "sketch") {
         return res.json({
-            source: "sketch",
-            Sketch_recived: sketch,
-            elements: [
-                { type: "text", value: "Welcome Back" },
-                { type: "input", placeholder: "Email" },
-                { type: "input", placeholder: "Password" },
-                { type: "button", label: "Login" }
-            ]
+            mode: "sketch",
+            interpretedIntent: {
+                components: payload.objects
+            }
         })
     }
 
