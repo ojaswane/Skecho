@@ -13,13 +13,14 @@ router.get("/", (req, res) => {
 
 // backend build for ai to get the response
 router.post("/", (req, res) => {
-    const { source, payload } = req.body
+    const { source, payload, prompt } = req.body
 
 
     // if user types the prompt 
     if (source === "text") {
         return res.json({
             mode: "text",
+            Prompt: prompt,
             interpretedIntent: {
                 screen: "login",
                 fields: ["email", "password"],

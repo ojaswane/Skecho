@@ -41,7 +41,7 @@ export default function DefaultText() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                type: "text",
+                source: "text",
                 prompt: "Login screen with email and password"
             })
         })
