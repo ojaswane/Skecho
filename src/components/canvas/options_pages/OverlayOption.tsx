@@ -15,6 +15,12 @@ import {
 
 // 390x844px  : for tablet
 
+// Define the WireframeElement type according to your expected structure
+type WireframeElement = {
+    type: string;
+    [key: string]: any;
+};
+
 const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
     if (!canvas) return null
@@ -38,15 +44,34 @@ const FramesOverlay = ({ frame }: any) => {
                 }
             })
         })
-         
+
         const data = await res.json()
-        console.log(data)
+        console.log(data.element)
+        const elements = Array.isArray(data?.elements)
+            ? data.elements
+            : []
+
+        renderWireframe(elements)
     }
 
+    const renderWireframe = (elements: WireframeElement[]) => {
+        console.log("elements received:", elements)
+        console.log("isArray:", Array.isArray(elements))
 
+        if (!Array.isArray(elements)) {
+            console.error("elements is NOT an array", elements)
+            return
+        }
+
+        elements.forEach((el, index) => {
+            console.log(`Rendering element ${index}`, el)
+
+            // later replace it with fabric logic
+        })
+    }
 
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
-        const vpt = canvas.viewportTransform!
+        const vpt = canvas.viewportTransform!  
         return {
             x: x * vpt[0] + vpt[4],
             y: y * vpt[3] + vpt[5],
