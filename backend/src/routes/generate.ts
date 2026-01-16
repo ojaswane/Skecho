@@ -14,7 +14,7 @@ router.get("/", (req, res) => {
 // backend build for ai to get the response
 router.post("/", (req, res) => {
     const { type, sketch, prompt } = req.body
-    if (!prompt) {
+    if (!type) {
         return res.status(400).json({
             error: "prompt is required"
         })
@@ -38,7 +38,7 @@ router.post("/", (req, res) => {
     if (type === "sketch") {
         return res.json({
             source: "sketch",
-            Sketch_recived: prompt,
+            Sketch_recived: sketch,
             elements: [
                 { type: "text", value: "Welcome Back" },
                 { type: "input", placeholder: "Email" },

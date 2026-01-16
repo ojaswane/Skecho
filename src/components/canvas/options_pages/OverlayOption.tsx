@@ -19,6 +19,31 @@ const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
     if (!canvas) return null
 
+
+    // backedn -> frontend (ts may include some fake data)
+    const GenerateTypeSketch = async () => {
+        const fakeSketchData = {
+            shapes: ["rectangle", "circle"]
+        }
+
+        const res = await fetch("http://localhost:3001/generate", {
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                type: "sketch",
+                sketch: fakeSketchData
+            })
+        })
+
+        const data = await res.json()
+        console.log(data)
+    }
+
+
+
+
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
         const vpt = canvas.viewportTransform!
         return {
@@ -208,7 +233,9 @@ const FramesOverlay = ({ frame }: any) => {
                             />
                         </button>
 
-                        <button className="px-3 py-1.5 flex cursor-pointer items-center gap-2 rounded-md bg-white text-black hover:bg-white/90 transition ">
+                        <button
+                            onClick={GenerateTypeSketch}
+                            className="px-3 py-1.5 flex cursor-pointer items-center gap-2 rounded-md bg-white text-black hover:bg-white/90 transition ">
                             <Sparkles className="w-4 h-4" />
                             Generate
                         </button>
