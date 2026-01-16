@@ -19,6 +19,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+
 const DEFAULT_TEXT = {
     text: "Sketch Your Idea Here!",
     fontSize: 65,

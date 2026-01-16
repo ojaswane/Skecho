@@ -12,6 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import render from '@/lib/render/renderWireframe'
 
 // 390x844px  : for tablet
 
@@ -51,27 +52,12 @@ const FramesOverlay = ({ frame }: any) => {
             ? data.elements
             : []
 
-        renderWireframe(elements)
+        render(canvas, elements)
     }
 
-    const renderWireframe = (elements: WireframeElement[]) => {
-        console.log("elements received:", elements)
-        console.log("isArray:", Array.isArray(elements))
-
-        if (!Array.isArray(elements)) {
-            console.error("elements is NOT an array", elements)
-            return
-        }
-
-        elements.forEach((el, index) => {
-            console.log(`Rendering element ${index}`, el)
-
-            // later replace it with fabric logic
-        })
-    }
 
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
-        const vpt = canvas.viewportTransform!  
+        const vpt = canvas.viewportTransform!
         return {
             x: x * vpt[0] + vpt[4],
             y: y * vpt[3] + vpt[5],

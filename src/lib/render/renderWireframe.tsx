@@ -1,6 +1,6 @@
 // This file renders from backend to frontend
-import fabric from 'fabric'
-export const RenderWireframe = (
+import * as fabric from 'fabric'
+ const render = (
     canvas: fabric.Canvas,
     elements: any[]
 ) => {
@@ -57,3 +57,5 @@ export const RenderWireframe = (
         canvas.renderAll()
     })
 }
+
+export default render
