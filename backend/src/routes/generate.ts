@@ -13,34 +13,34 @@ router.get("/", (req, res) => {
 
 // backend build for ai to get the response
 router.post("/", (req, res) => {
-    const { source, payload, prompt } = req.body
+    const { source, payload } = req.body
 
-
-    // if user types the prompt 
-    if (source === "text") {
-        return res.json({
-            mode: "text",
-            Prompt: prompt,
-            interpretedIntent: {
-                screen: "login",
-                fields: ["email", "password"],
-                buttons: ["login"]
-            }
-        })
-    }
-
-    // if the user does the sketch
     if (source === "sketch") {
         return res.json({
-            mode: "sketch",
-            interpretedIntent: {
-                components: payload.sketch?.shapes ?? []
-            }
+            elements: [
+                {
+                    type: "input",
+                    x: 100,
+                    y: 100,
+                    text: "Email"
+                },
+                {
+                    type: "input",
+                    x: 100,
+                    y: 160,
+                    text: "Password"
+                },
+                {
+                    type: "button",
+                    x: 100,
+                    y: 220,
+                    text: "Login"
+                }
+            ]
         })
     }
 
-
-    res.status(400).json({ error: "Invalid type" })
+    res.status(400).json({ error: "Invalid source" })
 })
 export default router;
 
