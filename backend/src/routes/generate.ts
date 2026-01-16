@@ -13,30 +13,43 @@ router.get("/", (req, res) => {
 
 // backend build for ai to get the response
 router.post("/", (req, res) => {
-    const { prompt } = req.body
+    const { type, sketch, prompt } = req.body
     if (!prompt) {
         return res.status(400).json({
             error: "prompt is required"
         })
     }
 
-    // Fake AI response
-    const wireframe = {
-        screen: "Login Screen",
-        elements: [
-            { type: "text", value: "Welcome Back" },
-            { type: "input", placeholder: "Email" },
-            { type: "input", placeholder: "Password" },
-            { type: "button", label: "Login" }
-        ]
+    // if user types the prompt 
+    if (type === "text") {
+        return res.json({
+            source: "text",
+            Prompt: prompt,
+            elements: [
+                { type: "text", value: "Welcome Back" },
+                { type: "input", placeholder: "Email" },
+                { type: "input", placeholder: "Password" },
+                { type: "button", label: "Login" }
+            ]
+        })
     }
 
-    res.json({
-        status: 200,
-        success: true,
-        prompt: prompt,
-        result: wireframe
-    })
+    // if the user does the sketch
+    if (type === "sketch") {
+        return res.json({
+            source: "sketch",
+            Sketch_recived: prompt,
+            elements: [
+                { type: "text", value: "Welcome Back" },
+                { type: "input", placeholder: "Email" },
+                { type: "input", placeholder: "Password" },
+                { type: "button", label: "Login" }
+            ]
+        })
+    }
+
+
+    res.status(400).json({ error: "Invalid type" })
 })
 export default router;
 
