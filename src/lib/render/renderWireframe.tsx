@@ -57,5 +57,4 @@ import * as fabric from 'fabric'
         canvas.renderAll()
     })
 }
-
 export default render
