@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 
 import render from '@/lib/render/renderWireframe'
-import extractCanvasData from '../../../lib/render/extractCanvas'
+import extractCanvasData from "@/lib/render/extractCanvasData"
 
 type WireframeElement = {
     type: string
@@ -29,7 +29,7 @@ const FramesOverlay = ({ frame }: any) => {
 
     /* ------------------ AI GENERATION ------------------ */
     const GenerateTypeSketch = async () => {
-        const canvasData = extractCanvasData()
+        const canvasData = extractCanvasData(canvas)
 
         const res = await fetch('http://localhost:3001/generate', {
             method: 'POST',
