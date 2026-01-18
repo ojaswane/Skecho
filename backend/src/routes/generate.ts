@@ -1,5 +1,6 @@
 import { error } from "console";
 import Router from "express";
+import { interpretPrompt } from "../Ai/interpretPrompt";
 
 const router = Router();
 
@@ -14,6 +15,17 @@ router.get("/", (req, res) => {
 // backend build for ai to get the response
 router.post("/", (req, res) => {
     const { source, payload } = req.body
+
+    if (source === "text") {
+        const elements = interpretPrompt(payload.prompt)
+
+        return res.json({
+            mode: "text",
+            interpretedIntent: {
+                elements
+            }
+        })
+    }
 
     if (source === "sketch") {
         return res.json({
