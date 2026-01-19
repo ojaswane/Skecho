@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 
-const fonts = [
+export const fonts = [
   "Inter",
   "Manrope",
   "Poppins",
