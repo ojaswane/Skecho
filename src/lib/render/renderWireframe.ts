@@ -15,7 +15,7 @@ const render = (canvas: fabric.Canvas, elements: any[]) => {
                 fill: "#fff",
                 stroke: "#000",
                 strokeWidth: 1,
-                selectable: false
+                selectable: true
             })
 
             const text = new fabric.Text(e.text || "Input", {
@@ -23,7 +23,7 @@ const render = (canvas: fabric.Canvas, elements: any[]) => {
                 top: e.y + 10,
                 fontSize: 14,
                 fill: "#666",
-                selectable: false
+                selectable: true
             })
 
                 ; (rect as any).data = { generated: true }
@@ -42,7 +42,7 @@ const render = (canvas: fabric.Canvas, elements: any[]) => {
                 rx: 6,
                 ry: 6,
                 fill: "#000",
-                selectable: false
+                selectable: true
             })
 
             const text = new fabric.Text(e.text || "Button", {
@@ -50,7 +50,7 @@ const render = (canvas: fabric.Canvas, elements: any[]) => {
                 top: e.y + 12,
                 fill: "#fff",
                 fontSize: 14,
-                selectable: false
+                selectable: true
             })
 
                 ; (rect as any).data = { generated: true }
