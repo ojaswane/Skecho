@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import * as fabric from 'fabric'
 import { Sparkles, ImagePlus } from 'lucide-react'
 
@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 
 import render from '@/lib/render/renderWireframe'
-import extractCanvasData from "@/lib/render/extractCanvasData"
+import extractCanvasData from '@/lib/render/extractCanvasData'
 
 type WireframeElement = {
     type: string
@@ -25,28 +25,7 @@ type WireframeElement = {
 
 const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
-    if (!canvas) return null
-
-    /* ------------------ AI GENERATION ------------------ */
-    const GenerateTypeSketch = async () => {
-        const canvasData = extractCanvasData(canvas)
-
-        const res = await fetch('http://localhost:3001/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                source: 'sketch',
-                payload: { objects: canvasData },
-            }),
-        })
-
-        const data = await res.json()
-        const elements: WireframeElement[] = Array.isArray(data?.elements)
-            ? data.elements
-            : []
-
-        render(canvas, elements)
-    }
+    const [, forceUpdate] = useState(0)
 
     /* ------------------ UTILS ------------------ */
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
@@ -57,9 +36,9 @@ const FramesOverlay = ({ frame }: any) => {
         }
     }
 
-    const [, forceUpdate] = React.useState(0)
-
     useEffect(() => {
+        if (!canvas) return
+
         const update = () => forceUpdate((n) => n + 1)
 
         canvas.on('mouse:wheel', update)
@@ -72,6 +51,34 @@ const FramesOverlay = ({ frame }: any) => {
             canvas.off('after:render', update)
         }
     }, [canvas])
+
+    /* ------------------ AI GENERATION ------------------ */
+    const GenerateTypeSketch = async () => {
+        if (!canvas) return
+
+        canvas.clear() 
+
+        const canvasData = extractCanvasData(canvas)
+
+        const res = await fetch('http://localhost:3001/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                source: 'sketch',
+                payload: { objects: canvasData },
+            }),
+        })
+
+        const data = await res.json()
+        const elements: WireframeElement[] = Array.isArray(data?.elements) ? data.elements : []
+
+        if (elements.length === 0) return
+
+        render(canvas, elements) // THIS draws on Fabric canvas
+        canvas.requestRenderAll()
+    }
+
+    if (!canvas) return null
 
     const zoom = canvas.getZoom()
     const pos = canvasToScreen(canvas, frame.left, frame.top)
