@@ -7,6 +7,9 @@ import FrameOverlays from './FrameOverlays'
 import type { Frame } from '../../../lib/store/canvasStore'
 import SelectionOverlay from './SelectionOverlay'
 
+
+
+
 const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null)
@@ -151,6 +154,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
    FRAME CLIPPING 
 ========================= */
 
+
   useEffect(() => {
     if (!canvas) return
 
@@ -160,7 +164,6 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
       if (obj.type === 'activeSelection') return
 
       const center = obj.getCenterPoint()
-
       const frames = canvas.getObjects().filter(o => o.get('isFrame')) as fabric.Rect[]
 
       const targetFrame = frames.find(frame =>
@@ -168,32 +171,17 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
       )
 
       if (!targetFrame) {
-        if (obj.get('isFrameContent')) {
-          obj.set({
-            clipPath: undefined,
-            isFrameContent: false,
-            frameId: undefined,
-          })
-          obj.setCoords()
-          canvas.requestRenderAll()
-        }
+        obj.set({
+          isFrameContent: false,
+          frameId: undefined,
+        })
         return
       }
 
       obj.set({
-        clipPath: new fabric.Rect({
-          left: targetFrame.left,
-          top: targetFrame.top,
-          width: targetFrame.width,
-          height: targetFrame.height,
-          absolutePositioned: true,
-        }),
         isFrameContent: true,
         frameId: targetFrame.get('frameId'),
       })
-
-      obj.setCoords()
-      canvas.requestRenderAll()
     }
 
     canvas.on('object:added', handler)
@@ -204,7 +192,6 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
       canvas.off('object:moving', handler)
     }
   }, [canvas])
-
 
   /* =========================
      ZOOM & PAN
