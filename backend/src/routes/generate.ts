@@ -14,7 +14,7 @@ router.get("/", (req, res) => {
 })
 
 // prompt for Ai
-const SYSTEMPROMPT = ` You are a MODERN UI wireframe generator for a design tool.
+const SYSTEM_PROMPT = ` You are a MODERN UI wireframe generator for a design tool.
 
 STRICT RULES:
 - Output ONLY valid JSON.
@@ -62,10 +62,29 @@ router.post("/", (req, res) => {
 
     if (source === "sketch") {
         // Ai
-        try{
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: "deepseek/deepseek-chat",
+                    temperature: 0.25,
+                    max_tokens: 600,
+                    messages: [
+                        { role: "system", content: SYSTEM_PROMPT },
+                        { role: "user", content: payload.prompt }
+                    ]
+                })           
+            });
 
-        } catch(err) {
-            console.error('There was an error while calling for AI',err)
+            const data = await response.json();
+            const raw = data.choices[0].message.content;
+
+        } catch (err) {
+            console.error('There was an error while calling for AI', err)
         }
     }
 
