@@ -15,7 +15,7 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 
-import render from '@/lib/render/renderWireframe'
+import render from '../../../lib/render/renderWireframe'
 import extractCanvasData from '@/lib/render/extractCanvasData'
 
 type WireframeElement = {
@@ -56,7 +56,7 @@ const FramesOverlay = ({ frame }: any) => {
     const GenerateTypeSketch = async () => {
         if (!canvas) return
 
-        canvas.clear() 
+        canvas.clear()
 
         const canvasData = extractCanvasData(canvas)
 
@@ -74,8 +74,8 @@ const FramesOverlay = ({ frame }: any) => {
 
         if (elements.length === 0) return
 
-        render(canvas, elements) // THIS draws on Fabric canvas
-        canvas.requestRenderAll()
+        console.log("Ai response " , data)
+        render(canvas, elements)
     }
 
     if (!canvas) return null
