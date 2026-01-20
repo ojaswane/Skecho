@@ -56,26 +56,29 @@ const FramesOverlay = ({ frame }: any) => {
     const GenerateTypeSketch = async () => {
         if (!canvas) return
 
-        canvas.clear()
+        canvas.getObjects().filter(obj => {
+            return !(obj as any).data?.generated
+        })
 
         const canvasData = extractCanvasData(canvas)
 
-        const res = await fetch('http://localhost:3001/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch("http://localhost:3001/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                source: 'sketch',
+                source: "sketch",
                 payload: { objects: canvasData },
             }),
         })
 
         const data = await res.json()
-        const elements: WireframeElement[] = Array.isArray(data?.elements) ? data.elements : []
+        console.log("AI response", data)
 
-        if (elements.length === 0) return
+        const elements = Array.isArray(data?.elements) ? data.elements : []
+        if (!elements.length) return
 
-        console.log("Ai response " , data)
         render(canvas, elements)
+        canvas.requestRenderAll()
     }
 
     if (!canvas) return null
