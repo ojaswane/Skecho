@@ -8,8 +8,6 @@ import type { Frame } from '../../../lib/store/canvasStore'
 import SelectionOverlay from './SelectionOverlay'
 
 
-
-
 const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null)
@@ -57,6 +55,17 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
 
     window.addEventListener('keydown', onKeyDown)
 
+    window.addEventListener('wheel', function (e) {
+      if (e.ctrlKey) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    window.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=')) {
+        e.preventDefault();
+      }
+    });
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       c.dispose()
