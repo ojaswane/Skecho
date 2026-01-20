@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import Router from "express";
 import { interpretPrompt } from "../Ai/interpretPrompt";
+import { error } from "node:console";
 
 const router = Router();
 
@@ -60,28 +61,12 @@ router.post("/", (req, res) => {
     }
 
     if (source === "sketch") {
-        return res.json({
-            elements: [
-                {
-                    type: "input",
-                    x: 100,
-                    y: 100,
-                    text: "Email"
-                },
-                {
-                    type: "input",
-                    x: 100,
-                    y: 160,
-                    text: "Password"
-                },
-                {
-                    type: "button",
-                    x: 100,
-                    y: 220,
-                    text: "Login"
-                }
-            ]
-        })
+        // Ai
+        try{
+
+        } catch(err) {
+            console.error('There was an error while calling for AI',err)
+        }
     }
 
     res.status(400).json({ error: "Invalid source" })
