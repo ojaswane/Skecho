@@ -1,4 +1,4 @@
-import { error } from "console";
+import fetch from "node-fetch";
 import Router from "express";
 import { interpretPrompt } from "../Ai/interpretPrompt";
 
@@ -11,6 +11,38 @@ router.get("/", (req, res) => {
         message: " Your backend is running sir"
     })
 })
+
+// prompt for Ai
+const SYSTEMPROMPT = ` You are a MODERN UI wireframe generator for a design tool.
+
+STRICT RULES:
+- Output ONLY valid JSON.
+- No markdown, no explanations, no comments.
+- Follow the schema EXACTLY.
+
+Schema:
+{
+  "frames": [
+    {
+      "id": "string",
+      "type": "frame | card | text | button | input(image / video / 3d element)",
+      "x": number,
+      "y": number,
+      "width": number,
+      "height": number,
+      "text": "string (optional)"
+    }
+  ]
+}
+
+Layout rules:
+- Start layout at x=40, y=40
+- Maintain minimum 24px spacing between elements
+- Use realistic sizes for modern web apps
+- Prefer cards and vertical flow
+- If prompt is vague, generate clean default layout
+- If user asks for minimal, generate fewer elements
+`
 
 // backend build for ai to get the response
 router.post("/", (req, res) => {
