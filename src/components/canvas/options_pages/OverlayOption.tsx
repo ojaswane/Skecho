@@ -81,6 +81,23 @@ const FramesOverlay = ({ frame }: any) => {
         canvas.requestRenderAll()
     }
 
+    useEffect(() => {
+        canvas?.on('selection:created', (e) => {
+            const sel = e.selected?.[0]
+            if (sel && sel.type === 'activeSelection') {
+                sel.clipPath = undefined
+            }
+        })
+
+        canvas?.on('selection:updated', (e) => {
+            const sel = e.selected?.[0]
+            if (sel && sel.type === 'activeSelection') {
+                sel.clipPath = undefined
+            }
+        })
+
+    }, [canvas])
+
     if (!canvas) return null
 
     const zoom = canvas.getZoom()
