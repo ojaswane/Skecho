@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import * as fabric from 'fabric'
-import { Sparkles, ImagePlus } from 'lucide-react'
+import { Sparkles, ImagePlus, Loader2 } from 'lucide-react'
 
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Badge } from '@/components/ui/badge'
@@ -27,6 +27,8 @@ type WireframeElement = {
 const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
     const [, forceUpdate] = useState(0)
+    const [loader, setloader] = useState(false)
+    const [generate, setGenerate] = useState(false)
 
     /* ------------------ UTILS ------------------ */
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
@@ -57,29 +59,36 @@ const FramesOverlay = ({ frame }: any) => {
     const GenerateTypeSketch = async () => {
         if (!canvas) return
 
-        canvas.getObjects().filter(obj => {
-            return !(obj as any).data?.generated
-        })
+        try {
 
-        const canvasData = extractCanvasData(canvas)
+            canvas.getObjects().filter(obj => {
+                return !(obj as any).data?.generated
+            })
 
-        const res = await fetch("http://localhost:3001/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                source: "sketch",
-                payload: { objects: canvasData },
-            }),
-        })
+            const canvasData = extractCanvasData(canvas)
+            setloader(true)
+            const res = await fetch("http://localhost:3001/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    source: "sketch",
+                    payload: { objects: canvasData },
+                }),
+            })
 
-        const data = await res.json()
-        console.log("AI response", data)
+            const data = await res.json()
+            console.log("AI response", data)
 
-        const elements = Array.isArray(data?.elements) ? data.elements : []
-        if (!elements.length) return
+            const elements = Array.isArray(data?.elements) ? data.elements : []
+            if (!elements.length) return
 
-        render(canvas, elements)
-        canvas.requestRenderAll()
+            render(canvas, elements)
+            canvas.requestRenderAll()
+        } catch (err) {
+            console.log('Ai error from frontend', err)
+        } finally {
+            setloader(false)
+        }
     }
 
     useEffect(() => {
@@ -209,7 +218,17 @@ const FramesOverlay = ({ frame }: any) => {
                             <input type="file" multiple hidden />
                         </label>
 
-                        <GenerateButton onClick={GenerateTypeSketch} />
+                        <GenerateButton onClick={GenerateTypeSketch} >
+                            {loader ? (
+                                <span className="">
+                                    Generating...
+                                </span>
+                            ) : (
+                                <span className="">
+                                    Generate Wireframe
+                                </span>
+                            )}
+                        </GenerateButton>
                     </div>
                 </div>
             </div>
