@@ -76,6 +76,20 @@ INTELLIGENCE RULES
 - Do NOT hallucinate complex UI unless asked
 
 ====================
+MULTI-SCREEN RULES
+====================
+
+- If user mentions multiple pages, flows, or steps:
+  - Create one screen per page
+- Common flows:
+  - Auth → Dashboard
+  - Dashboard → Details
+  - List → Create → Edit
+- Screens must be ordered logically
+- Each screen must start layout at x=40, y=40
+- NEVER mix frames from different screens
+
+====================
 FAILSAFE
 ====================
 
@@ -110,7 +124,7 @@ router.post("/", async (req, res) => {
     }
 
     if (source === "sketch") {
-        // Ai Response 
+        // Ai Response
         try {
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
