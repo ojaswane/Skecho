@@ -93,7 +93,7 @@ router.post("/", async (req, res) => {
             const raw = data.choices[0].message.content;
 
             // we will parse the raw data into nice json
-            let parsed;
+            let parsed: any;
             try {
                 parsed = JSON.parse(raw)
 
