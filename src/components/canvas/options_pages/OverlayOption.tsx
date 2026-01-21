@@ -17,6 +17,7 @@ import {
 
 import render from '../../../lib/render/renderWireframe'
 import extractCanvasData from '@/lib/render/extractCanvasData'
+import GenerateButton from '@/components/ui/generateButton'
 
 type WireframeElement = {
     type: string
@@ -208,13 +209,7 @@ const FramesOverlay = ({ frame }: any) => {
                             <input type="file" multiple hidden />
                         </label>
 
-                        <button
-                            onClick={GenerateTypeSketch}
-                            className="px-3 py-1.5 flex items-center gap-2 rounded-md bg-white text-black"
-                        >
-                            <Sparkles className="w-4 h-4" />
-                            Generate
-                        </button>
+                        <GenerateButton onClick={GenerateTypeSketch} />
                     </div>
                 </div>
             </div>
