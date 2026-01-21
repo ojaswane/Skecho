@@ -20,7 +20,7 @@ import * as fabric from "fabric"
 import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
 
-type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow"
+type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow" | 'Sketch'
 
 const Tools = () => {
     const { activeTool, setActiveTool } = useCanvasStore()
@@ -40,6 +40,20 @@ const Tools = () => {
     const handleToolClick = (toolName: Tool) => {
         setActiveTool(toolName)
         if (!canvas) return
+
+        // reset drawing mode for all tools
+        canvas.isDrawingMode = false
+
+        if (toolName === "Sketch") {
+            canvas.isDrawingMode = true
+
+            const brush = new fabric.PencilBrush(canvas)
+            brush.color = "#ffffff"
+            brush.width = 3
+
+            canvas.freeDrawingBrush = brush
+            return
+        }
 
         if (toolName === "Circle") {
             const circleRef = new FabricCircle({
@@ -105,6 +119,7 @@ const Tools = () => {
             document.getElementById("fileInput")?.click()
         }
     }
+
 
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

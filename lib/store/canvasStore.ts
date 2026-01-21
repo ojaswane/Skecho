@@ -13,6 +13,7 @@ type ToolType =
     | "Image"
     | "Arrow"
     | "Frame"
+    | "Sketch"
     | null
 
 export type Frame = {
