@@ -99,7 +99,7 @@ router.post("/", (req, res) => {
 
         } catch (err) {
             console.error('There was an error while calling for AI', err)
-            return res.status(500).json({error : 'Cannot call AI'})
+            return res.status(500).json({ error: 'Cannot call AI' })
         }
     }
 
