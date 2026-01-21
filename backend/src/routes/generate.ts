@@ -109,6 +109,7 @@ STYLE ADAPTATION:
   - body text readable and calm
 - Inputs and buttons should feel premium and balanced
 - Avoid clutter and over-dense layouts
+- If necessasy then add some light color palette too (with primary , secondary and input field hierarchy)
 
 ENHANCEMENT RULES:
 - If elements look raw or sketch-like, refine them
