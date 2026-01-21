@@ -45,8 +45,17 @@ Layout rules:
 - If user asks for minimal, generate fewer elements
 `
 
+// type of choices in open router response
+type OpenRouterResponse = {
+    choices: {
+        message: {
+            content: string;
+        }
+    }
+}
+
 // backend build for ai to get the response
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
     const { source, payload } = req.body
 
     if (source === "text") {
@@ -80,7 +89,7 @@ router.post("/", (req, res) => {
                 })
             });
 
-            const data = await response.json();
+            const data = (await response.json()) as OpenRouterResponse;
             const raw = data.choices[0].message.content;
 
             // we will parse the raw data into nice json
