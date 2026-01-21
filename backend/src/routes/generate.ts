@@ -132,6 +132,9 @@ router.post("/", async (req, res) => {
             const data = (await response.json()) as OpenRouterResponse;
             const raw = data.choices[0].message.content;
 
+            if (!raw.startsWith("{")) {
+                return res.status(400).json({ error: "AI did not return JSON" });
+            }
             // we will parse the raw data into nice json
             let parsed: any;
             try {
