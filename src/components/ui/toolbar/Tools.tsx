@@ -48,7 +48,7 @@ const Tools = () => {
             canvas.isDrawingMode = true
 
             const brush = new fabric.PencilBrush(canvas)
-            brush.color = "#ffffff"
+            brush.color = "#000000"
             brush.width = 3
 
             canvas.freeDrawingBrush = brush
