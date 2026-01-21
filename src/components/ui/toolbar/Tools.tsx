@@ -7,7 +7,8 @@ import {
     Type,
     Image as ImageIcon,
     ArrowRight,
-    Frame
+    Frame,
+    Brush
 } from "lucide-react"
 import {
     Circle as FabricCircle,
@@ -27,6 +28,7 @@ const Tools = () => {
 
     const tools = [
         { name: "Select" as Tool, icon: MousePointer2 },
+        { name: "Sketch" as Tool, icon: Brush },
         { name: "Frame" as Tool, icon: Frame },
         { name: "Rectangle" as Tool, icon: Square },
         { name: "Circle" as Tool, icon: Circle },
