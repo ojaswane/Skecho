@@ -49,14 +49,15 @@ Layout rules:
 type OpenRouterResponse = {
     choices: {
         message: {
-            content: string;
+            content: string
         }
-    }
+    }[]
 }
 
 // backend build for ai to get the response
 router.post("/", async (req, res) => {
     const { source, payload } = req.body
+    console.log("REQ BODY >>>", req.body);
 
     if (source === "text") {
         const elements = interpretPrompt(payload.prompt)
