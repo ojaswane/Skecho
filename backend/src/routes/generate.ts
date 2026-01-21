@@ -61,7 +61,7 @@ router.post("/", (req, res) => {
     }
 
     if (source === "sketch") {
-        // Ai
+        // Ai Response 
         try {
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
@@ -77,14 +77,29 @@ router.post("/", (req, res) => {
                         { role: "system", content: SYSTEM_PROMPT },
                         { role: "user", content: payload.prompt }
                     ]
-                })           
+                })
             });
 
             const data = await response.json();
             const raw = data.choices[0].message.content;
 
+            // we will parse the raw data into nice json
+            let parsed;
+            try {
+                parsed = JSON.parse(raw)
+
+            } catch (err) {
+
+                console.error('Error in parsing the json', err)
+                return res.status(400).json({ error: "invalid Ai output" })
+            }
+
+            // return json to frontend
+            return res.json({ elements: parsed.frames })
+
         } catch (err) {
             console.error('There was an error while calling for AI', err)
+            return res.status(500).json({error : 'Cannot call AI'})
         }
     }
 
