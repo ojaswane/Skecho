@@ -79,7 +79,10 @@ const FramesOverlay = ({ frame }: any) => {
             const data = await res.json()
             console.log("AI response", data)
 
-            const elements = Array.isArray(data?.elements) ? data.elements : []
+            const elements = data?.screens?.flatMap((s: any) => s.frames) ?? []
+
+            console.log("FINAL ELEMENTS", elements)
+
             if (!elements.length) return
 
             render(canvas, elements)
