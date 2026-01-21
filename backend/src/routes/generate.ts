@@ -37,15 +37,21 @@ SCHEMA (FOLLOW EXACTLY)
 ====================
 
 {
-  "frames": [
+  "screens": [
     {
       "id": "string",
-      "type": "frame | card | text | button | input | image",
-      "x": number,
-      "y": number,
-      "width": number,
-      "height": number,
-      "text": "string (optional)"
+      "name": "string",
+      "frames": [
+        {
+          "id": "string",
+          "type": "frame | card | text | button | input | image",
+          "x": number,
+          "y": number,
+          "width": number,
+          "height": number,
+          "text": "string (optional)"
+        }
+      ]
     }
   ]
 }
@@ -161,7 +167,9 @@ router.post("/", async (req, res) => {
             }
 
             // return json to frontend
-            return res.json({ elements: parsed.frames })
+            return res.json({
+                screens: parsed.screens
+            })
 
         } catch (err) {
             console.error('There was an error while calling for AI', err)
