@@ -147,69 +147,63 @@ type OpenRouterResponse = {
 
 // backend build for ai to get the response
 router.post("/", async (req, res) => {
-    const { source, payload } = req.body
+    const { source, prompt, existingLayout, frame } = req.body;
     console.log("REQ BODY >>>", req.body);
 
-    if (source === "text") {
-        const elements = interpretPrompt(payload.prompt)
-
-        return res.json({
-            mode: "text",
-            interpretedIntent: {
-                elements
-            }
-        })
-    }
-
     if (source === "sketch") {
-        // Ai Response
         try {
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: "deepseek/deepseek-chat",
-                    temperature: 0.25,
-                    max_tokens: 600,
-                    messages: [
-                        { role: "system", content: SYSTEM_PROMPT },
-                        { role: "user", content: payload.prompt }
-                    ]
-                })
-            });
+            const response = await fetch(
+                "https://openrouter.ai/api/v1/chat/completions",
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek/deepseek-chat",
+                        temperature: 0.25,
+                        max_tokens: 700,
+                        messages: [
+                            { role: "system", content: SYSTEM_PROMPT },
+                            {
+                                role: "user",
+                                content: JSON.stringify({
+                                    prompt: prompt || "",
+                                    existingLayout,
+                                    frame
+                                })
+                            }
+                        ]
+                    })
+                }
+            );
 
             const data = (await response.json()) as OpenRouterResponse;
-            const raw = data.choices[0].message.content;
-            console.log(data.choices[0].message.content)
+            const raw = data.choices?.[0]?.message?.content;
 
-            if (!raw.startsWith("{")) {
-                return res.status(400).json({ error: "AI did not return JSON" });
+            if (!raw) {
+                return res.status(400).json({ error: "Empty AI response" });
             }
-            // we will parse the raw data into nice json
-            let parsed: any;
+
+            const trimmed = raw.trim();
+
+            let parsed;
             try {
-                parsed = JSON.parse(raw)
-
+                parsed = JSON.parse(trimmed);
             } catch (err) {
-
-                console.error('Error in parsing the json', err)
-                return res.status(400).json({ error: "invalid Ai output" })
+                console.error("JSON PARSE ERROR:", trimmed);
+                return res.status(400).json({ error: "Invalid AI JSON" });
             }
 
-            // return json to frontend
-            return res.json({
-                screens: parsed.screens
-            })
+            return res.json({ screens: parsed.screens });
 
         } catch (err) {
-            console.error('There was an error while calling for AI', err)
-            return res.status(500).json({ error: 'Cannot call AI' })
+            console.error("AI CALL FAILED:", err?.response?.data || err);
+            return res.status(500).json({ error: "Cannot call AI" });
         }
     }
 
-    res.status(400).json({ error: "Invalid source" })
-})
+    res.status(400).json({ error: "Invalid source" });
+});
 export default router;
