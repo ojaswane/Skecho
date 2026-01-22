@@ -28,6 +28,7 @@ const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
     const [, forceUpdate] = useState(0)
     const [loader, setloader] = useState(false)
+    const [userPrompt, setPrompt] = useState('')
     const [generate, setGenerate] = useState(false)
 
     /* ------------------ UTILS ------------------ */
@@ -59,20 +60,28 @@ const FramesOverlay = ({ frame }: any) => {
     const GenerateTypeSketch = async () => {
         if (!canvas) return
 
+        const canvasData = extractCanvasData(canvas)
+
+        if (canvasData.length === 0 && !userPrompt.trim()) {
+            alert("Draw something or describe what you want ")
+            return
+        }
+
         try {
-
-            canvas.getObjects().filter(obj => {
-                return !(obj as any).data?.generated
-            })
-
-            const canvasData = extractCanvasData(canvas)
             setloader(true)
+
             const res = await fetch("http://localhost:3001/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     source: "sketch",
-                    payload: { objects: canvasData },
+                    prompt: userPrompt || "",
+                    existingLayout: canvasData,
+                    frame: {
+                        width: frame.width,
+                        height: frame.height,
+                        type: frame.badge,
+                    },
                 }),
             })
 
@@ -81,18 +90,28 @@ const FramesOverlay = ({ frame }: any) => {
 
             const elements = data?.screens?.flatMap((s: any) => s.frames) ?? []
 
-            console.log("FINAL ELEMENTS", elements)
-
             if (!elements.length) return
 
-            render(canvas, elements)
+            const adjustedElements = elements.map((el: any) => ({
+                ...el,
+                x: frame.left + el.x,
+                y: frame.top + el.y,
+                data: {
+                    ...(el.data || {}),
+                    generated: true,
+                    frameId: frame.id,
+                },
+            }))
+
+            render(canvas, adjustedElements)
             canvas.requestRenderAll()
         } catch (err) {
-            console.log('Ai error from frontend', err)
+            console.log("AI error from frontend", err)
         } finally {
             setloader(false)
         }
     }
+
 
     useEffect(() => {
         canvas?.on('selection:created', (e) => {
@@ -205,6 +224,7 @@ const FramesOverlay = ({ frame }: any) => {
                         <input
                             placeholder="Project name"
                             className="bg-white/10 px-3 py-1.5 rounded-md outline-none"
+                            onChange={((e) => setPrompt(e.target.value))}
                         />
 
                         <input
