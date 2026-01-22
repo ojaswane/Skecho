@@ -136,7 +136,9 @@ If unsure:
 - NEVER explain anything
 `
 
+/* ---------------- TYPES ---------------- */
 // type of choices in open router response
+
 type OpenRouterResponse = {
     choices: {
         message: {
@@ -145,65 +147,84 @@ type OpenRouterResponse = {
     }[]
 }
 
-// backend build for ai to get the response
+/* ---------------- UTILS ---------------- */
+    
+function extractJSON(text: string) {
+    const match = text.match(/\{[\s\S]*\}/)
+    if (!match) return null
+
+    try {
+        return JSON.parse(match[0])
+    } catch {
+        return null
+    }
+}
+
+/* ---------------- MAIN ROUTE ---------------- */
+
 router.post("/", async (req, res) => {
-    const { source, prompt, existingLayout, frame } = req.body;
-    console.log("REQ BODY >>>", req.body);
+    const { source, prompt, existingLayout, frame } = req.body
 
-    if (source === "sketch") {
-        try {
-            const response = await fetch(
-                "https://openrouter.ai/api/v1/chat/completions",
-                {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek/deepseek-chat",
-                        temperature: 0.25,
-                        max_tokens: 700,
-                        messages: [
-                            { role: "system", content: SYSTEM_PROMPT },
-                            {
-                                role: "user",
-                                content: JSON.stringify({
-                                    prompt: prompt || "",
-                                    existingLayout,
-                                    frame
-                                })
-                            }
-                        ]
-                    })
-                }
-            );
-
-            const data = (await response.json()) as OpenRouterResponse;
-            const raw = data.choices?.[0]?.message?.content;
-
-            if (!raw) {
-                return res.status(400).json({ error: "Empty AI response" });
-            }
-
-            const trimmed = raw.trim();
-
-            let parsed;
-            try {
-                parsed = JSON.parse(trimmed);
-            } catch (err) {
-                console.error("JSON PARSE ERROR:", trimmed);
-                return res.status(400).json({ error: "Invalid AI JSON" });
-            }
-
-            return res.json({ screens: parsed.screens });
-
-        } catch (err) {
-            console.error("AI CALL FAILED:", err?.response?.data || err);
-            return res.status(500).json({ error: "Cannot call AI" });
-        }
+    if (source !== "sketch") {
+        return res.status(400).json({ error: "Invalid source" })
     }
 
-    res.status(400).json({ error: "Invalid source" });
-});
-export default router;
+    if (!process.env.OPENROUTER_API_KEY) {
+        return res.status(500).json({ error: "Missing OpenRouter API key" })
+    }
+
+    try {
+        const aiResponse = await fetch(
+            "https://openrouter.ai/api/v1/chat/completions",
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: "deepseek/deepseek-chat",
+                    temperature: 0.2,
+                    max_tokens: 800,
+                    messages: [
+                        { role: "system", content: SYSTEM_PROMPT },
+                        {
+                            role: "user",
+                            content: JSON.stringify({
+                                intent: prompt?.trim() || "default modern UI",
+                                existingLayout: existingLayout || null,
+                                frame: frame || null
+                            })
+                        }
+                    ]
+                })
+            }
+        )
+
+        const data = (await aiResponse.json()) as OpenRouterResponse
+        const raw = data?.choices?.[0]?.message?.content
+
+        if (!raw) {
+            return res.status(400).json({ error: "Empty AI response" })
+        }
+
+        console.log("🧠 RAW AI OUTPUT:\n", raw)
+
+        const parsed = extractJSON(raw)
+
+        if (!parsed || !parsed.screens) {
+            return res.status(400).json({
+                error: "Invalid AI JSON",
+                raw
+            })
+        }
+
+        return res.json(parsed)
+
+    } catch (err) {
+        console.error("🔥 AI CALL FAILED:", err)
+        return res.status(500).json({ error: "Cannot call AI" })
+    }
+})
+
+export default router
