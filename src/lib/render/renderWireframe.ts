@@ -5,8 +5,8 @@ const render = (canvas: fabric.Canvas, elements: any[]) => {
 
     elements.forEach((e) => {
 
-        const x = Math.min(e.x ?? 40, canvas.getWidth() - 50)
-        const y = Math.min(e.y ?? 40, canvas.getHeight() - 50)
+        const x = Math.min(e.x ?? 40, canvas.getWidth() - 30)
+        const y = Math.min(e.y ?? 40, canvas.getHeight() - 30)
 
         if (e.type === "input") {
             const rect = new fabric.Rect({
