@@ -29,7 +29,6 @@ export default function DefaultText() {
     const frames = useCanvasStore(s => s.frames)
     const [, forceUpdate] = useState(0)
 
-    // ✅ track if user REALLY started
     const [hasUserStarted, setHasUserStarted] = useState(false)
 
     const GenerateFromText = async () => {
@@ -56,29 +55,29 @@ export default function DefaultText() {
         }
     }, [canvas])
 
-    // ✅ FIXED: detect ONLY real user actions
+    // helper: count real user objects
+    const getUserObjectCount = () => {
+        if (!canvas) return 0
+        return canvas.getObjects().filter(obj =>
+            !obj.get("isPlaceholder") &&
+            !obj.get("isFrame")
+        ).length
+    }
+
+    // Detect real user actions
     useEffect(() => {
         if (!canvas) return
 
         const onUserAction = (e: any) => {
             const obj = e?.target
-
-            // ❌ ignore empty clicks
             if (!obj) return
-
-            // ❌ ignore placeholder text
-            if (obj.get?.("isPlaceholder")) return
-
-            // ❌ ignore frames
-            if (obj.get?.("isFrame")) return
+            if (obj.get("isPlaceholder")) return
+            if (obj.get("isFrame")) return
 
             setHasUserStarted(true)
 
-            // remove placeholder text
             canvas.getObjects().forEach(o => {
-                if (o.get("isPlaceholder")) {
-                    canvas.remove(o)
-                }
+                if (o.get("isPlaceholder")) canvas.remove(o)
             })
 
             canvas.renderAll()
@@ -90,12 +89,33 @@ export default function DefaultText() {
 
         canvas.on("object:added", onUserAction)
         canvas.on("mouse:down", onMouseDown)
-        canvas.on("path:created", onUserAction) // free draw support
+        canvas.on("path:created", onUserAction)
 
         return () => {
             canvas.off("object:added", onUserAction)
             canvas.off("mouse:down", onMouseDown)
             canvas.off("path:created", onUserAction)
+        }
+    }, [canvas])
+
+    // show overlay again when canvas is empty
+    useEffect(() => {
+        if (!canvas) return
+
+        const onObjectRemoved = () => {
+            const count = getUserObjectCount()
+
+            if (count === 0) {
+                setHasUserStarted(false)
+            }
+        }
+
+        canvas.on("object:removed", onObjectRemoved)
+        canvas.on("object:modified", onObjectRemoved)
+
+        return () => {
+            canvas.off("object:removed", onObjectRemoved)
+            canvas.off("object:modified", onObjectRemoved)
         }
     }, [canvas])
 
@@ -105,7 +125,6 @@ export default function DefaultText() {
 
         const frame = frames[0]
 
-        // prevent duplicates
         canvas.getObjects().forEach(obj => {
             if (obj.get("isPlaceholder")) canvas.remove(obj)
         })
@@ -146,7 +165,7 @@ export default function DefaultText() {
         return () => canvas.off("text:changed", handler)
     }, [canvas])
 
-    // ✅ overlay visible ONLY before user starts
+    // Overlay visible only when canvas is empty
     if (!canvas || frames.length === 0 || hasUserStarted) return null
 
     const frame = frames[0]
