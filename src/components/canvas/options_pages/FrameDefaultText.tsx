@@ -2,23 +2,19 @@
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Text } from 'fabric'
 import React, { useEffect, useState } from 'react'
-import { CircleChevronRight } from 'lucide-react';
+import { CircleChevronRight, ImagePlus, Sparkles } from 'lucide-react'
 import {
     Dialog,
     DialogContent,
     DialogHeader,
-    DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Textarea } from '@/components/ui/textarea';
-import { ImagePlus } from 'lucide-react';
-import { Sparkles } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea'
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-
 
 const DEFAULT_TEXT = {
     text: "Sketch Your Idea Here!",
@@ -33,25 +29,22 @@ export default function DefaultText() {
     const frames = useCanvasStore(s => s.frames)
     const [, forceUpdate] = useState(0)
 
+    // ✅ track if user REALLY started
+    const [hasUserStarted, setHasUserStarted] = useState(false)
 
-    //(This may includes the fake data for now ) Connecting frontend with backend
     const GenerateFromText = async () => {
         const res = await fetch("http://localhost:3001/generate", {
             method: "post",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 source: "text",
                 prompt: "Login screen with email and password"
             })
         })
-
-        const data = await res.json()
-        console.log(data)
+        console.log(await res.json())
     }
 
-    // Sync overlay with zoom/pan
+    // Sync overlay with zoom / pan
     useEffect(() => {
         if (!canvas) return
         const update = () => forceUpdate(n => n + 1)
@@ -63,13 +56,56 @@ export default function DefaultText() {
         }
     }, [canvas])
 
-    // Add default text only when frame exists
+    // ✅ FIXED: detect ONLY real user actions
     useEffect(() => {
-        if (!canvas || frames.length === 0) return
+        if (!canvas) return
+
+        const onUserAction = (e: any) => {
+            const obj = e?.target
+
+            // ❌ ignore empty clicks
+            if (!obj) return
+
+            // ❌ ignore placeholder text
+            if (obj.get?.("isPlaceholder")) return
+
+            // ❌ ignore frames
+            if (obj.get?.("isFrame")) return
+
+            setHasUserStarted(true)
+
+            // remove placeholder text
+            canvas.getObjects().forEach(o => {
+                if (o.get("isPlaceholder")) {
+                    canvas.remove(o)
+                }
+            })
+
+            canvas.renderAll()
+        }
+
+        const onMouseDown = (opt: any) => {
+            if (opt.target) onUserAction(opt)
+        }
+
+        canvas.on("object:added", onUserAction)
+        canvas.on("mouse:down", onMouseDown)
+        canvas.on("path:created", onUserAction) // free draw support
+
+        return () => {
+            canvas.off("object:added", onUserAction)
+            canvas.off("mouse:down", onMouseDown)
+            canvas.off("path:created", onUserAction)
+        }
+    }, [canvas])
+
+    // Add default placeholder text
+    useEffect(() => {
+        if (!canvas || frames.length === 0 || hasUserStarted) return
 
         const frame = frames[0]
 
-        // Remove previous placeholder to avoid duplicates
+        // prevent duplicates
         canvas.getObjects().forEach(obj => {
             if (obj.get("isPlaceholder")) canvas.remove(obj)
         })
@@ -94,16 +130,14 @@ export default function DefaultText() {
         canvas.renderAll()
 
         useCanvasStore.getState().setDefaultTextObject(placeholder)
+    }, [canvas, frames, hasUserStarted])
 
-    }, [canvas, frames])
-
-    // When user types
+    // Remove placeholder when user edits text
     useEffect(() => {
         if (!canvas) return
         const handler = (e: any) => {
             const obj = e.target
             if (obj?.get("isPlaceholder")) {
-                obj.set({ opacity: 1 })
                 obj.set("isPlaceholder", false)
                 canvas.renderAll()
             }
@@ -112,20 +146,19 @@ export default function DefaultText() {
         return () => canvas.off("text:changed", handler)
     }, [canvas])
 
-    if (!canvas || frames.length === 0) return null
+    // ✅ overlay visible ONLY before user starts
+    if (!canvas || frames.length === 0 || hasUserStarted) return null
 
     const frame = frames[0]
     const zoom = canvas.getZoom()
     const vpt = canvas.viewportTransform!
 
-    const centerY = frame.top + frame.height / 2 // this is the margin for the y pos
-
+    const centerY = frame.top + frame.height / 2
     const x = (frame.left + frame.width / 2) * vpt[0] + vpt[4]
     const y = (frame.top + centerY) * vpt[3] + vpt[5]
 
     return (
         <div
-            onClick={() => console.log("Ai prompt button")}
             style={{
                 position: 'absolute',
                 left: x,
@@ -135,10 +168,10 @@ export default function DefaultText() {
                 pointerEvents: 'auto',
                 whiteSpace: 'nowrap'
             }}
-            className=" rounded-full flex items-center justify-center gap-2 text-4xl p-4 bg-black/80 -mt-2 fixed tracking-tighter hover:bg-black/70 cursor-pointer"
+            className="rounded-full fixed flex items-center gap-2 p-4 bg-black/80 hover:bg-black/70 cursor-pointer"
         >
             <Dialog>
-                <DialogTrigger className="rounded-full flex items-center gap-2 text-4xl justify-center px-5 py-2 cursor-pointer text-white ">
+                <DialogTrigger className="flex items-center gap-2 text-white px-5 py-2 text-4xl tracking-tighter">
                     Type your prompt instead
                     <CircleChevronRight className="w-5 h-5" />
                 </DialogTrigger>
@@ -146,43 +179,31 @@ export default function DefaultText() {
                 <DialogContent className="bg-[#1e1e1e] border border-white/10 rounded-3xl p-6 w-[420px] text-white">
                     <DialogHeader>
                         <div className="text-3xl tracking-tighter leading-tight">
-                            Great! Type your<br />prompt here .
+                            Great! Type your<br />prompt here.
                         </div>
                     </DialogHeader>
 
                     <div className="mt-6 flex flex-col gap-3">
                         <input
-                            placeholder="Idea Title (eg. Saas App)"
-                            className="w-2/3 rounded-full text-lg  bg-white/10 px-4 py-2 outline-none placeholder:text-white/60"
+                            placeholder="Idea Title (eg. SaaS App)"
+                            className="w-2/3 rounded-full bg-white/10 px-4 py-2 outline-none"
                         />
 
                         <Textarea
                             placeholder="Type here..."
-                            className="bg-white/10 border-0  text-lg placeholder:text-lg rounded-2xl placeholder:text-white/60"
+                            className="bg-white/10 border-0 rounded-2xl"
                         />
 
-                        <div className="flex items-center gap-2 text-lg justify-between mt-2 ">
+                        <div className="flex gap-2 mt-2">
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <button className="flex w-full items-center cursor-pointer gap-2 rounded-full border border-white/20 px-4 py-2 hover:bg-white/10 transition">
+                                    <button className="flex w-full items-center gap-2 rounded-full border border-white/20 px-4 py-2 hover:bg-white/10">
                                         <ImagePlus className="w-4 h-4" />
-                                        <label
-                                            htmlFor="fileInput"
-                                            className='cursor-pointer text-sm'
-                                        >
-                                            Inspiration Image
-                                        </label>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            multiple
-                                            className="hidden  cursor-pointer"
-                                            id="fileInput"
-                                        />
+                                        Inspiration Image
                                     </button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    Add your inspired image for better results
+                                    Add your inspired image
                                 </TooltipContent>
                             </Tooltip>
 
@@ -190,13 +211,13 @@ export default function DefaultText() {
                                 <TooltipTrigger asChild>
                                     <button
                                         onClick={GenerateFromText}
-                                        className="flex w-full items-center text-sm justify-center gap-2 cursor-pointer rounded-full bg-white text-black px-5 py-2 font-medium hover:bg-white/90 transition">
+                                        className="flex w-full items-center justify-center gap-2 rounded-full bg-white text-black px-5 py-2 font-medium">
                                         <Sparkles className="w-4 h-4" />
                                         Generate
                                     </button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    Generate wireframe using this prompt
+                                    Generate wireframe
                                 </TooltipContent>
                             </Tooltip>
                         </div>

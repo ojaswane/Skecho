@@ -63,7 +63,7 @@ const FramesOverlay = ({ frame }: any) => {
         const canvasData = extractCanvasData(canvas)
 
         if (canvasData.length === 0 && !userPrompt.trim()) {
-            alert("Draw something or describe what you want ")
+            console.log("Draw something to Get results")
             return
         }
 
