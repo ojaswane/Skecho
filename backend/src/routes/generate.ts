@@ -137,6 +137,18 @@ If unsure:
 - NEVER explain anything
 `
 
+function clampFrames(
+    frames: any[],
+    maxWidth = 1440,
+    maxHeight = 1024
+) {
+    return frames.map((f) => ({
+        ...f,
+        x: Math.max(40, Math.min(f.x, maxWidth - f.width - 40)),
+        y: Math.max(40, Math.min(f.y, maxHeight - f.height - 40)),
+    }));
+}
+
 /* ---------------- TYPES ---------------- */
 // type of choices in open router response
 
@@ -209,7 +221,7 @@ router.post("/", async (req, res) => {
             return res.status(400).json({ error: "Empty AI response" })
         }
 
-        console.log("🧠 RAW AI OUTPUT:\n", raw)
+        console.log(" RAW AI OUTPUT:\n", raw)
 
         const parsed = extractJSON(raw)
 
@@ -233,12 +245,20 @@ router.post("/", async (req, res) => {
 
         const safeData = validation.data;
 
+        safeData.screens.forEach((screen) => {
+            screen.frames = clampFrames(
+                screen.frames,
+                frame?.width ?? 1440,
+                frame?.height ?? 1024
+            );
+        });
+        
         return res.json({
             screens: safeData.screens
         })
 
     } catch (err) {
-        console.error("🔥 AI CALL FAILED:", err)
+        console.error("AI CALL FAILED:", err)
         return res.status(500).json({ error: "Cannot call AI" })
     }
 })
