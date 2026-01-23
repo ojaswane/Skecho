@@ -233,7 +233,9 @@ router.post("/", async (req, res) => {
 
         const safeData = validation.data;
 
-        return res.json(parsed)
+        return res.json({
+            screens: safeData.screens
+        })
 
     } catch (err) {
         console.error("🔥 AI CALL FAILED:", err)
