@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import Router from "express";
 import { interpretPrompt } from "../Ai/interpretPrompt";
 import { error } from "node:console";
+import { WireframeSchema } from "../../validation/wireframe.schema";
 
 const router = Router();
 
@@ -148,7 +149,7 @@ type OpenRouterResponse = {
 }
 
 /* ---------------- UTILS ---------------- */
-    
+
 function extractJSON(text: string) {
     const match = text.match(/\{[\s\S]*\}/)
     if (!match) return null
@@ -218,6 +219,19 @@ router.post("/", async (req, res) => {
                 raw
             })
         }
+
+        // ZOD validation
+        const validation = WireframeSchema.safeParse(parsed);
+
+        if (!validation.success) {
+            console.error("ZOD VALIDATION FAILED", validation.error.format());
+            return res.status(400).json({
+                error: "AI output failed validation",
+                details: validation.error.format()
+            });
+        }
+
+        const safeData = validation.data;
 
         return res.json(parsed)
 
