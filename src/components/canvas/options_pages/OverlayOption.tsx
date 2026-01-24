@@ -102,7 +102,7 @@ const FramesOverlay = ({ frame }: any) => {
             left,
             top,
             width,
-            height: 0,       // Start at 0 height
+            height: 0,// Start at 0 height
             rx: 8,
             ry: 8,
             fill: themeColor,
