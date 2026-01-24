@@ -207,14 +207,20 @@ const FramesOverlay = ({ frame }: any) => {
 
             if (!elements.length) return
 
+            const newFrame = createNewFrame({
+                canvas,
+                sourceFrame: frame,
+                badge: 'wireframe',
+            })
+
+            // Map AI elements into new frame
             const adjustedElements = elements.map((el: any) => ({
                 ...el,
-                x: frame.left + el.x,
-                y: frame.top + el.y,
+                x: newFrame.left + el.x,
+                y: newFrame.top + el.y,
                 data: {
-                    ...(el.data || {}),
                     generated: true,
-                    frameId: frame.id,
+                    frameId: newFrame.id,
                 },
             }))
 
