@@ -219,8 +219,20 @@ const FramesOverlay = ({ frame }: any) => {
                 },
             }))
 
+            // Remove the previoud elements
+            canvas.getObjects().forEach((obj: any) => {
+                if (
+                    obj.data?.generated === true &&
+                    obj.data?.frameId === frame.id
+                ) {
+                    canvas.remove(obj)
+                }
+            })
+
+            canvas.discardActiveObject()
             render(canvas, adjustedElements)
             canvas.requestRenderAll()
+
         } catch (err) {
             console.log("AI error from frontend", err)
         } finally {
