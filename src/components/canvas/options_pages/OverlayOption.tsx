@@ -2,8 +2,8 @@
 
 import React, { use, useEffect, useState } from 'react'
 import * as fabric from 'fabric'
-import { Sparkles, ImagePlus, Loader2 } from 'lucide-react'
-
+import { ImagePlus } from 'lucide-react'
+import type { Frame } from '../../../../lib/store/canvasStore'
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -14,7 +14,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-
 import render from '../../../lib/render/renderWireframe'
 import extractCanvasData from '@/lib/render/extractCanvasData'
 import GenerateButton from '@/components/ui/generateButton'
@@ -240,6 +239,57 @@ const FramesOverlay = ({ frame }: any) => {
             setloader(false)
         }
     }
+
+
+    function createNewFrame({
+        canvas,
+        sourceFrame,
+        badge,
+    }: {
+        canvas: fabric.Canvas
+        sourceFrame: Frame
+        badge: 'wireframe' | 'final'
+    }) {
+        const id = crypto.randomUUID()
+
+        const GAP = 120 // space between frames
+
+        const frame: Frame = {
+            id,
+            device: sourceFrame.device,
+            badge,
+            width: sourceFrame.width,
+            height: sourceFrame.height,
+            left: sourceFrame.left + sourceFrame.width + GAP,
+            top: sourceFrame.top,
+            locked: false,
+        }
+
+        const frameRect = new fabric.Rect({
+            left: frame.left,
+            top: frame.top,
+            width: frame.width,
+            height: frame.height,
+            fill: '#f3f3f3',
+            stroke: '#6366f1',
+            strokeDashArray: [0],
+            selectable: true,
+            lockMovementX: true,
+            lockMovementY: true,
+            lockScalingX: true,
+            lockScalingY: false,
+            lockRotation: true,
+        })
+
+        frameRect.set('isFrame', true)
+        frameRect.set('frameId', id)
+
+        canvas.add(frameRect)
+        useCanvasStore.getState().addFrame(frame)
+
+        return frame
+    }
+
 
 
     useEffect(() => {

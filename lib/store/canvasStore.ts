@@ -3,7 +3,7 @@ import { create } from "zustand"
 import * as fabric from "fabric"
 
 type FrameType = "desktop" | "tablet" | "mobile"
-type FrameBadge = "idea" | "wireframe" | "design"
+export type FrameBadge = "idea" | "wireframe" | "final"
 
 type ToolType =
     | "Select"
