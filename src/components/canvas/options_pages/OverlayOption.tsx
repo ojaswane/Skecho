@@ -62,11 +62,15 @@ const FramesOverlay = ({ frame }: any) => {
     const createLoadingOverlay = () => {
         if (!canvas) return
 
-        const fabricFrame = canvas.getObjects().find((obj: any) => obj.get?.('isFrame') && obj.get?.('frameId') === frame.id)
-
+        const fabricFrame = canvas
+            .getObjects()
+            .find(
+                (obj: any) =>
+                    obj.get?.('isFrame') && obj.get?.('frameId') === frame.id
+            )
 
         if (!fabricFrame) {
-            console.log("Frame not found for loader")
+            console.log(" Frame not found for loader showing")
             return
         }
 
@@ -77,7 +81,6 @@ const FramesOverlay = ({ frame }: any) => {
         const width = fabricFrame.width! * fabricFrame.scaleX!
         const height = fabricFrame.height! * fabricFrame.scaleY!
 
-
         const loadingFrame = new fabric.Rect({
             left,
             top,
@@ -86,20 +89,20 @@ const FramesOverlay = ({ frame }: any) => {
             rx: 8,
             ry: 8,
             fill: themeColor,
-            opacity: 0.12,
+            opacity: 0.1,
             stroke: themeColor,
             strokeWidth: 1,
             selectable: false,
             evented: false,
         })
 
-        const shimmerHeight = height * 0.25
-
         const shimmer = new fabric.Rect({
             left,
-            top: top - shimmerHeight,
+            top,
             width,
-            height: shimmerHeight,
+            height: 0,
+            rx: 8,
+            ry: 8,
             fill: themeColor,
             opacity: 0.35,
             selectable: false,
@@ -115,11 +118,12 @@ const FramesOverlay = ({ frame }: any) => {
         loadingFrame.set('excludeFromExport', true)
         shimmer.set('excludeFromExport', true)
 
+        /* -------- Animation -------- */
         const animate = () => {
-            shimmer.set('top', top - shimmerHeight)
+            shimmer.set({ height: 0 })
 
             shimmer.animate(
-                { top: top + height },
+                { height },
                 {
                     duration: 1200,
                     onChange: canvas.renderAll.bind(canvas),
@@ -134,8 +138,6 @@ const FramesOverlay = ({ frame }: any) => {
         loadingFrameRef.current = loadingFrame
         shimmerRef.current = shimmer
     }
-
-
 
 
     const removeLoadingOverlay = () => {
