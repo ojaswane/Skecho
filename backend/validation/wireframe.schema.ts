@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-// Frame schema 
+// Frame schema
 export const frameSchema = () => z.object({
     id: z.string(),
     type: z.enum(["frame", "card", "text", "button", "input", "image"]),
