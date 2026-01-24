@@ -29,7 +29,8 @@ const FramesOverlay = ({ frame }: any) => {
     const [, forceUpdate] = useState(0)
     const [loader, setloader] = useState(false)
     const [userPrompt, setPrompt] = useState('')
-    const [generate, setGenerate] = useState(false)
+    const loadingFrameRef = React.useRef<fabric.Rect | null>(null)
+    const shimmerRef = React.useRef<fabric.Rect | null>(null)
 
     /* ------------------ UTILS ------------------ */
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
@@ -56,6 +57,115 @@ const FramesOverlay = ({ frame }: any) => {
         }
     }, [canvas])
 
+    /* -------------------AI Loading --------------------*/
+
+    const createLoadingOverlay = () => {
+        if (!canvas) return
+
+        const fabricFrame = canvas.getObjects().find((obj: any) => obj.get?.('isFrame') && obj.get?.('frameId') === frame.id)
+
+
+        if (!fabricFrame) {
+            console.log("Frame not found for loader")
+            return
+        }
+
+        const themeColor = '#6366f1'
+
+        const left = fabricFrame.left!
+        const top = fabricFrame.top!
+        const width = fabricFrame.width! * fabricFrame.scaleX!
+        const height = fabricFrame.height! * fabricFrame.scaleY!
+
+
+        const loadingFrame = new fabric.Rect({
+            left,
+            top,
+            width,
+            height,
+            rx: 8,
+            ry: 8,
+            fill: themeColor,
+            opacity: 0.12,
+            stroke: themeColor,
+            strokeWidth: 1,
+            selectable: false,
+            evented: false,
+        })
+
+        const shimmerHeight = height * 0.25
+
+        const shimmer = new fabric.Rect({
+            left,
+            top: top - shimmerHeight,
+            width,
+            height: shimmerHeight,
+            fill: themeColor,
+            opacity: 0.35,
+            selectable: false,
+            evented: false,
+        })
+
+        canvas.add(loadingFrame)
+        canvas.add(shimmer)
+
+        canvas.bringObjectToFront(loadingFrame)
+        canvas.bringObjectToFront(shimmer)
+
+        loadingFrame.set('excludeFromExport', true)
+        shimmer.set('excludeFromExport', true)
+
+        const animate = () => {
+            shimmer.set('top', top - shimmerHeight)
+
+            shimmer.animate(
+                { top: top + height },
+                {
+                    duration: 1200,
+                    onChange: canvas.renderAll.bind(canvas),
+                    onComplete: animate,
+                }
+            )
+        }
+
+        animate()
+        canvas.requestRenderAll()
+
+        loadingFrameRef.current = loadingFrame
+        shimmerRef.current = shimmer
+    }
+
+
+
+
+    const removeLoadingOverlay = () => {
+        if (!canvas) return
+
+        const shimmer = shimmerRef.current
+        const loadingFrame = loadingFrameRef.current
+
+        if (shimmer) {
+            shimmer.animate({ opacity: 0 }, {
+                duration: 150,
+                onChange: canvas.renderAll.bind(canvas),
+                onComplete: () => canvas.remove(shimmer),
+            })
+        }
+
+        if (loadingFrame) {
+            loadingFrame.animate({ opacity: 0 }, {
+                duration: 150,
+                onChange: canvas.renderAll.bind(canvas),
+                onComplete: () => canvas.remove(loadingFrame),
+            })
+        }
+
+        shimmerRef.current = null
+        loadingFrameRef.current = null
+    }
+
+
+
     /* ------------------ AI GENERATION ------------------ */
     const GenerateTypeSketch = async () => {
         if (!canvas) return
@@ -69,6 +179,7 @@ const FramesOverlay = ({ frame }: any) => {
 
         try {
             setloader(true)
+            createLoadingOverlay()
 
             const res = await fetch("http://localhost:3001/generate", {
                 method: "POST",
@@ -108,6 +219,7 @@ const FramesOverlay = ({ frame }: any) => {
         } catch (err) {
             console.log("AI error from frontend", err)
         } finally {
+            removeLoadingOverlay()
             setloader(false)
         }
     }
