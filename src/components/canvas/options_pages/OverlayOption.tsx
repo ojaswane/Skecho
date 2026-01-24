@@ -31,6 +31,7 @@ const FramesOverlay = ({ frame }: any) => {
     const [userPrompt, setPrompt] = useState('')
     const loadingFrameRef = React.useRef<fabric.Rect | null>(null)
     const shimmerRef = React.useRef<fabric.Rect | null>(null)
+    const animationRef = React.useRef<number | null>(null)
 
     /* ------------------ UTILS ------------------ */
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
@@ -70,17 +71,17 @@ const FramesOverlay = ({ frame }: any) => {
             )
 
         if (!fabricFrame) {
-            console.log(" Frame not found for loader showing")
+            console.log("Frame not found for loader")
             return
         }
 
         const themeColor = '#6366f1'
-
         const left = fabricFrame.left!
         const top = fabricFrame.top!
         const width = fabricFrame.width! * fabricFrame.scaleX!
         const height = fabricFrame.height! * fabricFrame.scaleY!
 
+        // Base overlay (transparent background)
         const loadingFrame = new fabric.Rect({
             left,
             top,
@@ -96,44 +97,46 @@ const FramesOverlay = ({ frame }: any) => {
             evented: false,
         })
 
+        // Shimmer bar that grows from top
         const shimmer = new fabric.Rect({
             left,
             top,
             width,
-            height: 0,
+            height: 0,       // Start at 0 height
             rx: 8,
             ry: 8,
             fill: themeColor,
-            opacity: 0.35,
+            opacity: 0.25,
             selectable: false,
             evented: false,
         })
 
         canvas.add(loadingFrame)
         canvas.add(shimmer)
-
         canvas.bringObjectToFront(loadingFrame)
         canvas.bringObjectToFront(shimmer)
-
         loadingFrame.set('excludeFromExport', true)
         shimmer.set('excludeFromExport', true)
 
-        /* -------- Animation -------- */
-        const animate = () => {
-            shimmer.set({ height: 0 })
+        // Animate height from top to bottom
+        const duration = 1200 // milliseconds
+        let start = performance.now()
 
-            shimmer.animate(
-                { height },
-                {
-                    duration: 1200,
-                    onChange: canvas.renderAll.bind(canvas),
-                    onComplete: animate,
-                }
-            )
+        const animate = (time: number) => {
+            const elapsed = time - start
+            const progress = Math.min(elapsed / duration, 1)
+            shimmer.set({ height: height * progress })
+            canvas.requestRenderAll()
+            if (progress < 1) {
+                animationRef.current = requestAnimationFrame(animate)
+            } else {
+                // loop the animation
+                start = performance.now()
+                animationRef.current = requestAnimationFrame(animate)
+            }
         }
 
-        animate()
-        canvas.requestRenderAll()
+        animationRef.current = requestAnimationFrame(animate)
 
         loadingFrameRef.current = loadingFrame
         shimmerRef.current = shimmer
