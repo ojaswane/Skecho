@@ -169,7 +169,6 @@ const FramesOverlay = ({ frame }: any) => {
     }
 
 
-
     /* ------------------ AI GENERATION ------------------ */
     const GenerateTypeSketch = async () => {
         if (!canvas) return
@@ -213,7 +212,7 @@ const FramesOverlay = ({ frame }: any) => {
                 badge: 'wireframe',
             })
 
-            // Map AI elements into new frame
+            // mapping AI response into new frame
             const adjustedElements = elements.map((el: any) => ({
                 ...el,
                 x: newFrame.left + el.x,
@@ -223,16 +222,6 @@ const FramesOverlay = ({ frame }: any) => {
                     frameId: newFrame.id,
                 },
             }))
-
-            // Remove the previoud elements
-            canvas.getObjects().forEach((obj: any) => {
-                if (
-                    obj.data?.generated === true &&
-                    obj.data?.frameId === frame.id
-                ) {
-                    canvas.remove(obj)
-                }
-            })
 
             canvas.discardActiveObject()
             render(canvas, adjustedElements)
@@ -246,7 +235,6 @@ const FramesOverlay = ({ frame }: any) => {
         }
     }
 
-
     function createNewFrame({
         canvas,
         sourceFrame,
@@ -258,7 +246,7 @@ const FramesOverlay = ({ frame }: any) => {
     }) {
         const id = crypto.randomUUID()
 
-        const GAP = 120 // space between frames
+        const GAP = 600 // space between frames
 
         const frame: Frame = {
             id,
