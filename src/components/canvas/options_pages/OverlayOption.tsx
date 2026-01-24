@@ -119,7 +119,7 @@ const FramesOverlay = ({ frame }: any) => {
         shimmer.set('excludeFromExport', true)
 
         // Animate height from top to bottom
-        const duration = 1000 // milliseconds
+        const duration = 900 // milliseconds
         let start = performance.now()
 
         const animate = (time: number) => {

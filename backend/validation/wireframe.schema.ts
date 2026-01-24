@@ -1,19 +1,19 @@
-import { z } from 'zod'
+import { z } from "zod"
 
-// ** Frame schema **
+// Frame schema 
 export const frameSchema = () => z.object({
-    id: z.string().max(1),
+    id: z.string(),
     type: z.enum(["frame", "card", "text", "button", "input", "image"]),
     x: z.number().finite(),
     y: z.number().finite(),
     width: z.number().positive(),
     height: z.number().positive(),
-    text: z.string().optional()
+    text: z.string().nullable().optional()
 })
 
-// *wireframe schema*
+// Screen schema
 export const ScreenSchema = () => z.object({
-    id: z.string().max(2),
+    id: z.string(),
     name: z.string().min(1),
     frames: z.array(frameSchema()).min(1)
 })
