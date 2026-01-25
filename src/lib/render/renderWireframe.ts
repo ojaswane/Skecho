@@ -1,8 +1,8 @@
 import * as fabric from "fabric"
-import Tokens_for_ai from "../../../backend/src/design-systems/tokens/Tokens"
+import Tokens from "../../../backend/src/design-systems/tokens/Tokens"
 
 type Element = {
-    type: string
+    type: "frame" | "card" | "text" | "button" | "input" | "image"
     x?: number
     y?: number
     width?: number
@@ -11,25 +11,44 @@ type Element = {
     data?: any
 }
 
+/* ---------------- GRID / SAFETY ---------------- */
+const CANVAS_PADDING = 40
+const MIN_GAP = Tokens.spacing.lg // 24
+const MAX_WIDTH = 1440
+const MAX_HEIGHT = 1024
+
+function clamp(value: number, min: number, max: number) {
+    return Math.max(min, Math.min(value, max))
+}
+
 const render = (canvas: fabric.Canvas, elements: Element[]) => {
     if (!canvas || !elements?.length) return
 
     elements.forEach((e) => {
-        const x = Math.max(e.x ?? 40, 20)
-        const y = Math.max(e.y ?? 40, 20)
+        const x = clamp(
+            e.x ?? CANVAS_PADDING,
+            CANVAS_PADDING,
+            MAX_WIDTH - CANVAS_PADDING
+        )
+
+        const y = clamp(
+            e.y ?? CANVAS_PADDING,
+            CANVAS_PADDING,
+            MAX_HEIGHT - CANVAS_PADDING
+        )
 
         /* ---------------- FRAME ---------------- */
         if (e.type === "frame") {
             const rect = new fabric.Rect({
                 left: x,
                 top: y,
-                width: e.width || 320,
-                height: e.height || 240,
-                fill: "#f3f4f6",
-                stroke: "#d1d5db",
+                width: e.width ?? 360,
+                height: e.height ?? 280,
+                fill: Tokens.color.backgroundMuted,
+                stroke: Tokens.color.border,
                 strokeWidth: 1,
-                rx: 8,
-                ry: 8,
+                rx: Tokens.radius.md,
+                ry: Tokens.radius.md,
                 selectable: true,
             })
 
@@ -39,26 +58,40 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
 
         /* ---------------- CARD ---------------- */
         if (e.type === "card") {
+            const width = Math.max(
+                e.width ?? Tokens.size.cardMinWidth,
+                Tokens.size.cardMinWidth
+            )
+
+            const height = e.height ?? 160
+
             const rect = new fabric.Rect({
                 left: x,
                 top: y,
-                width: e.width || 240,
-                height: e.height || 120,
-                rx: 12,
-                ry: 12,
-                fill: "#ffffff",
-                stroke: "#e5e7eb",
+                width,
+                height,
+                rx: Tokens.radius.lg,
+                ry: Tokens.radius.lg,
+                fill: Tokens.color.surface,
+                stroke: Tokens.color.border,
                 strokeWidth: 1,
                 selectable: true,
+                shadow: new fabric.Shadow({
+                    color: "rgba(0,0,0,0.08)",
+                    blur: 12,
+                    offsetX: 0,
+                    offsetY: 4,
+                }),
             })
 
-            const text = new fabric.Textbox(e.text || "Card", {
-                left: x + 12,
-                top: y + 12,
-                width: (e.width || 240) - 24,
-                fontSize: 14,
-                fill: "#111827",
-                selectable: true,
+            const text = new fabric.Textbox(e.text || "Card title", {
+                left: x + Tokens.spacing.md,
+                top: y + Tokens.spacing.md,
+                width: width - Tokens.spacing.md * 2,
+                fontSize: Tokens.typography.body.fontSize,
+                lineHeight: Tokens.typography.body.lineHeight / Tokens.typography.body.fontSize,
+                fill: Tokens.color.textPrimary,
+                selectable: false,
             })
 
                 ; (rect as any).data = e.data
@@ -69,13 +102,16 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
 
         /* ---------------- TEXT ---------------- */
         if (e.type === "text") {
-            const text = new fabric.Textbox(e.text || "Text", {
+            const text = new fabric.Textbox(e.text || "Heading", {
                 left: x,
                 top: y,
-                width: e.width || 300,
-                fontSize: 28,
-                fontWeight: "bold",
-                fill: "#111827",
+                width: e.width ?? 420,
+                fontSize: Tokens.typography.h1.fontSize,
+                fontWeight: Tokens.typography.h1.fontWeight,
+                lineHeight:
+                    Tokens.typography.h1.lineHeight /
+                    Tokens.typography.h1.fontSize,
+                fill: Tokens.color.textPrimary,
                 selectable: true,
             })
 
@@ -85,13 +121,13 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
 
         /* ---------------- IMAGE / AVATAR ---------------- */
         if (e.type === "image") {
-            const radius = (e.width || 80) / 2
+            const size = e.width ?? 96
 
             const circle = new fabric.Circle({
                 left: x,
                 top: y,
-                radius,
-                fill: "#3b82f6",
+                radius: size / 2,
+                fill: Tokens.color.primary,
                 selectable: true,
             })
 
@@ -101,25 +137,28 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
 
         /* ---------------- INPUT ---------------- */
         if (e.type === "input") {
+            const width = e.width ?? 320
+            const height = Tokens.size.inputHeight
+
             const rect = new fabric.Rect({
                 left: x,
                 top: y,
-                width: e.width || 260,
-                height: e.height || 40,
-                rx: 6,
-                ry: 6,
-                fill: "#ffffff",
-                stroke: "#000000",
+                width,
+                height,
+                rx: Tokens.radius.sm,
+                ry: Tokens.radius.sm,
+                fill: Tokens.color.surface,
+                stroke: Tokens.color.borderStrong,
                 strokeWidth: 1,
                 selectable: true,
             })
 
-            const text = new fabric.Text(e.text || "Input", {
-                left: x + 10,
-                top: y + 10,
-                fontSize: 14,
-                fill: "#6b7280",
-                selectable: true,
+            const text = new fabric.Text(e.text || "Placeholder", {
+                left: x + Tokens.spacing.sm,
+                top: y + height / 2 - 7,
+                fontSize: Tokens.typography.body.fontSize,
+                fill: Tokens.color.textMuted,
+                selectable: false,
             })
 
                 ; (rect as any).data = e.data
@@ -130,23 +169,28 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
 
         /* ---------------- BUTTON ---------------- */
         if (e.type === "button") {
+            const width = e.width ?? 240
+            const height = Tokens.size.buttonHeight
+
             const rect = new fabric.Rect({
                 left: x,
                 top: y,
-                width: e.width || 260,
-                height: e.height || 44,
-                rx: 6,
-                ry: 6,
-                fill: "#000000",
+                width,
+                height,
+                rx: Tokens.radius.sm,
+                ry: Tokens.radius.sm,
+                fill: Tokens.color.primary,
                 selectable: true,
             })
 
-            const text = new fabric.Text(e.text || "Button", {
-                left: x + 90,
-                top: y + 12,
-                fill: "#ffffff",
-                fontSize: 14,
-                selectable: true,
+            const text = new fabric.Text(e.text || "Action", {
+                left: x + width / 2,
+                top: y + height / 2,
+                originX: "center",
+                originY: "center",
+                fontSize: Tokens.typography.body.fontSize,
+                fill: Tokens.color.onPrimary,
+                selectable: false,
             })
 
                 ; (rect as any).data = e.data

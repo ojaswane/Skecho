@@ -2,14 +2,14 @@ import { radius } from "./radius";
 import { color } from "./color";
 import { typography } from "./typography";
 import { spacing } from "./spacing";
+import { size } from "./size";
 
-const Tokens_for_ai = () => {
-    return {
-        ...radius,
-        ...color,
-        ...typography,
-        ...spacing
-    }
-}
+const Tokens = {
+    radius,
+    color,
+    typography,
+    spacing,
+    size
+} as const
 
-export default Tokens_for_ai
+export default Tokens
