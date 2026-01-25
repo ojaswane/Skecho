@@ -12,6 +12,21 @@ type Element = {
     data?: any
 }
 
+type LayoutContext = {
+    cursorX: number
+    cursorY: number
+    frameWidth: number
+}
+
+function createLayoutContext(x: number, y: number, width: number) {
+    return {
+        cursorX: x + Tokens.spacing.lg,
+        cursorY: y + Tokens.spacing.lg,
+        frameWidth: width - Tokens.spacing.lg * 2,
+    }
+}
+
+
 /* ---------------- GRID / SAFETY ---------------- */
 const CANVAS_PADDING = 40
 const MIN_GAP = Tokens.spacing.lg // 24
@@ -40,83 +55,82 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
 
         /* ---------------- FRAME ---------------- */
         if (e.type === "frame") {
+            const frameWidth = e.width ?? 360
+            const frameHeight = e.height ?? 480
+
             const rect = new fabric.Rect({
                 left: x,
                 top: y,
-                width: e.width ?? 360,
-                height: e.height ?? 280,
-                fill: Tokens.color.backgroundMuted,
+                width: frameWidth,
+                height: frameHeight,
+                fill: "#f3f4f6", // light gray
                 stroke: Tokens.color.border,
                 strokeWidth: 1,
                 rx: Tokens.radius.md,
                 ry: Tokens.radius.md,
-                selectable: true,
             })
 
-                ; (rect as any).data = e.data
+                ; (rect as any).layout = createLayoutContext(x, y, frameWidth)
+
             canvas.add(rect)
         }
 
         /* ---------------- CARD ---------------- */
         if (e.type === "card") {
-            const width = Math.max(
-                e.width ?? Tokens.size.cardMinWidth,
-                Tokens.size.cardMinWidth
-            )
+            const parentFrame = canvas.getObjects("rect").slice(-1)[0] as any
+            const layout = parentFrame?.layout
 
-            const height = e.height ?? 160
+            if (!layout) return
+
+            const width = layout.frameWidth
+            const height = 160
 
             const rect = new fabric.Rect({
-                left: x,
-                top: y,
+                left: layout.cursorX,
+                top: layout.cursorY,
                 width,
                 height,
                 rx: Tokens.radius.lg,
                 ry: Tokens.radius.lg,
-                fill: Tokens.color.surface,
+                fill: "#ffffff",
                 stroke: Tokens.color.border,
-                strokeWidth: 1,
-                selectable: true,
                 shadow: new fabric.Shadow({
                     color: "rgba(0,0,0,0.08)",
                     blur: 12,
-                    offsetX: 0,
                     offsetY: 4,
                 }),
             })
 
             const text = new fabric.Textbox(e.text || "Card title", {
-                left: x + Tokens.spacing.md,
-                top: y + Tokens.spacing.md,
+                left: layout.cursorX + Tokens.spacing.md,
+                top: layout.cursorY + Tokens.spacing.md,
                 width: width - Tokens.spacing.md * 2,
                 fontSize: Tokens.typography.scale.body.size,
-                lineHeight: Tokens.typography.scale.body.lineHeight / Tokens.typography.scale.body.size,
-                fill: Tokens.color.textPrimary,
-                selectable: false,
+                fill: Tokens.color.textMuted,
             })
 
-                ; (rect as any).data = e.data
-                ; (text as any).data = e.data
+            layout.cursorY += height + Tokens.spacing.lg
 
             canvas.add(rect, text)
         }
 
         /* ---------------- TEXT ---------------- */
         if (e.type === "text") {
+            const parentFrame = canvas.getObjects("rect").slice(-1)[0] as any
+            const layout = parentFrame?.layout
+            if (!layout) return
+
             const text = new fabric.Textbox(e.text || "Heading", {
-                left: x,
-                top: y,
-                width: e.width ?? 420,
+                left: layout.cursorX,
+                top: layout.cursorY,
+                width: layout.frameWidth,
                 fontSize: Tokens.typography.scale.hero.size,
-                fontWeight: Tokens.typography.scale.hero.weight,
-                lineHeight:
-                    Tokens.typography.scale.hero.lineHeight /
-                    Tokens.typography.scale.hero.size,
+                fontWeight: Tokens.typography.scale.body.weight,
                 fill: Tokens.color.textPrimary,
-                selectable: true,
             })
 
-                ; (text as any).data = e.data
+            layout.cursorY += Tokens.typography.scale.body.lineHeight + Tokens.spacing.md
+
             canvas.add(text)
         }
 
