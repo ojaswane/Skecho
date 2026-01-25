@@ -1,6 +1,6 @@
-import { spacing } from "../tokens/spacing"
-import { radius } from "../tokens/radius"
-import { typography } from "../tokens/typography"
+import { spacing } from "../../../../src/tokens/spacing"
+import { radius } from "../../../../src/tokens/radius"
+import { typography } from "../../../../src/tokens/typography"
 
 
 export const minimalSaasPreset = {

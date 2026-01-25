@@ -1,5 +1,5 @@
 import * as fabric from "fabric"
-import { Tokens } from "@backend/design-systems/tokens/Tokens";
+import { Tokens } from "@/tokens/Tokens";
 
 
 type Element = {
