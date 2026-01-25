@@ -205,7 +205,7 @@ router.post("/", async (req, res) => {
                             role: "user",
                             content: JSON.stringify({
                                 intent: prompt?.trim() || "default modern UI",
-                                existingLayout: existingLayout || null,
+                                existingLayout: existingLayout,
                                 frame: frame || null
                             })
                         }
@@ -252,7 +252,7 @@ router.post("/", async (req, res) => {
                 frame?.height ?? 1024
             );
         });
-        
+
         return res.json({
             screens: safeData.screens
         })
