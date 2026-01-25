@@ -1,24 +1,37 @@
-import { z } from "zod"
+import { z } from "zod";
 
-// Frame schema
-export const frameSchema = () => z.object({
+const GridSchema = z.object({
+    colStart: z.number(),
+    colSpan: z.number(),
+    rowStart: z.number(),
+    rowSpan: z.number(),
+});
+
+const FrameSchema = z.object({
     id: z.string(),
     type: z.enum(["frame", "card", "text", "button", "input", "image"]),
-    x: z.number().finite(),
-    y: z.number().finite(),
-    width: z.number().positive(),
-    height: z.number().positive(),
-    text: z.string().nullable().optional()
-})
+    x: z.number().optional(),
+    y: z.number().optional(),
+    width: z.number().optional(),
+    height: z.number().optional(),
+    text: z.string().optional(),
+    grid: GridSchema.optional(),
+});
 
-// Screen schema
-export const ScreenSchema = () => z.object({
-    id: z.string(),
-    name: z.string().min(1),
-    frames: z.array(frameSchema()).min(1)
-})
+const LayoutSchema = z.object({
+    type: z.enum(["bento", "stack"]),
+    columns: z.number(),
+    gap: z.number(),
+    padding: z.number(),
+});
 
-// AI response
 export const WireframeSchema = z.object({
-    screens: z.array(ScreenSchema()).min(1)
+    screens: z.array(
+        z.object({
+            id: z.string(),
+            name: z.string(),
+            layout: LayoutSchema.optional(),
+            frames: z.array(FrameSchema),
+        })
+    ),
 });

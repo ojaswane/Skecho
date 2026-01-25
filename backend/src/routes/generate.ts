@@ -132,6 +132,45 @@ function clampFrames(
     }));
 }
 
+function resolveGridToPixels(
+    frames: any[],
+    layout: { columns: number; gap: number; padding: number },
+    canvasWidth = 1440
+) {
+    const columnWidth =
+        (canvasWidth -
+            layout.padding * 2 -
+            layout.gap * (layout.columns - 1)) /
+        layout.columns;
+
+    return frames.map((f) => {
+        if (!f.grid) return f;
+
+        const x =
+            layout.padding +
+            (f.grid.colStart - 1) * (columnWidth + layout.gap);
+
+        const y =
+            layout.padding +
+            (f.grid.rowStart - 1) * 96; // row height baseline
+
+        const width =
+            f.grid.colSpan * columnWidth +
+            (f.grid.colSpan - 1) * layout.gap;
+
+        const height = f.grid.rowSpan * 96;
+
+        return {
+            ...f,
+            x,
+            y,
+            width,
+            height
+        };
+    });
+}
+
+
 /* ---------------- TYPES ---------------- */
 // type of choices in open router response
 
@@ -229,12 +268,21 @@ router.post("/", async (req, res) => {
         const safeData = validation.data;
 
         safeData.screens.forEach((screen) => {
+            if (screen.layout) {
+                screen.frames = resolveGridToPixels(
+                    screen.frames,
+                    screen.layout,
+                    frame?.width ?? 1440
+                );
+            }
+
             screen.frames = clampFrames(
                 screen.frames,
                 frame?.width ?? 1440,
                 frame?.height ?? 1024
             );
         });
+
 
         return res.json({
             screens: safeData.screens
