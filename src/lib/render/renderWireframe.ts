@@ -88,8 +88,8 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
                 left: x + Tokens.spacing.md,
                 top: y + Tokens.spacing.md,
                 width: width - Tokens.spacing.md * 2,
-                fontSize: Tokens.typography.body.fontSize,
-                lineHeight: Tokens.typography.body.lineHeight / Tokens.typography.body.fontSize,
+                fontSize: Tokens.typography.scale.body.size,
+                lineHeight: Tokens.typography.scale.body.lineHeight / Tokens.typography.scale.body.size,
                 fill: Tokens.color.textPrimary,
                 selectable: false,
             })
@@ -106,11 +106,11 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
                 left: x,
                 top: y,
                 width: e.width ?? 420,
-                fontSize: Tokens.typography.h1.fontSize,
-                fontWeight: Tokens.typography.h1.fontWeight,
+                fontSize: Tokens.typography.scale.hero.size,
+                fontWeight: Tokens.typography.scale.hero.weight,
                 lineHeight:
-                    Tokens.typography.h1.lineHeight /
-                    Tokens.typography.h1.fontSize,
+                    Tokens.typography.scale.hero.lineHeight /
+                    Tokens.typography.scale.hero.size,
                 fill: Tokens.color.textPrimary,
                 selectable: true,
             })
@@ -156,7 +156,7 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
             const text = new fabric.Text(e.text || "Placeholder", {
                 left: x + Tokens.spacing.sm,
                 top: y + height / 2 - 7,
-                fontSize: Tokens.typography.body.fontSize,
+                fontSize: Tokens.typography.scale.body.size,
                 fill: Tokens.color.textMuted,
                 selectable: false,
             })
@@ -188,7 +188,7 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
                 top: y + height / 2,
                 originX: "center",
                 originY: "center",
-                fontSize: Tokens.typography.body.fontSize,
+                fontSize: Tokens.typography.scale.body.size,
                 fill: Tokens.color.onPrimary,
                 selectable: false,
             })
