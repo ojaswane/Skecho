@@ -4,12 +4,10 @@ import { typography } from "./typography";
 import { spacing } from "./spacing";
 import { size } from "./size";
 
-const Tokens = {
+export const Tokens = {
     radius,
     color,
     typography,
     spacing,
     size
-} as const
-
-export default Tokens
+};

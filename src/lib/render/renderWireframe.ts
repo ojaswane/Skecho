@@ -1,5 +1,6 @@
 import * as fabric from "fabric"
-import Tokens from "../../../backend/src/design-systems/tokens/Tokens"
+import { Tokens } from "@backend/design-systems/tokens/Tokens";
+
 
 type Element = {
     type: "frame" | "card" | "text" | "button" | "input" | "image"
