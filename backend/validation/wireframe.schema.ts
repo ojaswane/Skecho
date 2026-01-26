@@ -1,37 +1,62 @@
-import { z } from "zod";
+import { z } from "zod"
+
+/* ---------------- GRID ---------------- */
 
 const GridSchema = z.object({
-    colStart: z.number(),
-    colSpan: z.number(),
-    rowStart: z.number(),
-    rowSpan: z.number(),
-});
+    colStart: z.number().min(1).max(12),
+    colSpan: z.number().min(1).max(12),
+    rowStart: z.number().min(1),
+    rowSpan: z.number().min(1),
+})
+
+/* ---------------- FRAME ---------------- */
 
 const FrameSchema = z.object({
     id: z.string(),
-    type: z.enum(["frame", "card", "text", "button", "input", "image"]),
-    grid: GridSchema.optional(),
-    text: z.string().optional(),
-    x: z.number().optional(),
-    y: z.number().optional(),
-    width: z.number().optional(),
-    height: z.number().optional(),
-});
 
-const LayoutSchema = z.object({
-    type: z.enum(["bento", "stack"]),
-    columns: z.number(),
-    gap: z.number(),
-    padding: z.number(),
-});
+    type: z.enum([
+        "frame",
+        "card",
+        "text",
+        "button",
+        "input",
+        "image"
+    ]),
+
+    role: z.enum([
+        "dominant",
+        "supporting",
+        "decorative"
+    ]).optional(),
+
+    importance: z.enum([
+        "primary",
+        "secondary"
+    ]).optional(),
+
+    intent: z.string().optional(),
+
+    grid: GridSchema,
+
+    text: z.string().optional()
+})
+
+/* ---------------- SCREEN ---------------- */
 
 const ScreenSchema = z.object({
     id: z.string(),
     name: z.string(),
-    layout: LayoutSchema.optional(),
-    frames: z.array(FrameSchema),
-});
+
+    layout: z.object({
+        type: z.enum(["bento", "stack", "editorial", "centered"]),
+        columns: z.number().optional()
+    }).optional(),
+
+    frames: z.array(FrameSchema).min(1)
+})
+
+/* ---------------- ROOT ---------------- */
 
 export const WireframeSchema = z.object({
-    screens: z.array(ScreenSchema),
-});
+    screens: z.array(ScreenSchema).min(1)
+})
