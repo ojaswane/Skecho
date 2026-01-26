@@ -3,110 +3,125 @@ import { Tokens } from "@/tokens/Tokens"
 
 /* ---------------- TYPES ---------------- */
 
-type Element = {
-    type: "frame" | "card" | "text" | "button" | "input" | "image"
-    x?: number
-    y?: number
+type ElementType =
+    | "frame"
+    | "card"
+    | "text"
+    | "button"
+    | "input"
+    | "image"
+
+export type Element = {
+    type: ElementType
     width?: number
     height?: number
+
+    // GRID BASED
+    col?: number
+    span?: number
+    rowSpan?: number
+
     text?: string
-    data?: any
 }
 
-type LayoutContext = {
-    cursorX: number
-    cursorY: number
+/* ---------------- GRID ---------------- */
+
+type GridConfig = {
+    columns: number
+    gutter: number
+    margin: number
+    rowHeight: number
+}
+
+const DESKTOP_GRID: GridConfig = {
+    columns: 12,
+    gutter: 24,
+    margin: 32,
+    rowHeight: 88,
+}
+
+type GridContext = {
     frameX: number
     frameY: number
     frameWidth: number
-    frameHeight: number
+    colWidth: number
+    grid: GridConfig
+    currentRow: number
 }
-
-/* ---------------- CONSTANTS ---------------- */
-
-const CANVAS_PADDING = 40
-const MAX_WIDTH = 1440
-const MAX_HEIGHT = 1024
 
 /* ---------------- HELPERS ---------------- */
 
-function clamp(v: number, min: number, max: number) {
-    return Math.max(min, Math.min(v, max))
-}
-
-function createLayoutContext(
+function createGridContext(
     x: number,
     y: number,
     width: number,
-    height: number
-): LayoutContext {
+    grid: GridConfig
+): GridContext {
+    const usableWidth = width - grid.margin * 2
+
+    const colWidth =
+        (usableWidth -
+            grid.gutter * (grid.columns - 1)) /
+        grid.columns
+
     return {
-        frameX: x,
-        frameY: y,
-        frameWidth: width - Tokens.spacing.lg * 2,
-        frameHeight: height - Tokens.spacing.lg * 2,
-        cursorX: x + Tokens.spacing.lg,
-        cursorY: y + Tokens.spacing.lg,
+        frameX: x + grid.margin,
+        frameY: y + grid.margin,
+        frameWidth: usableWidth,
+        colWidth,
+        grid,
+        currentRow: 0,
     }
 }
 
-function measureHeight(e: Element): number {
-    switch (e.type) {
-        case "text":
-            return Tokens.typography.scale.hero.lineHeight
-        case "card":
-            return 160
-        case "input":
-            return Tokens.size.inputHeight
-        case "button":
-            return Tokens.size.buttonHeight
-        case "image":
-            return e.width ?? 96
-        default:
-            return 0
-    }
-}
+function gridToPixel(
+    ctx: GridContext,
+    col: number,
+    span: number,
+    rowSpan = 1
+) {
+    const left =
+        ctx.frameX +
+        col * (ctx.colWidth + ctx.grid.gutter)
 
-function canFit(layout: LayoutContext, h: number) {
-    const bottom =
-        layout.frameY +
-        layout.frameHeight +
-        Tokens.spacing.lg
+    const top =
+        ctx.frameY +
+        ctx.currentRow * ctx.grid.rowHeight
 
-    return layout.cursorY + h <= bottom
+    const width =
+        span * ctx.colWidth +
+        (span - 1) * ctx.grid.gutter
+
+    const height = rowSpan * ctx.grid.rowHeight
+
+    return { left, top, width, height }
 }
 
 /* ---------------- RENDER ---------------- */
 
-const render = (canvas: fabric.Canvas, elements: Element[]) => {
-    if (!canvas || !elements?.length) return
+const renderGridLayout = (
+    canvas: fabric.Canvas,
+    elements: Element[]
+) => {
+    if (!canvas || !elements.length) return
 
+    canvas.clear()
 
-    let activeLayout: LayoutContext | null = null
+    let gridCtx: GridContext | null = null
 
     for (const e of elements) {
-        const x = clamp(
-            e.x ?? CANVAS_PADDING,
-            CANVAS_PADDING,
-            MAX_WIDTH - CANVAS_PADDING
-        )
-
-        const y = clamp(
-            e.y ?? CANVAS_PADDING,
-            CANVAS_PADDING,
-            MAX_HEIGHT - CANVAS_PADDING
-        )
-
-        /* ---------------- FRAME ---------------- */
+        /* -------- FRAME -------- */
         if (e.type === "frame") {
-            const frameWidth = e.width ?? 360
-            const frameHeight = e.height ?? 480
+            const x = 40
+            const y = 40
+            const width = e.width ?? 1200
+            const height = e.height ?? 800
 
             const frame = new fabric.Rect({
                 left: x,
                 top: y,
-                width: frameWidth,
-                height: frameHeight,
+                width,
+                height,
                 rx: Tokens.radius.md,
                 ry: Tokens.radius.md,
                 fill: Tokens.color.backgroundMuted,
@@ -115,91 +130,102 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
                 selectable: false,
             })
 
-            activeLayout = createLayoutContext(
+            canvas.add(frame)
+
+            gridCtx = createGridContext(
                 x,
                 y,
-                frameWidth,
-                frameHeight
+                width,
+                DESKTOP_GRID
             )
 
-            canvas.add(frame)
             continue
         }
 
-        if (!activeLayout) continue
+        if (!gridCtx) continue
 
-        const h = measureHeight(e)
-        if (!canFit(activeLayout, h)) continue
+        const col = e.col ?? 0
+        const span = e.span ?? 12
+        const rowSpan = e.rowSpan ?? 1
 
-        /* ---------------- TEXT ---------------- */
+        const box = gridToPixel(
+            gridCtx,
+            col,
+            span,
+            rowSpan
+        )
+
+        /* -------- TEXT -------- */
         if (e.type === "text") {
-            const text = new fabric.Textbox(e.text ?? "Heading", {
-                left: activeLayout.cursorX,
-                top: activeLayout.cursorY,
-                width: activeLayout.frameWidth,
-                fontSize: Tokens.typography.scale.hero.size,
-                lineHeight:
-                    Tokens.typography.scale.hero.lineHeight /
-                    Tokens.typography.scale.hero.size,
-                fontWeight: Tokens.typography.scale.hero.weight,
-                fill: Tokens.color.textPrimary,
-                selectable: false,
-            })
-
-            activeLayout.cursorY +=
-                Tokens.typography.scale.hero.lineHeight +
-                Tokens.spacing.md
+            const text = new fabric.Textbox(
+                e.text ?? "Heading",
+                {
+                    left: box.left,
+                    top: box.top,
+                    width: box.width,
+                    fontSize:
+                        Tokens.typography.scale.hero.size,
+                    lineHeight:
+                        Tokens.typography.scale.hero
+                            .lineHeight /
+                        Tokens.typography.scale.hero.size,
+                    fontWeight:
+                        Tokens.typography.scale.hero.weight,
+                    fill: Tokens.color.textPrimary,
+                    selectable: false,
+                }
+            )
 
             canvas.add(text)
+            gridCtx.currentRow += rowSpan
             continue
         }
 
-        /* ---------------- CARD ---------------- */
+        /* -------- CARD -------- */
         if (e.type === "card") {
-            const rect = new fabric.Rect({
-                left: activeLayout.cursorX,
-                top: activeLayout.cursorY,
-                width: activeLayout.frameWidth,
-                height: 160,
+            const card = new fabric.Rect({
+                left: box.left,
+                top: box.top,
+                width: box.width,
+                height: box.height,
                 rx: Tokens.radius.lg,
                 ry: Tokens.radius.lg,
                 fill: Tokens.color.card,
                 stroke: Tokens.color.border,
+                selectable: false,
                 shadow: new fabric.Shadow({
                     color: "rgba(0,0,0,0.12)",
-                    blur: 10,
+                    blur: 12,
                     offsetY: 4,
                 }),
-                selectable: false,
             })
 
-            const text = new fabric.Textbox(e.text ?? "Card title", {
-                left: activeLayout.cursorX + Tokens.spacing.md,
-                top: activeLayout.cursorY + Tokens.spacing.md,
-                width:
-                    activeLayout.frameWidth -
-                    Tokens.spacing.md * 2,
-                fontSize: Tokens.typography.scale.body.size,
-                lineHeight:
-                    Tokens.typography.scale.body.lineHeight /
-                    Tokens.typography.scale.body.size,
-                fill: Tokens.color.textMuted,
-                selectable: false,
-            })
+            const title = new fabric.Textbox(
+                e.text ?? "Card title",
+                {
+                    left: box.left + Tokens.spacing.md,
+                    top: box.top + Tokens.spacing.md,
+                    width:
+                        box.width -
+                        Tokens.spacing.md * 2,
+                    fontSize:
+                        Tokens.typography.scale.body.size,
+                    fill: Tokens.color.textMuted,
+                    selectable: false,
+                }
+            )
 
-            activeLayout.cursorY +=
-                160 + Tokens.spacing.lg
-
-            canvas.add(rect, text)
+            canvas.add(card, title)
+            gridCtx.currentRow += rowSpan
             continue
         }
 
-        /* ---------------- INPUT ---------------- */
+        /* -------- INPUT -------- */
         if (e.type === "input") {
-            const rect = new fabric.Rect({
-                left: activeLayout.cursorX,
-                top: activeLayout.cursorY,
-                width: activeLayout.frameWidth,
+            const input = new fabric.Rect({
+                left: box.left,
+                top: box.top,
+                width: box.width,
                 height: Tokens.size.inputHeight,
                 rx: Tokens.radius.sm,
                 ry: Tokens.radius.sm,
@@ -208,31 +234,36 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
                 selectable: false,
             })
 
-            const text = new fabric.Text("Placeholder", {
-                left: activeLayout.cursorX + Tokens.spacing.sm,
-                top:
-                    activeLayout.cursorY +
-                    Tokens.size.inputHeight / 2,
-                originY: "center",
-                fontSize: Tokens.typography.scale.body.size,
-                fill: Tokens.color.textMuted,
-                selectable: false,
-            })
+            const placeholder = new fabric.Text(
+                "Placeholder",
+                {
+                    left:
+                        box.left +
+                        Tokens.spacing.sm,
+                    top:
+                        box.top +
+                        Tokens.size.inputHeight /
+                        2,
+                    originY: "center",
+                    fontSize:
+                        Tokens.typography.scale.body
+                            .size,
+                    fill: Tokens.color.textMuted,
+                    selectable: false,
+                }
+            )
 
-            activeLayout.cursorY +=
-                Tokens.size.inputHeight +
-                Tokens.spacing.md
-
-            canvas.add(rect, text)
+            canvas.add(input, placeholder)
+            gridCtx.currentRow += 1
             continue
         }
 
-        /* ---------------- BUTTON ---------------- */
+        /* -------- BUTTON -------- */
         if (e.type === "button") {
-            const rect = new fabric.Rect({
-                left: activeLayout.cursorX,
-                top: activeLayout.cursorY,
-                width: activeLayout.frameWidth,
+            const button = new fabric.Rect({
+                left: box.left,
+                top: box.top,
+                width: box.width,
                 height: Tokens.size.buttonHeight,
                 rx: Tokens.radius.sm,
                 ry: Tokens.radius.sm,
@@ -240,25 +271,28 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
                 selectable: false,
             })
 
-            const text = new fabric.Text(e.text ?? "Action", {
-                left:
-                    activeLayout.cursorX +
-                    activeLayout.frameWidth / 2,
-                top:
-                    activeLayout.cursorY +
-                    Tokens.size.buttonHeight / 2,
-                originX: "center",
-                originY: "center",
-                fontSize: Tokens.typography.scale.body.size,
-                fill: Tokens.color.onPrimary,
-                selectable: false,
-            })
+            const label = new fabric.Text(
+                e.text ?? "Action",
+                {
+                    left:
+                        box.left +
+                        box.width / 2,
+                    top:
+                        box.top +
+                        Tokens.size.buttonHeight /
+                        2,
+                    originX: "center",
+                    originY: "center",
+                    fontSize:
+                        Tokens.typography.scale.body
+                            .size,
+                    fill: Tokens.color.onPrimary,
+                    selectable: false,
+                }
+            )
 
-            activeLayout.cursorY +=
-                Tokens.size.buttonHeight +
-                Tokens.spacing.lg
-
-            canvas.add(rect, text)
+            canvas.add(button, label)
+            gridCtx.currentRow += 1
             continue
         }
     }
@@ -266,4 +300,4 @@ const render = (canvas: fabric.Canvas, elements: Element[]) => {
     canvas.requestRenderAll()
 }
 
-export default render
+export default renderGridLayout

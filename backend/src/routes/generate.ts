@@ -75,8 +75,14 @@ LAYOUT INTELLIGENCE RULES
 ====================
 
 - Use GRID, not absolute positioning
+- Prefer asymmetry
+- Large image cards span 3–5 columns
+- Brand/hero spans more rows than others
+- Avoid empty gaps
+- Cards must align to grid
+- Never output x/y/width/height
+- Think like a magazine layout editor
 - Default canvas width: 1440
-- Grid columns: 12
 - Bento layouts MUST be asymmetrical
 - Primary sections must be wider
 - Avoid equal column spans unless necessary
@@ -226,7 +232,7 @@ router.post("/", async (req, res) => {
                             content: JSON.stringify({
                                 intent: prompt?.trim() || "default modern UI",
                                 existingLayout: existingLayout,
-                                frame: frame || null
+                                frame: frame
                             })
                         }
                     ]
