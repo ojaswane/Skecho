@@ -13,14 +13,15 @@ type ElementType =
 
 export type Element = {
     type: ElementType
-    width?: number
-    height?: number
 
-    // GRID BASED
+    // GRID (1-based, Figma-style)
     col?: number
+    row?: number
     span?: number
     rowSpan?: number
 
+    width?: number
+    height?: number
     text?: string
 }
 
@@ -43,10 +44,8 @@ const DESKTOP_GRID: GridConfig = {
 type GridContext = {
     frameX: number
     frameY: number
-    frameWidth: number
     colWidth: number
     grid: GridConfig
-    currentRow: number
 }
 
 /* ---------------- HELPERS ---------------- */
@@ -60,33 +59,40 @@ function createGridContext(
     const usableWidth = width - grid.margin * 2
 
     const colWidth =
-        (usableWidth -
-            grid.gutter * (grid.columns - 1)) /
+        (usableWidth - grid.gutter * (grid.columns - 1)) /
         grid.columns
 
     return {
         frameX: x + grid.margin,
         frameY: y + grid.margin,
-        frameWidth: usableWidth,
         colWidth,
         grid,
-        currentRow: 0,
     }
 }
 
 function gridToPixel(
     ctx: GridContext,
     col: number,
+    row: number,
     span: number,
     rowSpan = 1
 ) {
-    const left = ctx.frameX + col * (ctx.colWidth + ctx.grid.gutter)
+    const left =
+        ctx.frameX +
+        (col - 1) * (ctx.colWidth + ctx.grid.gutter)
 
-    const top = ctx.frameY + ctx.currentRow * ctx.grid.rowHeight
+    const top =
+        ctx.frameY +
+        (row - 1) *
+        (ctx.grid.rowHeight + ctx.grid.gutter)
 
-    const width = span * ctx.colWidth + (span - 1) * ctx.grid.gutter
+    const width =
+        span * ctx.colWidth +
+        (span - 1) * ctx.grid.gutter
 
-    const height = rowSpan * ctx.grid.rowHeight
+    const height =
+        rowSpan * ctx.grid.rowHeight +
+        (rowSpan - 1) * ctx.grid.gutter
 
     return { left, top, width, height }
 }
@@ -136,13 +142,15 @@ const renderGridLayout = (
 
         if (!gridCtx) continue
 
-        const col = e.col ?? 0
+        const col = e.col ?? 1
+        const row = e.row ?? 1
         const span = e.span ?? 12
         const rowSpan = e.rowSpan ?? 1
 
         const box = gridToPixel(
             gridCtx,
             col,
+            row,
             span,
             rowSpan
         )
@@ -169,7 +177,6 @@ const renderGridLayout = (
             )
 
             canvas.add(text)
-            gridCtx.currentRow += rowSpan
             continue
         }
 
@@ -208,7 +215,6 @@ const renderGridLayout = (
             )
 
             canvas.add(card, title)
-            gridCtx.currentRow += rowSpan
             continue
         }
 
@@ -227,26 +233,21 @@ const renderGridLayout = (
             })
 
             const placeholder = new fabric.Text(
-                "Placeholder",
+                e.text ?? "Placeholder",
                 {
-                    left:
-                        box.left +
-                        Tokens.spacing.sm,
+                    left: box.left + Tokens.spacing.sm,
                     top:
                         box.top +
-                        Tokens.size.inputHeight /
-                        2,
+                        Tokens.size.inputHeight / 2,
                     originY: "center",
                     fontSize:
-                        Tokens.typography.scale.body
-                            .size,
+                        Tokens.typography.scale.body.size,
                     fill: Tokens.color.textMuted,
                     selectable: false,
                 }
             )
 
             canvas.add(input, placeholder)
-            gridCtx.currentRow += 1
             continue
         }
 
@@ -266,25 +267,20 @@ const renderGridLayout = (
             const label = new fabric.Text(
                 e.text ?? "Action",
                 {
-                    left:
-                        box.left +
-                        box.width / 2,
+                    left: box.left + box.width / 2,
                     top:
                         box.top +
-                        Tokens.size.buttonHeight /
-                        2,
+                        Tokens.size.buttonHeight / 2,
                     originX: "center",
                     originY: "center",
                     fontSize:
-                        Tokens.typography.scale.body
-                            .size,
+                        Tokens.typography.scale.body.size,
                     fill: Tokens.color.onPrimary,
                     selectable: false,
                 }
             )
 
             canvas.add(button, label)
-            gridCtx.currentRow += 1
             continue
         }
     }

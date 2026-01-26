@@ -38,6 +38,16 @@ You MUST follow these rules:
 -Use negative space intentionally
 -Avoid symmetry unless explicitly requested
 
+STRICT SCHEMA ENFORCEMENT:
+
+- Root key MUST be "screens"
+- "screens" MUST be an array
+- Each screen MUST contain "frames"
+- Frames MUST be FLAT (NO children)
+- DO NOT output meta, gridSystem, or children
+- Grid keys MUST be:
+  colStart, colSpan, rowStart, rowSpan
+
 Grid behavior:
 -Desktop: 12 columns
 -Tablet: 8 columns
@@ -58,8 +68,18 @@ if it's bento grid:
 - Avoid placing everything in row 1
 - Let one element breathe vertically
 
+EVERY screen MUST include:
+- "id": a non-empty string
+- "name": a non-empty string
 
-EXAMPLE OUTPUT SCHEMA:
+If unsure:
+- id = "screen-1"
+- name = "Main Screen"
+
+Omitting id or name is a FAILURE.
+
+
+EXAMPLE OUTPUT SCHEMA (NOTE , THIS IS JUST AN SCHEMA YOU CAN CHANGE THE VALUE ACCORDING TO THE SKETCH) :
 {
   "meta": { "device": "desktop" },
   "frames": [
@@ -77,22 +97,22 @@ EXAMPLE OUTPUT SCHEMA:
         {
           "id": "brand",
           "type": "card",
-          "grid": { "col": 4, "row": 1, "colSpan": 5, "rowSpan": 3 }
+          "grid": { "colStart": 4, "rowStart": 1, "colSpan": 5, "rowSpan": 3 }
         },
         {
           "id": "left",
           "type": "card",
-          "grid": { "col": 1, "row": 1, "colSpan": 3, "rowSpan": 4 }
+          "grid": { "colStart": 1, "rowStart": 1, "colSpan": 3, "rowSpan": 4 }
         },
         {
           "id": "right-top",
           "type": "card",
-          "grid": { "col": 9, "row": 1, "colSpan": 4, "rowSpan": 2 }
+          "grid": { "colStart": 9, "rowStart": 1, "colSpan": 4, "rowSpan": 2 }
         },
         {
           "id": "right-bottom",
           "type": "card",
-          "grid": { "col": 9, "row": 3, "colSpan": 4, "rowSpan": 2 }
+          "grid": { "colStart": 9, "rowStart": 3, "colSpan": 4, "rowSpan": 2 }
         }
       ]
     }
@@ -180,6 +200,13 @@ router.post("/", async (req, res) => {
                 raw
             })
         }
+
+        parsed.screens = parsed.screens.map((screen, index) => ({
+            id: screen.id ?? `screen-${index + 1}`,
+            name: screen.name ?? `Screen ${index + 1}`,
+            layout: screen.layout,
+            frames: screen.frames
+        }));
 
         /* ---------------- ZOD VALIDATION ---------------- */
 
