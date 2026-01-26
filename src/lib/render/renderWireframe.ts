@@ -80,17 +80,11 @@ function gridToPixel(
     span: number,
     rowSpan = 1
 ) {
-    const left =
-        ctx.frameX +
-        col * (ctx.colWidth + ctx.grid.gutter)
+    const left = ctx.frameX + col * (ctx.colWidth + ctx.grid.gutter)
 
-    const top =
-        ctx.frameY +
-        ctx.currentRow * ctx.grid.rowHeight
+    const top = ctx.frameY + ctx.currentRow * ctx.grid.rowHeight
 
-    const width =
-        span * ctx.colWidth +
-        (span - 1) * ctx.grid.gutter
+    const width = span * ctx.colWidth + (span - 1) * ctx.grid.gutter
 
     const height = rowSpan * ctx.grid.rowHeight
 
@@ -104,8 +98,6 @@ const renderGridLayout = (
     elements: Element[]
 ) => {
     if (!canvas || !elements.length) return
-
-    canvas.clear()
 
     let gridCtx: GridContext | null = null
 
