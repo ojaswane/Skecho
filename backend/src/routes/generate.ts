@@ -1,7 +1,5 @@
 import fetch from "node-fetch";
 import Router from "express";
-import { interpretPrompt } from "../Ai/interpretPrompt";
-import { error } from "node:console";
 import { WireframeSchema } from "../../validation/wireframe.schema";
 
 const router = Router();

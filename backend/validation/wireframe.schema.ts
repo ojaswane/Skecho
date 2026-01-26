@@ -10,12 +10,12 @@ const GridSchema = z.object({
 const FrameSchema = z.object({
     id: z.string(),
     type: z.enum(["frame", "card", "text", "button", "input", "image"]),
+    grid: GridSchema.optional(),
+    text: z.string().optional(),
     x: z.number().optional(),
     y: z.number().optional(),
     width: z.number().optional(),
     height: z.number().optional(),
-    text: z.string().optional(),
-    grid: GridSchema.optional(),
 });
 
 const LayoutSchema = z.object({
@@ -25,13 +25,13 @@ const LayoutSchema = z.object({
     padding: z.number(),
 });
 
+const ScreenSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    layout: LayoutSchema.optional(),
+    frames: z.array(FrameSchema),
+});
+
 export const WireframeSchema = z.object({
-    screens: z.array(
-        z.object({
-            id: z.string(),
-            name: z.string(),
-            layout: LayoutSchema.optional(),
-            frames: z.array(FrameSchema),
-        })
-    ),
+    screens: z.array(ScreenSchema),
 });
