@@ -2,15 +2,15 @@
 export const color = {
     backgroundMuted: "#ffffff",
     surface: "#ffffff",
-    card: "#f9fafb",
+    card: "#969696",
 
-    border: "#e5e7eb",
+    border: "#c4c4c4",
     borderStrong: "#d1d5db",
 
-    textPrimary: "#111827",
+    textPrimary: "#00000",
     textMuted: "#6b7280",
 
-    primary: "#3b82f6",
+    primary: "#000917",
     onPrimary: "#ffffff",
 }
 
