@@ -48,7 +48,12 @@ Convert SECTIONS into GRID-BASED FRAMES.
 ABSOLUTE RULES:
 - Output ONLY valid JSON
 - Root key MUST be "screens"
-- Use ONLY grid placement (colStart, colSpan, rowStart, rowSpan)
+- Use ONLY grid placement:
+- col (1-based)
+- row (1-based)
+- span
+- rowSpan
+
 - Desktop grid = 12 columns
 - Frames MUST be flat
 
@@ -147,17 +152,21 @@ async function callAI(system: string, payload: any) {
 
 
 function normalizeForCanvas(layout: any) {
-    layout.screens.forEach((screen: any) => {
-        screen.frames.forEach((frame: any) => {
-            if (frame.grid) {
-                frame.col = frame.grid.colStart
-                frame.row = frame.grid.rowStart
-                frame.span = frame.grid.colSpan
-                frame.rowSpan = frame.grid.rowSpan
-                delete frame.grid
-            }
-        })
-    })
+    layout.screens = layout.screens.map((screen, si) => ({
+        id: screen.id || `screen-${si + 1}`,
+        name: screen.name || `Screen ${si + 1}`,
+        frames: (screen.frames || []).map((f, fi) => ({
+            id: f.id || `frame-${si}-${fi}`,
+            type: f.type || "card", // DEFAULT
+            col: f.col ?? f.colStart ?? 1,
+            row: f.row ?? f.rowStart ?? 1,
+            span: f.span ?? f.colSpan ?? 12,
+            rowSpan: f.rowSpan ?? 1,
+            role: f.role ?? "supporting",
+            text: f.text ?? ""
+        }))
+    }))
+
     return layout
 }
 

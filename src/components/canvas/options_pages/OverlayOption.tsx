@@ -203,33 +203,6 @@ const FramesOverlay = ({ frame }: any) => {
             const data = await res.json()
             console.log("AI response", data)
 
-            let elements: any[] = []
-
-            if (Array.isArray(data?.screens)) {
-                elements = data.screens.flatMap((s: any) => s.frames || [])
-            } else if (data?.screens?.frames) {
-                elements = data.screens.frames
-            }
-
-            if (!elements.length) return
-
-            const newFrame = createNewFrame({
-                canvas,
-                sourceFrame: frame,
-                badge: 'wireframe',
-            })
-
-            // mapping AI response into new frame
-            const adjustedElements = elements.map((el: any) => ({
-                ...el,
-                x: newFrame.left + el.x,
-                y: newFrame.top + el.y,
-                data: {
-                    generated: true,
-                    frameId: newFrame.id,
-                },
-            }))
-
             canvas.discardActiveObject()
             renderFromAI(canvas, data)
             canvas.requestRenderAll()
