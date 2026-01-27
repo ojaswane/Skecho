@@ -152,20 +152,26 @@ async function callAI(system: string, payload: any) {
 
 
 function normalizeForCanvas(layout: any) {
-    layout.screens = layout.screens.map((screen, si) => ({
-        id: screen.id || `screen-${si + 1}`,
-        name: screen.name || `Screen ${si + 1}`,
-        frames: (screen.frames || []).map((f, fi) => ({
+    layout.screens = layout.screens.map((s, si) => ({
+        id: s.id || `screen-${si + 1}`,
+        name: s.name || `Screen ${si + 1}`,
+        frames: (s.frames || []).map((f, fi) => ({
             id: f.id || `frame-${si}-${fi}`,
-            type: f.type || "card", // DEFAULT
-            col: f.col ?? f.colStart ?? 1,
-            row: f.row ?? f.rowStart ?? 1,
-            span: f.span ?? f.colSpan ?? 12,
+            type: f.type || "card",
+            col: f.col ?? 1,
+            row: f.row ?? 1,
+            span: f.span ?? 12,
             rowSpan: f.rowSpan ?? 1,
-            role: f.role ?? "supporting",
-            text: f.text ?? ""
-        }))
+            role: f.role,
+            text: f.text,
+        })),
     }))
+
+    console.log(
+        "PRE-ZOD:",
+        JSON.stringify(layout, null, 2)
+    )
+
 
     return layout
 }
