@@ -25,6 +25,42 @@ export type Element = {
     text?: string
 }
 
+/* ---------------- Layout ---------------*/
+
+function getVisualStyle(role?: string) {
+    switch (role) {
+        case "dominant":
+            return {
+                shadow: new fabric.Shadow({
+                    color: "rgba(0,0,0,0.18)",
+                    blur: 24,
+                    offsetY: 8,
+                }),
+                rx: Tokens.radius.xl,
+                fill: Tokens.color.cardStrong,
+            }
+
+        case "supporting":
+            return {
+                shadow: new fabric.Shadow({
+                    color: "rgba(0,0,0,0.10)",
+                    blur: 12,
+                    offsetY: 4,
+                }),
+                rx: Tokens.radius.lg,
+                fill: Tokens.color.card,
+            }
+
+        default:
+            return {
+                shadow: undefined,
+                rx: Tokens.radius.md,
+                fill: Tokens.color.surface,
+            }
+    }
+}
+
+
 /* ---------------- GRID ---------------- */
 
 type GridConfig = {

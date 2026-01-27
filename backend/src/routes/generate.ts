@@ -72,6 +72,36 @@ Before outputting final JSON:
 - Ensure breathing space
 `
 
+const SYSTEM_PROMPT_3 = `
+You are a PRINCIPAL PRODUCT DESIGNER reviewing a wireframe.
+
+Your job:
+- Detect weak hierarchy
+- Detect overcrowding
+- Detect lack of breathing space
+- Detect multiple dominant elements
+
+Rules:
+- You MUST preserve the same screens and frames
+- You MAY adjust ONLY:
+  - colStart
+  - colSpan
+  - rowStart
+  - rowSpan
+  - role (dominant | supporting | decorative)
+
+Design corrections you MUST apply if needed:
+- Only ONE dominant frame per section
+- Dominant frames must visually breathe vertically
+- Avoid placing all frames in first 2 rows
+- Supporting frames should not exceed colSpan 4
+- Leave at least one empty column somewhere
+
+Output ONLY valid JSON.
+Root key MUST be "screens".
+`
+
+
 /* ---------------- TYPES ---------------- */
 
 type OpenRouterResponse = {
@@ -115,6 +145,23 @@ async function callAI(system: string, payload: any) {
     return extractJSON(data?.choices?.[0]?.message?.content || "")
 }
 
+
+function normalizeForCanvas(layout: any) {
+    layout.screens.forEach((screen: any) => {
+        screen.frames.forEach((frame: any) => {
+            if (frame.grid) {
+                frame.col = frame.grid.colStart
+                frame.row = frame.grid.rowStart
+                frame.span = frame.grid.colSpan
+                frame.rowSpan = frame.grid.rowSpan
+                delete frame.grid
+            }
+        })
+    })
+    return layout
+}
+
+
 /* ---------------- ROUTE ------------------- */
 
 router.post("/", async (req, res) => {
@@ -125,7 +172,7 @@ router.post("/", async (req, res) => {
     }
 
     try {
-        /* -------- PASS 1 ,  DESIGN THINKING =-------- */
+        /* -------- PASS 1: DESIGN THINKING -------- */
 
         const design = await callAI(SYSTEM_PROMPT_1, {
             productIntent: prompt || "modern SaaS dashboard"
@@ -137,7 +184,8 @@ router.post("/", async (req, res) => {
                 design
             })
         }
-       /* -------- PASS 2 ,  LAYOUT -------- */
+
+        /* -------- PASS 2: LAYOUT -------- */
 
         const layout = await callAI(SYSTEM_PROMPT_2, {
             sections: design.sections
@@ -150,22 +198,37 @@ router.post("/", async (req, res) => {
             })
         }
 
-        /* -------- FIX ID'S -------- */
+        /* -------- PASS 3 DESIGN Refine -------- */
 
-        layout.screens = layout.screens.map((s, i) => ({
+        const refined = await callAI(SYSTEM_PROMPT_3, layout)
+
+        if (!refined?.screens) {
+            return res.status(400).json({
+                error: "Design critique failed",
+                refined
+            })
+        }
+
+        /* -------- FIX id's -------- */
+
+        refined.screens = refined.screens.map((s, i) => ({
             id: s.id || `screen-${i + 1}`,
             name: s.name || `Screen ${i + 1}`,
             layout: s.layout,
             frames: s.frames
         }))
 
-        /* -------- VALIDATION -------- */
+        /* -------- NORMALIZE FOR CANVAS -------- */
 
-        const validation = WireframeSchema.safeParse(layout)
+        const normalized = normalizeForCanvas(refined)
+
+        /* -------- VALIDATION(zod) -------- */
+
+        const validation = WireframeSchema.safeParse(normalized)
 
         if (!validation.success) {
             return res.status(400).json({
-                error: "AI output failed validation",
+                error: "Final layout failed validation",
                 details: validation.error.format()
             })
         }
@@ -177,5 +240,6 @@ router.post("/", async (req, res) => {
         return res.status(500).json({ error: "AI pipeline failed" })
     }
 })
+
 
 export default router
