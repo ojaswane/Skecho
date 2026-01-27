@@ -172,7 +172,6 @@ function normalizeForCanvas(layout: any) {
         JSON.stringify(layout, null, 2)
     )
 
-
     return layout
 }
 
