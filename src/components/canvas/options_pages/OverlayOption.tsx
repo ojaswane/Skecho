@@ -17,6 +17,7 @@ import {
 import render from '../../../lib/render/renderWireframe'
 import extractCanvasData from '@/lib/render/extractCanvasData'
 import GenerateButton from '@/components/ui/generateButton'
+import renderFromAI from '@/lib/canvas/RenderAiPatterns'
 
 type WireframeElement = {
     type: string
@@ -230,7 +231,7 @@ const FramesOverlay = ({ frame }: any) => {
             }))
 
             canvas.discardActiveObject()
-            render(canvas, adjustedElements)
+            renderFromAI(canvas, data)
             canvas.requestRenderAll()
 
         } catch (err) {
