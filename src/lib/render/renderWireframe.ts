@@ -13,53 +13,15 @@ type ElementType =
 
 export type Element = {
     type: ElementType
-
-    // GRID (1-based, Figma-style)
     col?: number
     row?: number
     span?: number
     rowSpan?: number
-
     width?: number
     height?: number
     text?: string
+    src?: string
 }
-
-/* ---------------- Layout ---------------*/
-
-function getVisualStyle(role?: string) {
-    switch (role) {
-        case "dominant":
-            return {
-                shadow: new fabric.Shadow({
-                    color: "rgba(0,0,0,0.18)",
-                    blur: 24,
-                    offsetY: 8,
-                }),
-                rx: Tokens.radius.xl,
-                fill: Tokens.color.cardStrong,
-            }
-
-        case "supporting":
-            return {
-                shadow: new fabric.Shadow({
-                    color: "rgba(0,0,0,0.10)",
-                    blur: 12,
-                    offsetY: 4,
-                }),
-                rx: Tokens.radius.lg,
-                fill: Tokens.color.card,
-            }
-
-        default:
-            return {
-                shadow: undefined,
-                rx: Tokens.radius.md,
-                fill: Tokens.color.surface,
-            }
-    }
-}
-
 
 /* ---------------- GRID ---------------- */
 
@@ -93,7 +55,6 @@ function createGridContext(
     grid: GridConfig
 ): GridContext {
     const usableWidth = width - grid.margin * 2
-
     const colWidth =
         (usableWidth - grid.gutter * (grid.columns - 1)) /
         grid.columns
@@ -108,9 +69,9 @@ function createGridContext(
 
 function gridToPixel(
     ctx: GridContext,
-    col: number,
-    row: number,
-    span: number,
+    col = 1,
+    row = 1,
+    span = 12,
     rowSpan = 1
 ) {
     const left =
@@ -119,8 +80,7 @@ function gridToPixel(
 
     const top =
         ctx.frameY +
-        (row - 1) *
-        (ctx.grid.rowHeight + ctx.grid.gutter)
+        (row - 1) * (ctx.grid.rowHeight + ctx.grid.gutter)
 
     const width =
         span * ctx.colWidth +
@@ -139,7 +99,9 @@ const renderGridLayout = (
     canvas: fabric.Canvas,
     elements: Element[]
 ) => {
-    if (!canvas || !elements.length) return
+    if (!canvas || !elements?.length) return
+
+    canvas.clear()
 
     let gridCtx: GridContext | null = null
 
@@ -156,8 +118,8 @@ const renderGridLayout = (
                 top: y,
                 width,
                 height,
-                rx: Tokens.radius.md,
-                ry: Tokens.radius.md,
+                rx: Tokens.radius.lg,
+                ry: Tokens.radius.lg,
                 fill: Tokens.color.backgroundMuted,
                 stroke: Tokens.color.border,
                 strokeWidth: 1,
@@ -172,23 +134,17 @@ const renderGridLayout = (
                 width,
                 DESKTOP_GRID
             )
-
             continue
         }
 
         if (!gridCtx) continue
 
-        const col = e.col ?? 1
-        const row = e.row ?? 1
-        const span = e.span ?? 12
-        const rowSpan = e.rowSpan ?? 1
-
         const box = gridToPixel(
             gridCtx,
-            col,
-            row,
-            span,
-            rowSpan
+            e.col,
+            e.row,
+            e.span,
+            e.rowSpan
         )
 
         /* -------- TEXT -------- */
@@ -199,21 +155,13 @@ const renderGridLayout = (
                     left: box.left,
                     top: box.top,
                     width: box.width,
-                    fontSize:
-                        Tokens.typography.scale.hero.size,
-                    lineHeight:
-                        Tokens.typography.scale.hero
-                            .lineHeight /
-                        Tokens.typography.scale.hero.size,
-                    fontWeight:
-                        Tokens.typography.scale.hero.weight,
+                    fontSize: 28,
+                    fontWeight: 600,
                     fill: Tokens.color.textPrimary,
                     selectable: false,
                 }
             )
-
             canvas.add(text)
-            continue
         }
 
         /* -------- CARD -------- */
@@ -238,20 +186,16 @@ const renderGridLayout = (
             const title = new fabric.Textbox(
                 e.text ?? "Card title",
                 {
-                    left: box.left + Tokens.spacing.md,
-                    top: box.top + Tokens.spacing.md,
-                    width:
-                        box.width -
-                        Tokens.spacing.md * 2,
-                    fontSize:
-                        Tokens.typography.scale.body.size,
+                    left: box.left + 16,
+                    top: box.top + 16,
+                    width: box.width - 32,
+                    fontSize: 16,
                     fill: Tokens.color.textMuted,
                     selectable: false,
                 }
             )
 
             canvas.add(card, title)
-            continue
         }
 
         /* -------- INPUT -------- */
@@ -260,9 +204,9 @@ const renderGridLayout = (
                 left: box.left,
                 top: box.top,
                 width: box.width,
-                height: Tokens.size.inputHeight,
-                rx: Tokens.radius.sm,
-                ry: Tokens.radius.sm,
+                height: 44,
+                rx: 8,
+                ry: 8,
                 fill: Tokens.color.surface,
                 stroke: Tokens.color.borderStrong,
                 selectable: false,
@@ -271,20 +215,16 @@ const renderGridLayout = (
             const placeholder = new fabric.Text(
                 e.text ?? "Placeholder",
                 {
-                    left: box.left + Tokens.spacing.sm,
-                    top:
-                        box.top +
-                        Tokens.size.inputHeight / 2,
+                    left: box.left + 12,
+                    top: box.top + 22,
                     originY: "center",
-                    fontSize:
-                        Tokens.typography.scale.body.size,
+                    fontSize: 14,
                     fill: Tokens.color.textMuted,
                     selectable: false,
                 }
             )
 
             canvas.add(input, placeholder)
-            continue
         }
 
         /* -------- BUTTON -------- */
@@ -293,9 +233,9 @@ const renderGridLayout = (
                 left: box.left,
                 top: box.top,
                 width: box.width,
-                height: Tokens.size.buttonHeight,
-                rx: Tokens.radius.sm,
-                ry: Tokens.radius.sm,
+                height: 44,
+                rx: 8,
+                ry: 8,
                 fill: Tokens.color.primary,
                 selectable: false,
             })
@@ -304,20 +244,45 @@ const renderGridLayout = (
                 e.text ?? "Action",
                 {
                     left: box.left + box.width / 2,
-                    top:
-                        box.top +
-                        Tokens.size.buttonHeight / 2,
+                    top: box.top + 22,
                     originX: "center",
                     originY: "center",
-                    fontSize:
-                        Tokens.typography.scale.body.size,
+                    fontSize: 14,
                     fill: Tokens.color.onPrimary,
                     selectable: false,
                 }
             )
 
             canvas.add(button, label)
-            continue
+        }
+
+        /* -------- IMAGE -------- */
+        if (e.type === "image") {
+            const imgBg = new fabric.Rect({
+                left: box.left,
+                top: box.top,
+                width: box.width,
+                height: box.height,
+                rx: 12,
+                ry: 12,
+                fill: "#E5E7EB",
+                selectable: false,
+            })
+
+            const imgText = new fabric.Text(
+                "Image",
+                {
+                    left: box.left + box.width / 2,
+                    top: box.top + box.height / 2,
+                    originX: "center",
+                    originY: "center",
+                    fontSize: 14,
+                    fill: "#6B7280",
+                    selectable: false,
+                }
+            )
+
+            canvas.add(imgBg, imgText)
         }
     }
 
