@@ -16,16 +16,36 @@ type ToolType =
     | "Sketch"
     | null
 
+export type Grid = {
+    col: number
+    row: number
+    span: number
+    rowSpan: number
+}
+
 export type Frame = {
     id: string
-    device: FrameType
-    badge: FrameBadge
-    left: number
-    top: number
-    width: number
-    height: number
-    locked: boolean
+    type: "frame" | "card" | "text" | "button" | "input" | "image"
+    role?: "dominant" | "supporting" | "decorative"
+    grid?: Grid
+
+    // for canvas renderer
+    col?: number
+    row?: number
+    span?: number
+    rowSpan?: number
+
+    width?: number
+    height?: number
+    text?: string
 }
+
+export type Screen = {
+    id: string
+    name: string
+    frames: Frame[]
+}
+
 
 interface CanvasState {
     canvas: fabric.Canvas | null

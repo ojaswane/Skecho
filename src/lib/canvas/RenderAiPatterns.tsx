@@ -1,43 +1,37 @@
 import * as fabric from "fabric"
-import { PATTERNS } from "../render/layoutPatterns/Patterns"
 import renderGridLayout from "../render/renderWireframe"
-
-/* ---------------- TYPES ---------------- */
-
-type AIResult = {
-    pattern?: keyof typeof PATTERNS
-    patterns?: (keyof typeof PATTERNS)[]
-}
+import type { Screen, Frame } from "../../../lib/store/canvasStore"
 
 /* ---------------- MAIN ---------------- */
 
 export default function renderFromAI(
     canvas: fabric.Canvas,
-    aiResult: AIResult
+    screens: Screen[]
 ) {
-    if (!canvas) return
-
-    const patterns =
-        aiResult.patterns ??
-        (aiResult.pattern ? [aiResult.pattern] : [])
-
-    if (!patterns.length) return
+    if (!canvas || !screens.length) return
 
     let rowOffset = 0
 
-    for (const patternKey of patterns) {
-        const patternElements = PATTERNS[patternKey]
-        if (!patternElements) continue
+    for (const screen of screens) {
+        if (!screen.frames || !screen.frames.length) continue
 
-        // shift pattern vertically
-        const shiftedElements = patternElements.map(el => ({
-            ...el,
-            row: el.row ? el.row + rowOffset : el.row,
+        // shift frames vertically so screens don’t overlap
+        const shiftedFrames: Frame[] = screen.frames.map(frame  => ({
+            ...frame,
+            row: frame.row ? frame.row + rowOffset : frame.row,
         }))
 
-        renderGridLayout(canvas, shiftedElements)
+        // create a base frame (new screen)
+        renderGridLayout(canvas, [
+            {
+                type: "frame",
+                width: 1200,
+                height: 2000,
+            },
+            ...shiftedFrames,
+        ])
 
-        // spacing between sections (grid)
-        rowOffset += 6
+        // add spacing before next screen
+        rowOffset += 20
     }
 }
