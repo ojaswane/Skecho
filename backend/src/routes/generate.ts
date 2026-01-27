@@ -198,7 +198,7 @@ router.post("/", async (req, res) => {
             })
         }
 
-        /* -------- PASS 3 DESIGN Refine -------- */
+        /* -------- PASS 3; DESIGN Refine -------- */
 
         const refined = await callAI(SYSTEM_PROMPT_3, layout)
 
