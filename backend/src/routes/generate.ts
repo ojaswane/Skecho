@@ -38,6 +38,18 @@ Schema:
     }
   ]
 }
+
+NOTE: ALL THE ID MUST BE UNIQUE 
+IF ITS LIKE:
+{
+    id : feature
+}
+
+THEN MAKE IT LIKE
+{
+    id: feature-1
+}
+
 `
 
 const SYSTEM_PROMPT_2 = `
@@ -155,25 +167,45 @@ function normalizeForCanvas(layout: any) {
     layout.screens = layout.screens.map((s, si) => ({
         id: s.id || `screen-${si + 1}`,
         name: s.name || `Screen ${si + 1}`,
-        frames: (s.frames || []).map((f, fi) => ({
-            id: f.id || `frame-${si}-${fi}`,
-            type: f.type || "card",
-            col: f.col ?? 1,
-            row: f.row ?? 1,
-            span: f.span ?? 12,
-            rowSpan: f.rowSpan ?? 1,
-            role: f.role,
-            text: f.text,
-        })),
+
+        frames: (s.frames || []).map((f, fi) => {
+            const col =
+                f.col ??
+                f.colStart ??
+                1
+
+            const row =
+                f.row ??
+                f.rowStart ??
+                1
+
+            const span =
+                f.span ??
+                f.colSpan ??
+                12
+
+            const rowSpan =
+                f.rowSpan ??
+                1
+
+            return {
+                id: f.id || `frame-${si}-${fi}`,
+                type: f.type || "card",
+                role: f.role,
+                text: f.text,
+
+                col,
+                row,
+                span,
+                rowSpan,
+            }
+        }),
     }))
 
-    console.log(
-        "PRE-ZOD:",
-        JSON.stringify(layout, null, 2)
-    )
-
+    console.log("PRE-ZOD:", JSON.stringify(layout, null, 2))
     return layout
 }
+
 
 
 /* ---------------- ROUTE ------------------- */

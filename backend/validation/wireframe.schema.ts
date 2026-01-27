@@ -36,10 +36,14 @@ const FrameSchema = z.object({
 
     intent: z.string().optional(),
 
-    grid: GridSchema,
+    col: z.number().min(1).max(12),
+    row: z.number().min(1),
+    span: z.number().min(1).max(12),
+    rowSpan: z.number().min(1),
 
     text: z.string().optional()
 })
+
 
 /* ---------------- SCREEN ---------------- */
 
