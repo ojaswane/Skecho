@@ -66,6 +66,7 @@ export type WireframeElement = {
 
 export interface Screen {
     id: string
+    name: string
     frame: {
         id: string
         width: number

@@ -1,22 +1,23 @@
 import * as fabric from "fabric"
-import { Screen, WireframeElement } from "../../../lib/store/canvasStore"
+import type { Screen, WireframeElement } from "../../../lib/store/canvasStore"
 import renderWireframe from "../render/renderWireframe"
 
-const FRAME_PADDING = 120
-const CELL_WIDTH = 90
-const CELL_HEIGHT = 80
+const FRAME_PADDING = 80
+const CELL_WIDTH = 80
+const CELL_HEIGHT = 72
+const INNER_GAP = 24
 
 export default function renderFromAI(
     canvas: fabric.Canvas,
     screens: Screen[]
 ) {
-    if (!canvas || !screens.length) {
+    if (!canvas || !screens?.length) {
         console.warn("renderFromAI: nothing to render")
         return
     }
 
     screens.forEach((screen) => {
-        const frame = canvas
+        const frameRect = canvas
             .getObjects()
             .find(
                 (o: any) =>
@@ -24,32 +25,37 @@ export default function renderFromAI(
                     o.get?.("frameId") === screen.frame.id
             ) as fabric.Rect | undefined
 
-        if (!frame) {
+        if (!frameRect) {
             console.warn("Frame not found for screen", screen.id)
             return
         }
 
-        const baseLeft = frame.left! + FRAME_PADDING
-        const baseTop = frame.top! + FRAME_PADDING
+        const baseLeft = frameRect.left! + FRAME_PADDING
+        const baseTop = frameRect.top! + FRAME_PADDING
 
-        screen.elements.forEach((el) => {
+        screen.elements.forEach((el: WireframeElement) => {
             const col = el.col ?? 1
             const row = el.row ?? 1
             const span = el.span ?? 1
             const rowSpan = el.rowSpan ?? 1
 
-            const element: WireframeElement = {
-                ...el,
-                left: baseLeft + (col - 1) * CELL_WIDTH,
-                top: baseTop + (row - 1) * CELL_HEIGHT,
-                width: span * CELL_WIDTH - 20,
-                height: rowSpan * CELL_HEIGHT - 20,
-            }
+            const left = baseLeft + (col - 1) * CELL_WIDTH + INNER_GAP / 2
+            const top = baseTop + (row - 1) * CELL_HEIGHT + INNER_GAP / 2
 
-            renderWireframe(canvas, [element])
+            const width = span * CELL_WIDTH - INNER_GAP
+            const height = rowSpan * CELL_HEIGHT - INNER_GAP
+
+            renderWireframe(canvas, [
+                {
+                    ...el,
+                    left,
+                    top,
+                    width,
+                    height,
+                } as WireframeElement,
+            ])
         })
 
-        // ensure elements appear above frame
         canvas.getObjects().forEach((obj) => {
             if (!(obj as any).isFrame) {
                 canvas.bringObjectToFront(obj)
