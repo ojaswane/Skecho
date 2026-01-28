@@ -6,6 +6,7 @@ import { ImagePlus } from 'lucide-react'
 import type { ArtboardFrame } from '../../../../lib/store/canvasStore'
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Badge } from '@/components/ui/badge'
+import { Screen } from "../../../../lib/store/canvasStore"
 import { Separator } from '@/components/ui/separator'
 import {
     Select,
@@ -171,6 +172,37 @@ const FramesOverlay = ({ frame }: any) => {
 
 
     /* ------------------ AI GENERATION ------------------ */
+
+
+    function aiToScreens(
+        aiResponse: any,
+        baseFrame: ArtboardFrame
+    ): Screen[] {
+        if (!aiResponse?.screens) return []
+
+        return aiResponse.screens.map((s: any, index: number) => ({
+            id: s.id ?? `screen-${index}`,
+            name: s.name ?? "Screen",
+
+            frame: {
+                ...baseFrame,
+                id: `frame-${crypto.randomUUID()}`,
+            },
+
+            elements: s.frames.map((el: any) => ({
+                id: el.id ?? crypto.randomUUID(),
+                type: el.type,
+                role: el.role,
+                col: el.col,
+                row: el.row,
+                span: el.span,
+                rowSpan: el.rowSpan,
+            })),
+        }))
+    }
+
+
+
     const GenerateTypeSketch = async () => {
         if (!canvas) return
 
@@ -204,7 +236,10 @@ const FramesOverlay = ({ frame }: any) => {
             console.log("AI response", data)
 
             canvas.discardActiveObject()
-            renderFromAI(canvas, data)
+
+            const screens = aiToScreens(data, frame)
+            renderFromAI(canvas, screens)
+
             canvas.requestRenderAll()
 
         } catch (err) {
