@@ -3,7 +3,7 @@
 import React, { use, useEffect, useState } from 'react'
 import * as fabric from 'fabric'
 import { ImagePlus } from 'lucide-react'
-import type { Frame } from '../../../../lib/store/canvasStore'
+import type { ArtboardFrame } from '../../../../lib/store/canvasStore'
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -221,14 +221,14 @@ const FramesOverlay = ({ frame }: any) => {
         badge,
     }: {
         canvas: fabric.Canvas
-        sourceFrame: Frame
+        sourceFrame: ArtboardFrame
         badge: 'wireframe' | 'final'
     }) {
         const id = crypto.randomUUID()
 
         const GAP = 600 // space between frames
 
-        const frame: Frame = {
+        const frame: ArtboardFrame = {
             id,
             device: sourceFrame.device,
             badge,

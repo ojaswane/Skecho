@@ -2,7 +2,9 @@
 import { create } from "zustand"
 import * as fabric from "fabric"
 
-type FrameType = "desktop" | "tablet" | "mobile"
+/* ------------------ BASIC TYPES ------------------ */
+
+export type FrameType = "desktop" | "tablet" | "mobile"
 export type FrameBadge = "idea" | "wireframe" | "final"
 
 type ToolType =
@@ -16,6 +18,8 @@ type ToolType =
     | "Sketch"
     | null
 
+/* ------------------ GRID ------------------ */
+
 export type Grid = {
     col: number
     row: number
@@ -23,29 +27,43 @@ export type Grid = {
     rowSpan: number
 }
 
-export type Frame = {
-    id: string
-    type: "frame" | "card" | "text" | "button" | "input" | "image"
-    role?: "dominant" | "supporting" | "decorative"
-    grid?: Grid
+/* ------------------ CANVAS ELEMENTS (AI / Layout) ------------------ */
+/* These are things INSIDE a frame */
 
-    // for canvas renderer
+export type CanvasElement = {
+    id: string
+    type: "card" | "text" | "button" | "input" | "image"
+    role?: "dominant" | "supporting" | "decorative"
+
+    // grid-based layout
     col?: number
     row?: number
     span?: number
     rowSpan?: number
 
+    // optional rendering data
     width?: number
     height?: number
     text?: string
 }
 
-export type Screen = {
+/* ------------------ ARTBOARD FRAME ------------------ */
+/* This is the actual Figma-like frame */
+
+export type ArtboardFrame = {
     id: string
-    name: string
-    frames: Frame[]
+    device: FrameType
+    badge: FrameBadge
+
+    width: number
+    height: number
+    left: number
+    top: number
+
+    locked: boolean
 }
 
+/* ------------------ ZUSTAND STATE ------------------ */
 
 interface CanvasState {
     canvas: fabric.Canvas | null
@@ -53,27 +71,28 @@ interface CanvasState {
     activeTool: ToolType
     theme: "light" | "dark"
 
-    frames: Frame[]
+    frames: ArtboardFrame[] // This is the real frame
     activeFrameId: string | null
 
     selectedObject: fabric.Object | null
 
+    /* -------- actions -------- */
     setCanvas: (canvas: fabric.Canvas) => void
     setActiveTool: (tool: ToolType) => void
 
-    addFrame: (frame: Frame) => void
+    addFrame: (frame: ArtboardFrame) => void
     setActiveFrame: (id: string | null) => void
-    updateFrame: (id: string, data: Partial<Frame>) => void
+    updateFrame: (id: string, data: Partial<ArtboardFrame>) => void
 
     setSelectedObject: (obj: fabric.Object | null) => void
 
-
     defaultTextObject: fabric.Text | null
     setDefaultTextObject: (text: fabric.Text) => void
-
 }
 
-export const useCanvasStore = create<CanvasState>((set, get) => ({
+/* ------------------ STORE ------------------ */
+
+export const useCanvasStore = create<CanvasState>((set) => ({
     canvas: null,
     activeTool: "Select",
 
@@ -89,8 +108,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     selectedObject: null,
 
     defaultTextObject: null,
-    setDefaultTextObject: (text) =>
-        set(() => ({ defaultTextObject: text })),
+
+    /* -------- setters -------- */
 
     setCanvas: (canvas) => set({ canvas }),
 
@@ -111,4 +130,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
         })),
 
     setSelectedObject: (obj) => set({ selectedObject: obj }),
+
+    setDefaultTextObject: (text) =>
+        set(() => ({ defaultTextObject: text })),
 }))
