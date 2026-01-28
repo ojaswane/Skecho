@@ -209,8 +209,9 @@ const FramesOverlay = ({ frame }: any) => {
 
         const canvasData = extractCanvasData(canvas)
 
+        // If user hasn't drawn anything or prompt is empty
         if (canvasData.length === 0 && !userPrompt.trim()) {
-            console.log("Draw something to Get results")
+            console.log("Draw something or enter a prompt to generate results")
             return
         }
 
@@ -223,33 +224,80 @@ const FramesOverlay = ({ frame }: any) => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     source: "sketch",
-                    prompt: userPrompt || "",
-                    existingLayout: canvasData,
+                    prompt: userPrompt.trim() || "",
+                    existingLayout: canvasData || [],
                     frame: {
                         width: frame.width,
                         height: frame.height,
-                        type: frame.badge,
+                        type: frame.badge === 'idea' ? 'wireframe' : frame.badge, // fallback type
                     },
                 }),
             })
 
             const data = await res.json()
             console.log("AI response", data)
-
+            
             canvas.discardActiveObject()
 
-            const screens = aiToScreens(data, frame)
-            renderFromAI(canvas, screens)
+            // Always create a new frame
+            createNewFrame({ canvas, sourceFrame: frame, badge: frame.badge })
 
+            // Convert AI data to screens, fallback to placeholder if empty
+            let screens: Screen[] = aiToScreens(data, frame)
+
+            if (!screens.length) {
+                console.warn("AI returned nothing, rendering fallback placeholder")
+                screens = [
+                    {
+                        id: crypto.randomUUID(),
+                        name: "Placeholder",
+                        frame: {
+                            id: frame.id,
+                            width: frame.width,
+                            height: frame.height,
+                        },
+                        elements: [
+                            {
+                                id: crypto.randomUUID(),
+                                type: "card",
+                                col: 1,
+                                row: 1,
+                                span: 2,
+                                rowSpan: 1,
+                                width: 200,
+                                height: 100,
+                            },
+                        ],
+                    },
+                ]
+            }
+
+            renderFromAI(canvas, screens)
             canvas.requestRenderAll()
 
+            // Optionally zoom/pan to new frame so it’s visible
+            const newFrame = canvas.getObjects().find((obj: any) => obj.isFrame)
+            if (newFrame) {
+                canvas.viewportTransform = [1, 0, 0, 1, -newFrame.left! + 100, -newFrame.top! + 100]
+                canvas.requestRenderAll()
+            }
+
         } catch (err) {
-            console.log("AI error from frontend", err)
+            console.error("AI error from frontend", err)
+            // fallback render if fetch fails entirely
+            const fallbackScreen: Screen = {
+                id: crypto.randomUUID(),
+                name: "Fallback",
+                frame: { id: frame.id, width: frame.width, height: frame.height },
+                elements: [{ id: crypto.randomUUID(), type: "card", col: 1, row: 1, span: 2, rowSpan: 1 }],
+            }
+            renderFromAI(canvas, [fallbackScreen])
         } finally {
             removeLoadingOverlay()
             setloader(false)
         }
     }
+
 
     function createNewFrame({
         canvas,
