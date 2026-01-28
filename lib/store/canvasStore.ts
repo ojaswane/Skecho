@@ -40,12 +40,40 @@ export type ArtboardFrame = {
     locked: boolean
 }
 
-export type Screen = {
+export type ElementType =
+    | "text"
+    | "image"
+    | "button"
+    | "input"
+    | "card"
+
+export type WireframeElement = {
     id: string
-    name: string
-    frame: ArtboardFrame
-    elements: CanvasElement[]
+    type: ElementType
+    role?: string
+    col?: number
+
+    row?: number
+    span?: number
+    rowSpan?: number
+
+    left?: number
+    top?: number
+    width?: number
+    height?: number
 }
+
+
+export interface Screen {
+    id: string
+    frame: {
+        id: string
+        width: number
+        height: number
+    }
+    elements: WireframeElement[]
+}
+
 
 /* ------------------ ZUSTAND STATE ------------------ */
 interface CanvasState {
