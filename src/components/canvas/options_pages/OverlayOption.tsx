@@ -178,33 +178,32 @@ const FramesOverlay = ({ frame }: any) => {
 
     /* ------------------ AI GENERATION ------------------ */
 
-    function aiToScreens(aiResponse: any, targetFrame: ArtboardFrame): Screen[] {
+    function aiToScreens(
+        aiResponse: any,
+        targetFrame: ArtboardFrame
+    ): Screen[] {
         if (!aiResponse?.screens?.length) return []
 
-        const s = aiResponse.screens[0]
+        return aiResponse.screens.map((s: any) => ({
+            id: s.id ?? crypto.randomUUID(),
+            name: s.name ?? "AI Screen",
 
-        return [
-            {
-                id: s.id ?? crypto.randomUUID(),
-                name: s.name ?? "AI Screen",
-
-                frame: {
-                    id: targetFrame.id,
-                    width: targetFrame.width,
-                    height: targetFrame.height,
-                },
-
-                elements: (s.frames ?? []).map((el: any) => ({
-                    id: el.id ?? crypto.randomUUID(),
-                    type: el.type ?? "card",
-                    role: el.role,
-                    col: el.col ?? 1,
-                    row: el.row ?? 1,
-                    span: el.span ?? 1,
-                    rowSpan: el.rowSpan ?? 1,
-                })),
+            frame: {
+                id: targetFrame.id,
+                width: targetFrame.width,
+                height: targetFrame.height,
             },
-        ]
+
+            elements: (s.frames ?? []).map((el: any) => ({
+                id: el.id ?? crypto.randomUUID(),
+                type: el.type ?? "card",
+                role: el.role,
+                col: el.col ?? 1,
+                row: el.row ?? 1,
+                span: el.span ?? 1,
+                rowSpan: el.rowSpan ?? 1,
+            })),
+        }))
     }
 
     const GenerateTypeSketch = async () => {
