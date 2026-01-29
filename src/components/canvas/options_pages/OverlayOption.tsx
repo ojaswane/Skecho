@@ -145,6 +145,11 @@ const FramesOverlay = ({ frame }: any) => {
 
 
     const removeLoadingOverlay = () => {
+        if (animationRef.current) {
+            cancelAnimationFrame(animationRef.current)
+            animationRef.current = null
+        }
+
         if (!canvas) return
 
         const shimmer = shimmerRef.current
@@ -172,7 +177,6 @@ const FramesOverlay = ({ frame }: any) => {
 
 
     /* ------------------ AI GENERATION ------------------ */
-
 
     function aiToScreens(aiResponse: any, targetFrame: ArtboardFrame): Screen[] {
         if (!aiResponse?.screens?.length) return []
@@ -246,13 +250,7 @@ const FramesOverlay = ({ frame }: any) => {
                 badge: nextBadge,
             })
 
-            let screens = aiToScreens(data, newFrame).map(screen => ({
-                ...screen,
-                frame: {
-                    ...screen.frame,
-                    id: frameId,
-                },
-            }))
+            let screens = aiToScreens(data, newFrame)
 
             // feedback for AI
             if (!screens.length) {
@@ -285,7 +283,11 @@ const FramesOverlay = ({ frame }: any) => {
             // Pan to new frame
             const fabricFrame = canvas
                 .getObjects()
-                .find((o: any) => o.get?.("isFrame") && o.get?.("frameId") === frameId)
+                .find(
+                    (obj: any) =>
+                        obj.get?.("isFrame") &&
+                        obj.get?.("frameId") === frame.id
+                )
 
             if (fabricFrame) {
                 canvas.viewportTransform = [
@@ -339,7 +341,7 @@ const FramesOverlay = ({ frame }: any) => {
             lockMovementX: true,
             lockMovementY: true,
             lockScalingX: true,
-            lockScalingY: false,
+            lockScalingY: true,
             lockRotation: true,
         })
 
@@ -347,9 +349,14 @@ const FramesOverlay = ({ frame }: any) => {
         frameRect.set('frameId', id)
 
         canvas.add(frameRect)
+
+        frameRect.set({
+            hasControls: false,
+            hasBorders: false,
+        })
+
         useCanvasStore.getState().addFrame(frame)
 
-        // 🔥 THIS IS IMPORTANT
         return { frame, frameId: id }
     }
 
