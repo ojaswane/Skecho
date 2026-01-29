@@ -174,42 +174,42 @@ const FramesOverlay = ({ frame }: any) => {
     /* ------------------ AI GENERATION ------------------ */
 
 
-    function aiToScreens(aiResponse: any, baseFrame: ArtboardFrame): Screen[] {
-        if (!aiResponse?.screens || !aiResponse.screens.length) return []
+    function aiToScreens(aiResponse: any, targetFrame: ArtboardFrame): Screen[] {
+        if (!aiResponse?.screens?.length) return []
 
         const s = aiResponse.screens[0]
 
         return [
             {
-                id: s.id ?? `screen-0`,
-                name: s.name ?? "Screen",
+                id: s.id ?? crypto.randomUUID(),
+                name: s.name ?? "AI Screen",
 
                 frame: {
-                    ...baseFrame,
-                    id: baseFrame.id,
+                    id: targetFrame.id,
+                    width: targetFrame.width,
+                    height: targetFrame.height,
                 },
 
-                elements: s.frames.map((el: any) => ({
+                elements: (s.frames ?? []).map((el: any) => ({
                     id: el.id ?? crypto.randomUUID(),
-                    type: el.type,
+                    type: el.type ?? "card",
                     role: el.role,
-                    col: el.col,
-                    row: el.row,
-                    span: el.span,
-                    rowSpan: el.rowSpan,
+                    col: el.col ?? 1,
+                    row: el.row ?? 1,
+                    span: el.span ?? 1,
+                    rowSpan: el.rowSpan ?? 1,
                 })),
             },
         ]
     }
-
 
     const GenerateTypeSketch = async () => {
         if (!canvas) return
 
         const canvasData = extractCanvasData(canvas)
 
-        if (canvasData.length === 0 && !userPrompt.trim()) {
-            console.log("Draw something or enter a prompt to generate results")
+        if (!canvasData.length && !userPrompt.trim()) {
+            console.warn("Nothing to generate")
             return
         }
 
@@ -227,7 +227,7 @@ const FramesOverlay = ({ frame }: any) => {
                     frame: {
                         width: frame.width,
                         height: frame.height,
-                        type: frame.badge === 'idea' ? 'wireframe' : frame.badge,
+                        type: frame.badge === "idea" ? "wireframe" : frame.badge,
                     },
                 }),
             })
@@ -237,24 +237,31 @@ const FramesOverlay = ({ frame }: any) => {
 
             canvas.discardActiveObject()
 
-            const nextBadge: 'wireframe' | 'final' =
-                frame.badge === 'final' ? 'final' : 'wireframe'
+            const nextBadge: "wireframe" | "final" =
+                frame.badge === "final" ? "final" : "wireframe"
 
-            const newFrame = createNewFrame({
+            const { frame: newFrame, frameId } = createNewFrame({
                 canvas,
                 sourceFrame: frame,
                 badge: nextBadge,
             })
 
-            let screens: Screen[] = aiToScreens(data, newFrame)
+            let screens = aiToScreens(data, newFrame).map(screen => ({
+                ...screen,
+                frame: {
+                    ...screen.frame,
+                    id: frameId,
+                },
+            }))
 
+            // feedback for AI
             if (!screens.length) {
                 screens = [
                     {
                         id: crypto.randomUUID(),
                         name: "Fallback",
                         frame: {
-                            id: newFrame.id,
+                            id: frameId,
                             width: newFrame.width,
                             height: newFrame.height,
                         },
@@ -275,9 +282,10 @@ const FramesOverlay = ({ frame }: any) => {
             renderFromAI(canvas, screens)
             canvas.requestRenderAll()
 
+            // Pan to new frame
             const fabricFrame = canvas
                 .getObjects()
-                .find((o: any) => o.get?.('isFrame') && o.get?.('frameId') === newFrame.id)
+                .find((o: any) => o.get?.("isFrame") && o.get?.("frameId") === frameId)
 
             if (fabricFrame) {
                 canvas.viewportTransform = [
@@ -289,35 +297,12 @@ const FramesOverlay = ({ frame }: any) => {
             }
 
         } catch (err) {
-            console.error("AI error from frontend", err)
-
-            const fallback: Screen = {
-                id: crypto.randomUUID(),
-                name: "Fallback",
-                frame: {
-                    id: frame.id,
-                    width: frame.width,
-                    height: frame.height,
-                },
-                elements: [
-                    {
-                        id: crypto.randomUUID(),
-                        type: "card",
-                        col: 1,
-                        row: 1,
-                        span: 2,
-                        rowSpan: 1,
-                    },
-                ],
-            }
-
-            renderFromAI(canvas, [fallback])
+            console.error("AI generation failed", err)
         } finally {
             removeLoadingOverlay()
             setloader(false)
         }
     }
-
 
 
     function createNewFrame({
@@ -330,8 +315,7 @@ const FramesOverlay = ({ frame }: any) => {
         badge: 'wireframe' | 'final'
     }) {
         const id = crypto.randomUUID()
-
-        const GAP = 600 // space between frames
+        const GAP = 600
 
         const frame: ArtboardFrame = {
             id,
@@ -351,7 +335,6 @@ const FramesOverlay = ({ frame }: any) => {
             height: frame.height,
             fill: '#f3f3f3',
             stroke: '#6366f1',
-            strokeDashArray: [0],
             selectable: true,
             lockMovementX: true,
             lockMovementY: true,
@@ -366,7 +349,8 @@ const FramesOverlay = ({ frame }: any) => {
         canvas.add(frameRect)
         useCanvasStore.getState().addFrame(frame)
 
-        return frame
+        // 🔥 THIS IS IMPORTANT
+        return { frame, frameId: id }
     }
 
 
