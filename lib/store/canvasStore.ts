@@ -74,7 +74,7 @@ export interface Screen {
     }
     elements: WireframeElement[]
 }
-    
+
 
 /* ------------------ ZUSTAND STATE ------------------ */
 interface CanvasState {
