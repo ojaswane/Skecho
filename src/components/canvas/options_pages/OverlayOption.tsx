@@ -376,15 +376,15 @@ const FramesOverlay = ({ frame }: any) => {
 
         canvas.add(frameRect)
 
-        const clipRect = new fabric.Rect({
-            left: frame.left,
-            top: frame.top,
-            width: frame.width,
-            height: frame.height,
-            absolutePositioned: true,
-        })
+        // const clipRect = new fabric.Rect({
+        //     left: frame.left,
+        //     top: frame.top,
+        //     width: frame.width,
+        //     height: frame.height,
+        //     absolutePositioned: true,
+        // })
 
-        frameRect.set("clipPath", clipRect)
+        // frameRect.set("clipPath", clipRect)
 
 
         frameRect.set({

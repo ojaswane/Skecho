@@ -40,26 +40,39 @@ export default function renderFromAI(
     }
 
     for (const el of screen.elements) {
+      const left =
+        frame.left + GRID.padding + (el.col - 1) * (GRID.colWidth + GRID.gap)
+
+      const top =
+        frame.top + GRID.padding + (el.row - 1) * (GRID.rowHeight + GRID.gap)
+
+      const width =
+        el.span * GRID.colWidth + (el.span - 1) * GRID.gap
+
+      const height =
+        el.rowSpan * GRID.rowHeight + (el.rowSpan - 1) * GRID.gap
+
       const rect = new fabric.Rect({
-        left: frame.left! + GRID.padding + (el.col - 1) * (GRID.colWidth + GRID.gap),
-        top: frame.top! + GRID.padding + (el.row - 1) * (GRID.rowHeight + GRID.gap),
-        width: el.span * GRID.colWidth + (el.span - 1) * GRID.gap,
-        height: el.rowSpan * GRID.rowHeight + (el.rowSpan - 1) * GRID.gap,
+        left,
+        top,
+        width,
+        height,
+        fill: "transparent",
+        stroke: "#111",
+        strokeWidth: 2,
+        strokeDashArray: [6, 4],
         rx: 8,
         ry: 8,
-        fill: "#f4f4f4",
-        stroke: "#ccc",
-        strokeWidth: 3,
       })
 
-      rect.set({
-        clipPath: frame.clipPath,
-      })
+      rect.set("clipPath", frame.clipPath)
       canvas.add(rect)
       canvas.sendObjectBackwards(rect)
-      canvas.bringObjectForward(frame)
     }
+
+    canvas.bringObjectToFront(frame)
   }
+
 
   canvas.requestRenderAll()
 }
