@@ -262,7 +262,7 @@ const FramesOverlay = ({ frame }: any) => {
                             width: newFrame.width,
                             height: newFrame.height,
                         },
-                        elements: [
+                        frames: [
                             {
                                 id: crypto.randomUUID(),
                                 type: "card",
