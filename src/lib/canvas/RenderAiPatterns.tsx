@@ -4,8 +4,7 @@ import type { WireframeElement } from "../../../lib/store/canvasStore"
 import renderWireframe from "../render/renderWireframe"
 
 const FRAME_PADDING = 80
-const CELL_WIDTH = 80
-const CELL_HEIGHT = 72
+
 const INNER_GAP = 24
 
 export default function renderFromAI(
@@ -18,11 +17,12 @@ export default function renderFromAI(
     const frameRect = canvas.getObjects().find(
       (o: any) =>
         o.get?.("isFrame") &&
-        o.get?.("frameId") === screen.frame.id
+        o.get?.("frameId") === screen.id
     ) as fabric.Rect | undefined
 
     if (!frameRect) {
-      console.warn("Frame not found for screen", screen.id)
+      console.error("No frame for screen", screen.id)
+      console.log("Canvas frames:", canvas.getObjects())
       return
     }
 
@@ -30,6 +30,17 @@ export default function renderFromAI(
     const baseTop = frameRect.top! + FRAME_PADDING + screens.indexOf(screen) * (frameRect.height! + 120)
 
     if (!screen.frames || screen.frames.length === 0) return
+    const maxCol = 12
+
+    const maxRow = Math.max(
+      ...screen.frames.map(f => (f.row ?? 1) + (f.rowSpan ?? 1) - 1)
+    )
+
+    const CELL_WIDTH =
+      (frameRect.width! - FRAME_PADDING * 2) / maxCol
+
+    const CELL_HEIGHT =
+      (frameRect.height! - FRAME_PADDING * 2) / maxRow
 
     const elements: WireframeElement[] = screen.frames.map((el) => {
       const col = el.col ?? 1
