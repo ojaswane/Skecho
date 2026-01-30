@@ -46,7 +46,7 @@ export default function renderFromAI(
         ry: 8,
         fill: "#f4f4f4",
         stroke: "#ccc",
-        strokeWidth: 1,
+        strokeWidth: 3,
       })
 
       canvas.add(rect)
