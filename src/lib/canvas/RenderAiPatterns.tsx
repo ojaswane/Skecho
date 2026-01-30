@@ -1,17 +1,13 @@
-import { createFrame } from "../../components/canvas/options_pages/Frame/createFrame"
-import { addObjectToFrame } from "../../components/canvas/options_pages/Frame/AddFrame"
 import * as fabric from "fabric"
 
 type AIScreen = {
   id: string
   name: string
-  frame: {
-    width: number
-    height: number
-  }
+  frameId: string
   elements: {
     id: string
     type: string
+    role?: string
     col: number
     row: number
     span: number
@@ -19,62 +15,43 @@ type AIScreen = {
   }[]
 }
 
-const GAP = 200
-
-const renderFromAI = (
+export default function renderFromAI(
   canvas: fabric.Canvas,
   screens: AIScreen[]
-) => {
-  const framesMap = new Map<string, fabric.Group>()
+) {
+  if (!screens.length) return
 
-  /* 1. CREATE FRAMES */
-  screens.forEach((screen, index) => {
-    const left = 100 + index * (screen.frame.width + GAP)
-    const top = 100
+  for (const screen of screens) {
+    const frame = canvas.getObjects().find(
+      (o: any) =>
+        o.get?.("isFrame") &&
+        o.get?.("frameId") === screen.frameId
+    ) as fabric.Rect
 
-    const frame = createFrame({
-      canvas,
-      id: screen.id,
-      left,
-      top,
-      width: screen.frame.width,
-      height: screen.frame.height,
-      name: screen.name,
-    })
+    if (!frame) {
+      console.warn("No frame for screen", screen.id)
+      continue
+    }
 
-    framesMap.set(screen.id, frame)
-  })
+    const baseLeft = frame.left!
+    const baseTop = frame.top!
 
-  /* 2. ADD ELEMENTS */
-  screens.forEach((screen) => {
-    const frame = framesMap.get(screen.id)
-    if (!frame) return
-
-    screen.elements.forEach((el) => {
-      const CELL_W = 120
-      const CELL_H = 80
-
+    for (const el of screen.elements) {
       const rect = new fabric.Rect({
-        left: (el.col - 1) * CELL_W,
-        top: (el.row - 1) * CELL_H,
-        width: el.span * CELL_W,
-        height: el.rowSpan * CELL_H,
+        left: baseLeft + (el.col - 1) * 100,
+        top: baseTop + (el.row - 1) * 80,
+        width: el.span * 100,
+        height: el.rowSpan * 80,
         rx: 8,
         ry: 8,
         fill: "#f4f4f4",
         stroke: "#ccc",
         strokeWidth: 1,
-        selectable: true,
       })
 
-      rect.set("elementId", el.id)
-      rect.set("elementType", el.type)
-
-      addObjectToFrame(frame, rect, canvas)
-    })
-  })
+      canvas.add(rect)
+    }
+  }
 
   canvas.requestRenderAll()
 }
-
-export default renderFromAI

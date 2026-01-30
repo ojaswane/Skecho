@@ -239,10 +239,9 @@ const FramesOverlay = ({ frame }: any) => {
             id: s.id,
             name: s.name,
             frameId: s.frame.id,
-            elements: (s as any).elements ?? [],
+            elements: s.elements,
         }))
     }
-
     const GenerateTypeSketch = async () => {
         if (!canvas) return
 
@@ -274,6 +273,11 @@ const FramesOverlay = ({ frame }: any) => {
 
             const data = await res.json()
             console.log("AI response", data)
+
+            if (!res.ok || !data?.screens?.length) {
+                console.error("AI failed, not rendering", data)
+                return
+            }
 
             canvas.discardActiveObject()
 
