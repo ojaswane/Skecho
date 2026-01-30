@@ -240,6 +240,7 @@ const FramesOverlay = ({ frame }: any) => {
 
             canvas.discardActiveObject()
 
+            // new frame
             const nextBadge: "wireframe" | "final" =
                 frame.badge === "final" ? "final" : "wireframe"
 
@@ -251,30 +252,14 @@ const FramesOverlay = ({ frame }: any) => {
 
             let screens = aiToScreens(data, newFrame)
 
-            // feedback for AI
-            if (!screens.length) {
-                screens = [
-                    {
-                        id: crypto.randomUUID(),
-                        name: "Fallback",
-                        frame: {
-                            id: frameId,
-                            width: newFrame.width,
-                            height: newFrame.height,
-                        },
-                        frames: [
-                            {
-                                id: crypto.randomUUID(),
-                                type: "card",
-                                col: 1,
-                                row: 1,
-                                span: 2,
-                                rowSpan: 1,
-                            },
-                        ],
-                    },
-                ]
-            }
+            //force screens into new frame
+            screens = screens.map((s) => ({
+                ...s,
+                frame: {
+                    ...s.frame,
+                    id: frameId,
+                },
+            }))
 
             renderFromAI(canvas, screens)
             canvas.requestRenderAll()
@@ -304,7 +289,6 @@ const FramesOverlay = ({ frame }: any) => {
             setloader(false)
         }
     }
-
 
     function createNewFrame({
         canvas,
