@@ -178,10 +178,23 @@ const FramesOverlay = ({ frame }: any) => {
 
     /* ------------------ AI GENERATION ------------------ */
 
+    type ScreenWithElements = Screen & {
+        elements: {
+            id: string
+            type: string
+            role?: string
+            col: number
+            row: number
+            span: number
+            rowSpan: number
+        }[]
+    }
+
+
     function aiToScreens(
         aiResponse: any,
         targetFrame: ArtboardFrame
-    ): Screen[] {
+    ): ScreenWithElements[] {
         if (!aiResponse?.screens?.length) return []
 
         return aiResponse.screens.map((s: any) => ({
@@ -203,6 +216,30 @@ const FramesOverlay = ({ frame }: any) => {
                 span: el.span ?? 1,
                 rowSpan: el.rowSpan ?? 1,
             })),
+        }))
+    }
+
+    type AIScreen = {
+        id: string
+        name: string
+        frameId: string
+        elements: {
+            id: string
+            type: string
+            role?: string
+            col: number
+            row: number
+            span: number
+            rowSpan: number
+        }[]
+    }
+
+    function screenToAIScreen(screens: ScreenWithElements[]): AIScreen[] {
+        return screens.map((s) => ({
+            id: s.id,
+            name: s.name,
+            frameId: s.frame.id,
+            elements: (s as any).elements ?? [],
         }))
     }
 
@@ -250,7 +287,7 @@ const FramesOverlay = ({ frame }: any) => {
                 badge: nextBadge,
             })
 
-            let screens = aiToScreens(data, newFrame)
+            let screens: ScreenWithElements[] = aiToScreens(data, newFrame)
 
             //force screens into new frame
             screens = screens.map((s) => ({
@@ -261,8 +298,9 @@ const FramesOverlay = ({ frame }: any) => {
                 },
             }))
 
-            renderFromAI(canvas, screens)
-            canvas.requestRenderAll()
+
+            const aiScreens = screenToAIScreen(screens)
+            renderFromAI(canvas, aiScreens)
 
             // Pan to new frame
             const fabricFrame = canvas
