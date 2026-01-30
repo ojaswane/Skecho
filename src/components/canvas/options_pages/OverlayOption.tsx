@@ -285,7 +285,7 @@ const FramesOverlay = ({ frame }: any) => {
                 .find(
                     (obj: any) =>
                         obj.get?.("isFrame") &&
-                        obj.get?.("frameId") === frame.id
+                        obj.get?.("frameId") === frameId
                 )
 
             if (fabricFrame) {

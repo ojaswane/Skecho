@@ -14,17 +14,26 @@ export default function renderFromAI(
   if (!canvas || !screens.length) return
 
   screens.forEach((screen) => {
-    const frameRect = canvas.getObjects().find(
-      (o: any) =>
-        o.get?.("isFrame") &&
-        o.get?.("frameId") === screen.id
+    
+    let frameRect = canvas.getObjects().find(
+      (o: any) => o.get?.("isFrame") && o.get?.("frameId") === screen.id
     ) as fabric.Rect | undefined
 
     if (!frameRect) {
-      console.error("No frame for screen", screen.id)
-      console.log("Canvas frames:", canvas.getObjects())
-      return
+      frameRect = new fabric.Rect({
+        left: 100,
+        top: 100,
+        width: 1200,
+        height: 800,
+        fill: "#fff",
+        stroke: "#ccc"
+      })
+
+      frameRect.set("isFrame", true)
+      frameRect.set("frameId", screen.id)
+      canvas.add(frameRect)
     }
+
 
     const baseLeft = frameRect.left! + FRAME_PADDING
     const baseTop = frameRect.top! + FRAME_PADDING + screens.indexOf(screen) * (frameRect.height! + 120)
