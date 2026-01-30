@@ -14,6 +14,9 @@ type AIScreen = {
     rowSpan: number
   }[]
 }
+const PADDING = 60
+const CELL_W = 120
+const CELL_H = 90
 
 export default function renderFromAI(
   canvas: fabric.Canvas,
@@ -38,10 +41,10 @@ export default function renderFromAI(
 
     for (const el of screen.elements) {
       const rect = new fabric.Rect({
-        left: baseLeft + (el.col - 1) * 100,
-        top: baseTop + (el.row - 1) * 80,
-        width: el.span * 100,
-        height: el.rowSpan * 80,
+        left: frame.left! + PADDING + (el.col - 1) * CELL_W,
+        top: frame.top! + PADDING + (el.row - 1) * CELL_H,
+        width: el.span * CELL_W - 20,
+        height: el.rowSpan * CELL_H - 20,
         rx: 8,
         ry: 8,
         fill: "#f4f4f4",
