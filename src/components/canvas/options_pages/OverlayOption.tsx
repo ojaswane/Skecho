@@ -360,8 +360,9 @@ const FramesOverlay = ({ frame }: any) => {
             top: frame.top,
             width: frame.width,
             height: frame.height,
-            fill: '#f3f3f3',
+            fill: '#f9f9f9',
             stroke: '#6366f1',
+            strokeWidth: 2,
             selectable: true,
             lockMovementX: true,
             lockMovementY: true,
@@ -374,6 +375,17 @@ const FramesOverlay = ({ frame }: any) => {
         frameRect.set('frameId', id)
 
         canvas.add(frameRect)
+
+        const clipRect = new fabric.Rect({
+            left: frame.left,
+            top: frame.top,
+            width: frame.width,
+            height: frame.height,
+            absolutePositioned: true,
+        })
+
+        frameRect.set("clipPath", clipRect)
+
 
         frameRect.set({
             hasControls: false,

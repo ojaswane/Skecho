@@ -14,9 +14,12 @@ type AIScreen = {
     rowSpan: number
   }[]
 }
-const PADDING = 60
-const CELL_W = 120
-const CELL_H = 90
+const GRID = {
+  padding: 48,
+  colWidth: 120,
+  rowHeight: 96,
+  gap: 16,
+}
 
 export default function renderFromAI(
   canvas: fabric.Canvas,
@@ -36,15 +39,12 @@ export default function renderFromAI(
       continue
     }
 
-    const baseLeft = frame.left!
-    const baseTop = frame.top!
-
     for (const el of screen.elements) {
       const rect = new fabric.Rect({
-        left: frame.left! + PADDING + (el.col - 1) * CELL_W,
-        top: frame.top! + PADDING + (el.row - 1) * CELL_H,
-        width: el.span * CELL_W - 20,
-        height: el.rowSpan * CELL_H - 20,
+        left: frame.left! + GRID.padding + (el.col - 1) * (GRID.colWidth + GRID.gap),
+        top: frame.top! + GRID.padding + (el.row - 1) * (GRID.rowHeight + GRID.gap),
+        width: el.span * GRID.colWidth + (el.span - 1) * GRID.gap,
+        height: el.rowSpan * GRID.rowHeight + (el.rowSpan - 1) * GRID.gap,
         rx: 8,
         ry: 8,
         fill: "#f4f4f4",
@@ -52,7 +52,12 @@ export default function renderFromAI(
         strokeWidth: 3,
       })
 
+      rect.set({
+        clipPath: frame.clipPath,
+      })
       canvas.add(rect)
+      canvas.sendObjectBackwards(rect)
+      canvas.bringObjectForward(frame)
     }
   }
 
