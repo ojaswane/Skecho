@@ -194,7 +194,7 @@ const FramesOverlay = ({ frame }: any) => {
                 height: targetFrame.height,
             },
 
-            elements: (s.frames ?? []).map((el: any) => ({
+            frames: (s.frames ?? []).map((el: any) => ({
                 id: el.id ?? crypto.randomUUID(),
                 type: el.type ?? "card",
                 role: el.role,

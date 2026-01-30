@@ -29,6 +29,7 @@ export default function renderFromAI(
     const baseLeft = frameRect.left! + FRAME_PADDING
     const baseTop = frameRect.top! + FRAME_PADDING + screens.indexOf(screen) * (frameRect.height! + 120)
 
+    if (!screen.frames || screen.frames.length === 0) return
 
     const elements: WireframeElement[] = screen.frames.map((el) => {
       const col = el.col ?? 1
