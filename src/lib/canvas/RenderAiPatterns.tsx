@@ -72,7 +72,5 @@ export default function renderFromAI(
 
     canvas.bringObjectToFront(frame)
   }
-
-
   canvas.requestRenderAll()
 }

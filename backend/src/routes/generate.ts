@@ -52,71 +52,6 @@ THEN MAKE IT LIKE
 
 `
 
-const SYSTEM_PROMPT_2 = `
-You are a UI WIREFRAME LAYOUT COMPILER.
-
-Convert SECTIONS into GRID-BASED FRAMES.
-
-ABSOLUTE RULES:
-- Output ONLY valid JSON
-- Root key MUST be "screens"
-- Use ONLY grid placement:
-- col (1-based)
-- row (1-based)
-- span
-- rowSpan
-
-- Desktop grid = 12 columns
-- Frames MUST be flat
-
-DESIGN RULES:
-- Bento = 1 dominant + 2–4 secondary
-- Dominant spans 5–7 columns
-- Secondary spans 2–4 columns
-- Vary rowSpan
-- Leave negative space
-- Avoid symmetry
-
-EVERY screen MUST include:
-- id (string)
-- name (string)
-- frames (array)
-
-Before outputting final JSON:
-- Check visual balance
-- Check dominance hierarchy
-- Ensure one focal element exists
-- Ensure breathing space
-`
-
-const SYSTEM_PROMPT_3 = `
-You are a PRINCIPAL PRODUCT DESIGNER reviewing a wireframe.
-
-Your job:
-- Detect weak hierarchy
-- Detect overcrowding
-- Detect lack of breathing space
-- Detect multiple dominant elements
-
-Rules:
-- You MUST preserve the same screens and frames
-- You MAY adjust ONLY:
-  - colStart
-  - colSpan
-  - rowStart
-  - rowSpan
-  - role (dominant | supporting | decorative)
-
-Design corrections you MUST apply if needed:
-- Only ONE dominant frame per section
-- Dominant frames must visually breathe vertically
-- Avoid placing all frames in first 2 rows
-- Supporting frames should not exceed colSpan 4
-- Leave at least one empty column somewhere
-
-Output ONLY valid JSON.
-Root key MUST be "screens".
-`
 
 
 /* ---------------- TYPES ---------------- */
@@ -228,30 +163,6 @@ router.post("/", async (req, res) => {
             return res.status(400).json({
                 error: "Failed to generate sections",
                 design
-            })
-        }
-
-        /* -------- PASS 2: LAYOUT -------- */
-
-        const layout = await callAI(SYSTEM_PROMPT_2, {
-            sections: design.sections
-        })
-
-        if (!layout?.screens) {
-            return res.status(400).json({
-                error: "Invalid layout output",
-                layout
-            })
-        }
-
-        /* -------- PASS 3; DESIGN Refine -------- */
-
-        const refined = await callAI(SYSTEM_PROMPT_3, layout)
-
-        if (!refined?.screens) {
-            return res.status(400).json({
-                error: "Design critique failed",
-                refined
             })
         }
 
