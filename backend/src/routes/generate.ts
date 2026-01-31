@@ -55,6 +55,35 @@ Schema:
 ALL ids must be unique.
 `
 
+/* ----------------- FUNCTIONS ---------------*/
+function applyLayout(design: any) {
+    return {
+        screens: design.screens.map((screen) => {
+            let currentRow = 1
+
+            return {
+                ...screen,
+                frames: screen.frames.map((frame) => {
+                    const isDominant = frame.role === "dominant"
+
+                    const placedFrame = {
+                        ...frame,
+                        col: isDominant ? 2 : 2,
+                        span: isDominant ? 8 : 4,
+                        row: currentRow,
+                        rowSpan: isDominant ? 3 : 2,
+                        type: "card"
+                    }
+
+                    currentRow += placedFrame.rowSpan + 1
+
+                    return placedFrame
+                })
+            }
+        })
+    }
+}
+
 
 
 /* ---------------- TYPES ---------------- */
@@ -156,31 +185,19 @@ router.post("/", async (req, res) => {
     }
 
     try {
-        /* -------- PASS 1: DESIGN THINKING -------- */
-
         const design = await callAI(SYSTEM_PROMPT_1, {
             productIntent: prompt || "modern SaaS dashboard"
         })
 
-        if (!design?.sections?.length) {
-            return res.status(400).json({
-                error: "Failed to generate sections",
-                design
-            })
+        if (!design?.screens) {
+            return res.status(400).json({ error: "Semantic generation failed" })
         }
 
-        /* -------- FIX id's -------- */
-
-        refined.screens = refined.screens.map((s, i) => ({
-            id: s.id || `screen-${i + 1}`,
-            name: s.name || `Screen ${i + 1}`,
-            layout: s.layout,
-            frames: s.frames
-        }))
+        const withLayout = applyLayout(design)
 
         /* -------- NORMALIZE FOR CANVAS -------- */
+        const normalized = normalizeForCanvas(withLayout)
 
-        const normalized = normalizeForCanvas(refined)
 
         /* -------- VALIDATION(zod) -------- */
 
