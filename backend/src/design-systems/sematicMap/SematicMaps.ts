@@ -23,7 +23,7 @@ const SemanticVisualMap = {
     title_text: {
         shape: "pill",
         height: "lg",
-        width: "70%"
+        width: "70%",
     },
 
     body_text: {
