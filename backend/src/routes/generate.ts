@@ -14,6 +14,8 @@ router.get("/", (_, res) => {
 const SYSTEM_PROMPT_1 = `
 You are a SENIOR WIREFRAME PLANNER.
 
+Each screen MUST include a layoutPattern.
+
 Your job:
 - Decide what content exists on the screen
 - Decide hierarchy (dominant | supporting | decorative)
@@ -33,12 +35,21 @@ You may ONLY use these semantic blocks:
 
 Output ONLY valid JSON.
 
+Allowed layoutPattern values:
+- hero
+- feed
+- grid
+- settings
+- auth
+- marketing
+
 Schema:
 {
   "screens": [
     {
       "id": string,
       "name": string,
+      "layoutPattern": "hero | feed | grid | settings | auth | marketing",
       "frames": [
         {
           "id": string,
@@ -106,26 +117,46 @@ function applyLayout(design: any) {
 
             return {
                 ...screen,
-                frames: screen.frames.map((frame) => {
+                frames: screen.frames.map((frame, i) => {
                     const isDominant = frame.role === "dominant"
 
-                    const placedFrame = {
+                    let col = 2
+                    let span = 4
+
+                    if (screen.layoutPattern === "hero") {
+                        col = isDominant ? 2 : 7
+                        span = isDominant ? 8 : 4
+                    }
+
+                    if (screen.layoutPattern === "feed") {
+                        col = 3
+                        span = 6
+                    }
+
+                    if (screen.layoutPattern === "settings") {
+                        col = 4
+                        span = 5
+                    }
+
+                    const rowSpan = isDominant ? 3 : 2
+
+                    const placed = {
                         ...frame,
-                        col: isDominant ? 2 : 2,
-                        span: isDominant ? 8 : 4,
+                        col,
+                        span,
                         row: currentRow,
-                        rowSpan: isDominant ? 3 : 2,
+                        rowSpan,
                         type: "card"
                     }
 
-                    currentRow += placedFrame.rowSpan + 1
-
-                    return placedFrame
+                    currentRow += rowSpan + 1
+                    return placed
                 })
             }
         })
     }
 }
+
 
 /* ---------------- TYPES ---------------- */
 
