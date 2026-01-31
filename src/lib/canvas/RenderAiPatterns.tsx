@@ -67,7 +67,7 @@ export default function renderFromAI(
 
       rect.set("clipPath", frame.clipPath)
       canvas.add(rect)
-      canvas.sendObjectBackwards(rect)
+      canvas.sendObjectToBack(rect)
     }
 
     canvas.bringObjectToFront(frame)
