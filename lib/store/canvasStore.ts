@@ -5,6 +5,17 @@ import * as fabric from "fabric"
 export type FrameType = "desktop" | "tablet" | "mobile"
 export type FrameBadge = "idea" | "wireframe" | "final"
 
+type SemanticBlock = {
+    id: string
+    kind:
+    | "profile_image"
+    | "content_image"
+    | "title_text"
+    | "body_text"
+    | "meta_text"
+    | "primary_action"
+}
+
 export type ToolType =
     | "Select"
     | "Rectangle"
