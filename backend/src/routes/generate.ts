@@ -55,6 +55,49 @@ Schema:
 ALL ids must be unique.
 `
 
+const DESIGN_CONSTITUTION = `
+NON-NEGOTIABLE DESIGN LAWS:
+
+Hierarchy:
+- Exactly one dominant element per screen
+
+Spacing:
+- At least one empty column
+- No frame touches all four edges of grid
+
+Balance:
+- Avoid perfect symmetry
+- Vary rowSpan between frames
+
+Clarity:
+- No more than 6 frames per screen
+
+Before output:
+- List all violations of the design laws (mentally)
+- Fix them
+- Output ONLY corrected JSON
+`
+const SYSTEM_PROMPT_2 = `
+You are a DESIGN LAW ENFORCER.
+
+You will receive an EXISTING wireframe layout.
+
+${DESIGN_CONSTITUTION}
+
+Rules:
+- You MUST preserve screens and frames
+- You MAY ONLY adjust:
+  - col
+  - row
+  - span
+  - rowSpan
+  - role
+
+Output ONLY valid JSON.
+Root key must be "screens".
+`
+
+
 /* ----------------- FUNCTIONS ---------------*/
 function applyLayout(design: any) {
     return {
@@ -83,8 +126,6 @@ function applyLayout(design: any) {
         })
     }
 }
-
-
 
 /* ---------------- TYPES ---------------- */
 
@@ -197,10 +238,16 @@ router.post("/", async (req, res) => {
         /* -------- NORMALIZE FOR CANVAS -------- */
         const normalized = normalizeForCanvas(withLayout)
 
+        /* ---------- DESIGN PATTERNS ---------- */
 
+
+        const refinedLayout = await callAI(
+            SYSTEM_PROMPT_2,
+            normalized
+        )
         /* -------- VALIDATION(zod) -------- */
 
-        const validation = WireframeSchema.safeParse(normalized)
+        const validation = WireframeSchema.safeParse(refinedLayout)
 
         if (!validation.success) {
             return res.status(400).json({
