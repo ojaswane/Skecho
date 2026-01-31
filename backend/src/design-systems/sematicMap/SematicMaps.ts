@@ -7,6 +7,22 @@ export function resolveWidth(width, cardWidth) {
     return width
 }
 
+// frame.blocks.forEach(block => {
+//   const visual = SemanticVisualMap[block.semantic]
+
+//   if (visual.shape === "circle") {
+//     drawCircleAvatar()
+//   }
+
+//   if (visual.shape === "pill") {
+//     drawRoundedRect()
+//   }
+
+//   if (visual.icon === "image") {
+//     drawImageIcon()
+//   }
+// })
+
 const SemanticVisualMap = {
     profile_image: {
         shape: "circle",

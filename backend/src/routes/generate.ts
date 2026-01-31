@@ -1,6 +1,7 @@
 import fetch from "node-fetch"
 import Router from "express"
 import { WireframeSchema } from "../../validation/wireframe.schema"
+import DENSITY_MAP from "../design-systems/densityMap/density_map"
 
 const router = Router()
 
@@ -109,11 +110,20 @@ Root key must be "screens".
 `
 
 
+
+
 /* ----------------- FUNCTIONS ---------------*/
 function applyLayout(design: any) {
     return {
         screens: design.screens.map((screen) => {
             let currentRow = 1
+            const densityConfig = DENSITY_MAP[density]
+
+            const rowSpan = isDominant
+                ? densityConfig.dominantRowSpan
+                : densityConfig.supportingRowSpan
+
+            currentRow += rowSpan + densityConfig.rowGap
 
             return {
                 ...screen,
@@ -152,6 +162,8 @@ function applyLayout(design: any) {
                     currentRow += rowSpan + 1
                     return placed
                 })
+
+
             }
         })
     }
@@ -249,7 +261,7 @@ function normalizeForCanvas(layout: any) {
 /* ---------------- ROUTE ------------------- */
 
 router.post("/", async (req, res) => {
-    const { source, prompt } = req.body
+    const { source, prompt, density = "normal" } = req.body
 
     if (source !== "sketch") {
         return res.status(400).json({ error: "Invalid source" })
