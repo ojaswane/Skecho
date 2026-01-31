@@ -5,13 +5,13 @@ const SemanticVisualMap = {
     profile_image: {
         shape: "circle",
         size: "avatar",
-        icon: "CircleUser"
+        icon: CircleUser
     },
 
     content_image: {
         shape: "rect",
         aspect: "16:9",
-        icon: "Images"
+        icon: Images
     },
 
     title_text: {
