@@ -109,25 +109,27 @@ Output ONLY valid JSON.
 Root key must be "screens".
 `
 
-
+// const BLOCK_ORDER = [
+//     "profile_image",
+//     "content_image",
+//     "title_text",
+//     "meta_text",
+//     "body_text",
+//     "primary_action"
+// ]
 
 
 /* ----------------- FUNCTIONS ---------------*/
-function applyLayout(design: any) {
+function applyLayout(design: any, density: keyof typeof DENSITY_MAP) {
+    const densityConfig = DENSITY_MAP[density]
+
     return {
         screens: design.screens.map((screen) => {
             let currentRow = 1
-            const densityConfig = DENSITY_MAP[density]
-
-            const rowSpan = isDominant
-                ? densityConfig.dominantRowSpan
-                : densityConfig.supportingRowSpan
-
-            currentRow += rowSpan + densityConfig.rowGap
 
             return {
                 ...screen,
-                frames: screen.frames.map((frame, i) => {
+                frames: screen.frames.map((frame) => {
                     const isDominant = frame.role === "dominant"
 
                     let col = 2
@@ -148,7 +150,9 @@ function applyLayout(design: any) {
                         span = 5
                     }
 
-                    const rowSpan = isDominant ? 3 : 2
+                    const rowSpan = isDominant
+                        ? densityConfig.dominantRowSpan
+                        : densityConfig.supportingRowSpan
 
                     const placed = {
                         ...frame,
@@ -159,15 +163,14 @@ function applyLayout(design: any) {
                         type: "card"
                     }
 
-                    currentRow += rowSpan + 1
+                    currentRow += rowSpan + densityConfig.rowGap
                     return placed
                 })
-
-
             }
         })
     }
 }
+
 
 
 /* ---------------- TYPES ---------------- */
@@ -276,7 +279,7 @@ router.post("/", async (req, res) => {
             return res.status(400).json({ error: "Semantic generation failed" })
         }
 
-        const withLayout = applyLayout(design)
+        const withLayout = applyLayout(design , density)
 
         /* -------- NORMALIZE FOR CANVAS -------- */
         const normalized = normalizeForCanvas(withLayout)
@@ -288,9 +291,11 @@ router.post("/", async (req, res) => {
             SYSTEM_PROMPT_2,
             normalized
         )
+
+        const finailLayout = normalizeForCanvas(refinedLayout)
         /* -------- VALIDATION(zod) -------- */
 
-        const validation = WireframeSchema.safeParse(refinedLayout)
+        const validation = WireframeSchema.safeParse(finailLayout)
 
         if (!validation.success) {
             return res.status(400).json({
