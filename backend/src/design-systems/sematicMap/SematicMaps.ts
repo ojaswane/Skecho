@@ -1,17 +1,23 @@
-import { Images } from 'lucide-react';
-import { CircleUser } from 'lucide-react';
+import { Images, CircleUser } from "lucide-react"
+
+export function resolveWidth(width, cardWidth) {
+    if (typeof width === "string" && width.endsWith("%")) {
+        return (parseInt(width) / 100) * cardWidth
+    }
+    return width
+}
 
 const SemanticVisualMap = {
     profile_image: {
         shape: "circle",
         size: "avatar",
-        icon: CircleUser
+        Icon: CircleUser
     },
 
     content_image: {
         shape: "rect",
         aspect: "16:9",
-        icon: Images
+        Icon: Images
     },
 
     title_text: {
@@ -39,3 +45,5 @@ const SemanticVisualMap = {
         width: "40%"
     }
 }
+
+export default SemanticVisualMap
