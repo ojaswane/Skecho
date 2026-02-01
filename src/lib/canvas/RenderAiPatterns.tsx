@@ -1,4 +1,7 @@
 import * as fabric from "fabric"
+import { layoutCard } from "../../../backend/src/design-systems/cardLayout/CardLayout"
+import { renderSemanticBlock } from "@/lib/render/renderSemanticBlock"
+
 
 type AIScreen = {
   id: string
@@ -6,12 +9,22 @@ type AIScreen = {
   frameId: string
   elements: {
     id: string
-    type: string
     role?: string
     col: number
     row: number
     span: number
     rowSpan: number
+
+    blocks: {
+      id: string
+      kind:
+      | "profile_image"
+      | "content_image"
+      | "title_text"
+      | "body_text"
+      | "meta_text"
+      | "primary_action"
+    }[]
   }[]
 }
 const GRID = {
@@ -52,23 +65,35 @@ export default function renderFromAI(
       const height =
         el.rowSpan * GRID.rowHeight + (el.rowSpan - 1) * GRID.gap
 
-      const rect = new fabric.Rect({
+      /* ---------- CARD ---------- */
+      const card = new fabric.Rect({
         left,
         top,
         width,
         height,
-        fill: "transparent",
-        stroke: "#111",
-        strokeWidth: 2,
-        strokeDashArray: [6, 4],
-        rx: 8,
-        ry: 8,
+        rx: 12,
+        ry: 12,
+        fill: "#f9fafb",
+        stroke: "#e5e7eb",
+        strokeWidth: 1,
+        selectable: false
       })
 
-      rect.set("clipPath", frame.clipPath)
-      canvas.add(rect)
-      canvas.sendObjectToBack(rect)
+      card.set("clipPath", frame.clipPath)
+      canvas.add(card)
+
+      /* --------- SEMANTIC BLOCKS -------- */
+      const laidOutBlocks = layoutCard(el.blocks, width)
+
+      laidOutBlocks.forEach((block) => {
+        renderSemanticBlock(canvas, {
+          ...block,
+          left: left + block.left,
+          top: top + block.top
+        })
+      })
     }
+
 
     canvas.bringObjectToFront(frame)
   }
