@@ -1,11 +1,5 @@
 import { Images, CircleUser } from "lucide-react"
-
-export function resolveWidth(width, cardWidth) {
-    if (typeof width === "string" && width.endsWith("%")) {
-        return (parseInt(width) / 100) * cardWidth
-    }
-    return width
-}
+import { SemanticVisualRule } from "../../../lib/types"
 
 // frame.blocks.forEach(block => {
 //   const visual = SemanticVisualMap[block.semantic]
@@ -23,42 +17,43 @@ export function resolveWidth(width, cardWidth) {
 //   }
 // })
 
-const SemanticVisualMap = {
+const SemanticVisualMap: Record<string, SemanticVisualRule> = {
     profile_image: {
         shape: "circle",
-        size: "avatar",
+        size: 40,
         Icon: CircleUser
     },
 
     content_image: {
         shape: "rect",
-        aspect: "16:9",
+        height: 120,
         Icon: Images
     },
 
     title_text: {
         shape: "pill",
-        height: "lg",
-        width: "70%",
+        height: 18,
+        widthPercent: 0.7
     },
 
     body_text: {
         shape: "pill",
-        height: "md",
-        width: "100%",
-        repeat: 2
+        height: 14,
+        widthPercent: 1,
+        repeat: 2,
+        gap: 6
     },
 
     meta_text: {
         shape: "pill",
-        height: "sm",
-        width: "40%"
+        height: 10,
+        widthPercent: 0.4
     },
 
     primary_action: {
         shape: "pill",
-        height: "button",
-        width: "40%"
+        height: 32,
+        widthPercent: 0.4
     }
 }
 

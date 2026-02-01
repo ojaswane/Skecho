@@ -5,7 +5,7 @@ import * as fabric from "fabric"
 export type FrameType = "desktop" | "tablet" | "mobile"
 export type FrameBadge = "idea" | "wireframe" | "final"
 
-type SemanticBlock = {
+export type SemanticBlock = {
     id: string
     kind:
     | "profile_image"
@@ -15,6 +15,16 @@ type SemanticBlock = {
     | "meta_text"
     | "primary_action"
 }
+
+export type LaidOutBlock = {
+    id: string
+    left: number
+    top: number
+    width: number
+    height: number
+    rule: any
+}
+
 
 export type ToolType =
     | "Select"
