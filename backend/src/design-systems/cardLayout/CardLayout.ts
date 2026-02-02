@@ -1,4 +1,3 @@
-// lib/layout/layoutCard.ts
 import SemanticVisualMap from "../sematicMap/SematicMaps"
 import type { SemanticBlock, LaidOutBlock } from "../../../lib/types"
 

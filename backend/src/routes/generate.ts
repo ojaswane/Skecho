@@ -293,6 +293,7 @@ router.post("/", async (req, res) => {
         )
 
         const finailLayout = normalizeForCanvas(refinedLayout)
+        
         /* -------- VALIDATION(zod) -------- */
 
         const validation = WireframeSchema.safeParse(finailLayout)
