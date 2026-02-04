@@ -78,6 +78,7 @@ export default function renderAIScreens(
                     card.width!
                 )
 
+                
                 for (const block of laidOut) {
                     const obj = renderSemanticBlock(block)
                     obj.left += card.left!
