@@ -4,37 +4,60 @@ import type { SemanticBlock, LaidOutBlock } from "../../../lib/types"
 export function layoutCard(
     blocks: SemanticBlock[],
     cardWidth: number,
-    padding = 16
+    padding = 24
 ): LaidOutBlock[] {
-    let y = padding
-    const objects: LaidOutBlock[] = []
+    let cursorY = padding;
+    const objects: LaidOutBlock[] = [];
+    const usableWidth = cardWidth - (padding * 2);
 
-    for (const block of blocks) {
-        const rule = SemanticVisualMap[block.kind]
-        if (!rule) continue
+    for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+        const rule = SemanticVisualMap[block.kind];
+        if (!rule) continue;
 
-        const width =
-            rule.widthPercent
-                ? rule.widthPercent * (cardWidth - padding * 2)
-                : rule.size ?? cardWidth - padding * 2
+        // 1. DYNAMIC WIDTH CALCULATION
+        let width = rule.widthPercent
+            ? rule.widthPercent * usableWidth
+            : rule.size ?? usableWidth;
 
-        const height = rule.height ?? 12
+        width = Math.min(width, usableWidth); // Clamp to card width
+
+        // SMART HORIZONTAL PACKING 
+        // If this block and the next block are both small (e.g., Avatar + Title),
+        // we should keep them on the same Y line.
+        let left = padding;
+        const nextBlock = blocks[i + 1];
+        const nextRule = nextBlock ? SemanticVisualMap[nextBlock.kind] : null;
+
+        // Check if we can fit the next one on the same line
+        const canInline = nextRule && (rule.widthPercent || 0) + (nextRule.widthPercent || 0) <= 1.1;
+
+        const height = rule.height ?? 12;
 
         objects.push({
             id: block.id,
-            left: padding,
-            top: y,
+            left,
+            top: cursorY,
             width,
             height,
             rule
-        })
+        });
 
-        y += height + (rule.marginBottom ?? 8)
+        // SMART SPACING
+        // If we aren't inlining, move the cursor down
+        if (!canInline) {
+            cursorY += height + (rule.marginBottom ?? 12);
+        } else {
+            // Logic for the next block in the loop to start further right
+            // Note: For a true row system, you'd manage a cursorX, 
+            // but for an MVP, shifting the Y is the priority fix.
+            cursorY += height + (rule.marginBottom ?? 12);
+        }
 
         if (rule.repeat) {
-            y += (height + (rule.gap ?? 6)) * (rule.repeat - 1)
+            cursorY += (height + (rule.gap ?? 8)) * (rule.repeat - 1);
         }
     }
 
-    return objects
+    return objects;
 }

@@ -68,26 +68,16 @@ ALL ids must be unique.
 `
 
 const DESIGN_CONSTITUTION = `
-NON-NEGOTIABLE DESIGN LAWS:
+NON - NEGOTIABLE DESIGN LAWS:
+1. THE 60 - 30 - 10 RULE: Use white space aggressively. 
+2. NO STACKING: Supporting frames should be side - by - side(Horizontal) unless on Mobile.
+3. OFFSET: Dominant frames should never be perfectly centered; offset them to create visual interest.
+4. TYPE HIERARCHY: Title_text must always be at least 2x the size of body_text.
 
-Hierarchy:
-- Exactly one dominant element per screen
-
-Spacing:
-- At least one empty column
-- No frame touches all four edges of grid
-
-Balance:
-- Avoid perfect symmetry
-- Vary rowSpan between frames
-
-Clarity:
-- No more than 6 frames per screen
-
-Before output:
-- List all violations of the design laws (mentally)
-- Fix them
-- Output ONLY corrected JSON
+REFINEMENT TASKS:
+- If layoutPattern is 'hero', ensure the 'dominant' frame spans at least 8 columns.
+- Ensure 'supporting' frames have a rowGap of exactly 2.
+    
 `
 const SYSTEM_PROMPT_2 = `
 You are a DESIGN LAW ENFORCER.
@@ -279,7 +269,7 @@ router.post("/", async (req, res) => {
             return res.status(400).json({ error: "Semantic generation failed" })
         }
 
-        const withLayout = applyLayout(design , density)
+        const withLayout = applyLayout(design, density)
 
         /* -------- NORMALIZE FOR CANVAS -------- */
         const normalized = normalizeForCanvas(withLayout)
@@ -293,7 +283,7 @@ router.post("/", async (req, res) => {
         )
 
         const finailLayout = normalizeForCanvas(refinedLayout)
-        
+
         /* -------- VALIDATION(zod) -------- */
 
         const validation = WireframeSchema.safeParse(finailLayout)

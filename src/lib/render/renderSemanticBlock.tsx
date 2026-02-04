@@ -1,74 +1,66 @@
 import * as fabric from "fabric"
 import type { LaidOutBlock } from "../../../lib/store/canvasStore"
 
-export function renderSemanticBlock(
-    canvas: fabric.Canvas,
-    block: LaidOutBlock
-) {
-    const { left, top, width, height, rule } = block
+export function renderSemanticBlock(canvas: fabric.Canvas, block: any) {
+    const { left, top, width, height, semantic } = block;
 
-    let object: fabric.Object | null = null
+    const STYLES = {
+        background: "#F4F4F5", // Slate 100
+        border: "#E4E4E7",     // Slate 200
+        text: "#71717A",       // Slate 500
+        accent: "#6366F1",     // Indigo 500
+        radius: 10
+    };
 
-    /* ---------------- SHAPES ---------------- */
+    let object: fabric.Object;
 
-    if (rule.shape === "pill") {
-        object = new fabric.Rect({
-            left,
-            top,
-            width,
-            height,
-            rx: height / 2,
-            ry: height / 2,
-            fill: "#e5e7eb",
-            selectable: false
-        })
+    switch (semantic) {
+        case "title_text":
+            object = new fabric.Textbox("Heading Content", {
+                left, top, width,
+                fontSize: 24,
+                fontWeight: "bold",
+                fontFamily: "Inter, sans-serif",
+                fill: "#18181B"
+            });
+            break;
+
+        case "primary_action":
+            // button pill
+            const btnRect = new fabric.Rect({
+                width, height: 44,
+                rx: 6, ry: 6,
+                fill: STYLES.accent,
+            });
+            const btnText = new fabric.Text("Get Started", {
+                fontSize: 14,
+                fill: "#FFFFFF",
+                originX: "center", originY: "center",
+                left: width / 2, top: 22
+            });
+            object = new fabric.Group([btnRect, btnText], { left, top });
+            break;
+
+        case "content_image":
+            // professional placeholder 
+            object = new fabric.Rect({
+                left, top, width, height,
+                fill: STYLES.background,
+                stroke: STYLES.border,
+                rx: STYLES.radius
+            });
+            const line1 = new fabric.Line([left, top, left + width, top + height], { stroke: STYLES.border });
+            const line2 = new fabric.Line([left + width, top, left, top + height], { stroke: STYLES.border });
+            canvas.add(line1, line2);
+            break;
+
+        default:
+            object = new fabric.Rect({
+                left, top, width, height,
+                fill: STYLES.background,
+                rx: 4
+            });
     }
 
-    if (rule.shape === "rect") {
-        object = new fabric.Rect({
-            left,
-            top,
-            width,
-            height,
-            rx: 8,
-            ry: 8,
-            fill: "#e5e7eb",
-            selectable: false
-        })
-    }
-
-    if (rule.shape === "circle") {
-        const size = Math.min(width, height)
-
-        object = new fabric.Circle({
-            left,
-            top,
-            radius: size / 2,
-            fill: "#e5e7eb",
-            selectable: false
-        })
-    }
-
-    if (!object) return
-
-    /* ---------------- ICON PLACEHOLDER ---------------- */
-
-    if (rule.Icon) {
-        const iconSize = Math.min(width, height) * 0.45
-
-        const icon = new fabric.Text("◎", {
-            left: left + width / 2,
-            top: top + height / 2,
-            fontSize: iconSize,
-            fill: "#9ca3af",
-            originX: "center",
-            originY: "center",
-            selectable: false
-        })
-
-        canvas.add(object, icon)
-        return
-    }
-
-    canvas.add(object)
+    canvas.add(object);
 }
