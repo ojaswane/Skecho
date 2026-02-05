@@ -59,6 +59,7 @@ export type ArtboardFrame = {
     left: number
     top: number
     locked: boolean
+    status?: "ghost" | "generating" | "ready"
 }
 
 export type ElementType =

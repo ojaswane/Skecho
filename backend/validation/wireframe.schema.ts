@@ -50,12 +50,14 @@ const FrameSchema = z.object({
 const ScreenSchema = z.object({
     id: z.string(),
     name: z.string(),
-
-    layout: z.object({
-        type: z.enum(["bento", "stack", "editorial", "centered"]),
-        columns: z.number().optional()
-    }).optional(),
-
+    layoutPattern: z.enum([
+        "hero",
+        "feed",
+        "grid",
+        "settings",
+        "auth",
+        "marketing"
+    ]).optional(),
     frames: z.array(FrameSchema).min(1)
 })
 

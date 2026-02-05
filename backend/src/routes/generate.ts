@@ -280,13 +280,13 @@ function normalizeForCanvas(layout: any) {
 router.post("/", async (req, res) => {
     const { prompt, density = "normal" } = req.body;
 
-    // 1. Tell the browser to stay open for a stream
+    // Tell the browser to stay open for a stream
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
     try {
-        // 2. Stage 1: Get the Plan (The list of screens)
+        // Get the Plan (The list of screens)
         const stream1 = callAI(SYSTEM_PROMPT_1, {
             productIntent: prompt
         });
@@ -297,7 +297,7 @@ router.post("/", async (req, res) => {
             return res.end();
         }
 
-        // 3. Stage 2: Process each screen and PUSH it immediately
+        // Process each screen and PUSH it immediately
         for (const screen of design.screens) {
             // Apply layout to just THIS screen
             const withLayout = applyLayout({ screens: [screen] }, density);
