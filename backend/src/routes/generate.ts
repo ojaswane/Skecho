@@ -287,7 +287,9 @@ router.post("/", async (req, res) => {
 
     try {
         // 2. Stage 1: Get the Plan (The list of screens)
-        const stream1 = callAI(SYSTEM_PROMPT_1, { productIntent: prompt });
+        const stream1 = callAI(SYSTEM_PROMPT_1, {
+            productIntent: prompt
+        });
         const design = await gatherStream(stream1);
 
         if (!design?.screens) {
