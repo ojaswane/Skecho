@@ -242,21 +242,17 @@ const FramesOverlay = ({ frame }: any) => {
             elements: s.elements,
         }))
     }
+
+
+
     const GenerateTypeSketch = async () => {
         if (!canvas) return
-
         const canvasData = extractCanvasData(canvas)
-
-        if (!canvasData.length && !userPrompt.trim()) {
-            console.warn("Nothing to generate")
-            return
-        }
 
         try {
             setloader(true)
-            createLoadingOverlay()
 
-            const res = await fetch("http://localhost:3001/generate", {
+            const response = await fetch("http://localhost:3001/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -271,63 +267,67 @@ const FramesOverlay = ({ frame }: any) => {
                 }),
             })
 
-            const data = await res.json()
-            console.log("AI response", data)
+            if (!response.body) return
+            const reader = response.body.getReader()
+            const decoder = new TextDecoder()
 
-            if (!res.ok || !data?.screens?.length) {
-                console.error("AI failed, not rendering", data)
-                return
-            }
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
 
-            canvas.discardActiveObject()
+                const chunk = decoder.decode(value)
+                const lines = chunk.split("\n\n")
 
-            // new frame
-            const nextBadge: "wireframe" | "final" =
-                frame.badge === "final" ? "final" : "wireframe"
+                for (const line of lines) {
+                    if (!line.startsWith("data: ")) continue
+                    const payload = JSON.parse(line.replace("data: ", ""))
 
-            const { frame: newFrame, frameId } = createNewFrame({
-                canvas,
-                sourceFrame: frame,
-                badge: nextBadge,
-            })
+                    // Ghost Frames
+                    if (payload.type === "PLAN") {
+                        payload.screens.forEach((screenPlan: any) => {
+                            // Create the empty Ghost frame for each screen the AI planned
+                            const { frame: newFrame } = createNewFrame({
+                                canvas,
+                                sourceFrame: frame,
+                                badge: "wireframe",
+                            })
+                            // Store these IDs so we can find them when the content arrives
+                            screenPlan.targetFrameId = newFrame.id
+                        })
+                    }
 
-            let screens: ScreenWithElements[] = aiToScreens(data, newFrame)
+                    // SCREEN ARRIVAL
+                    if (payload.type === "SCREEN_DONE") {
+                        const screenData = payload.data
 
-            //force screens into new frame
-            screens = screens.map((s) => ({
-                ...s,
-                frame: {
-                    ...s.frame,
-                    id: frameId,
-                },
-            }))
+                        // 1. Find the frame we created in Phase 1
+                        // (You'll need a way to map the AI screen ID to your Frame ID)
 
+                        // 2. Render blocks with Animation
+                        const aiScreens = screenToAIScreen(aiToScreens({ screens: [screenData] }, frame))
 
-            const aiScreens = screenToAIScreen(screens)
-            renderFromAI(canvas, aiScreens)
+                        // We call your render function
+                        renderFromAI(canvas, aiScreens)
 
-            // Pan to new frame
-            const fabricFrame = canvas
-                .getObjects()
-                .find(
-                    (obj: any) =>
-                        obj.get?.("isFrame") &&
-                        obj.get?.("frameId") === frameId
-                )
-
-            if (fabricFrame) {
-                canvas.viewportTransform = [
-                    1, 0, 0, 1,
-                    -fabricFrame.left! + 100,
-                    -fabricFrame.top! + 100,
-                ]
-                canvas.requestRenderAll()
+                        // 3. APPLY ANIMATION TO NEW OBJECTS
+                        const newObjects = canvas.getObjects().slice(-screenData.frames.length)
+                        newObjects.forEach((obj, i) => {
+                            const finalTop = obj.top!
+                            obj.set({ opacity: 0, top: finalTop + 20 })
+                            obj.animate({ opacity: 1, top: finalTop }, {
+                                duration: 500,
+                                delay: i * 50,
+                                easing: fabric.util.ease.easeOutQuart,
+                                onChange: canvas.renderAll.bind(canvas)
+                            })
+                        })
+                    }
+                }
             }
 
         } catch (err) {
-            console.error("AI generation failed", err)
+            console.error("Streaming failed", err)
         } finally {
-            removeLoadingOverlay()
             setloader(false)
         }
     }

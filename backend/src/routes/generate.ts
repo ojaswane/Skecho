@@ -286,7 +286,7 @@ router.post("/", async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
 
     try {
-        // Get the Plan (The list of screens)
+        // Get the Plan 
         const stream1 = callAI(SYSTEM_PROMPT_1, {
             productIntent: prompt
         });
