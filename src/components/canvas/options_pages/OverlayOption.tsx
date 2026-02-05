@@ -353,6 +353,7 @@ const FramesOverlay = ({ frame }: any) => {
             left: sourceFrame.left + sourceFrame.width + GAP,
             top: sourceFrame.top,
             locked: false,
+            status: "ghost"
         }
 
         const frameRect = new fabric.Rect({
