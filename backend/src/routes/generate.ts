@@ -174,31 +174,62 @@ function extractJSON(text: string) {
     }
 }
 
-async function callAI(system: string, payload: any) {
-    const res = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "deepseek/deepseek-chat",
-                temperature: 0.2,
-                max_tokens: 900,
-                messages: [
-                    { role: "system", content: system },
-                    { role: "user", content: JSON.stringify(payload) }
-                ]
-            })
-        }
-    )
+async function* callAI(system: string, payload: any) {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            model: "deepseek/deepseek-chat",
+            stream: true,
+            messages: [
+                { role: "system", content: system },
+                { role: "user", content: JSON.stringify(payload) }
+            ]
+        })
+    });
 
-    const data = (await res.json()) as OpenRouterResponse
-    return extractJSON(data?.choices?.[0]?.message?.content || "")
+    if (!response.body) return;
+
+    // Casting to any here solves the TS error while keeping the logic functional
+    const reader = (response.body as any).getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+
+        // OpenRouter/OpenAI send multiple 'data: {...}' blocks in one chunk
+        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+        for (const line of lines) {
+            const message = line.replace(/^data: /, '');
+            if (message === '[DONE]') return;
+
+            try {
+                const parsed = JSON.parse(message);
+                const content = parsed.choices[0]?.delta?.content;
+                if (content) yield content;
+            } catch (e) {
+                // Ignore partial JSON chunks
+            }
+        }
+    }
 }
 
+async function gatherStream(stream: AsyncGenerator<string>) {
+    let fullText = "";
+    for await (const chunk of stream) {
+        // OpenRouter streams often wrap chunks in 'data: {...}' strings
+        // This is a simple way to extract the actual content
+        fullText += chunk;
+    }
+    return extractJSON(fullText); // Use your existing extractJSON function
+}
 
 function normalizeForCanvas(layout: any) {
     layout.screens = layout.screens.map((s, si) => ({
@@ -247,54 +278,45 @@ function normalizeForCanvas(layout: any) {
 /* ---------------- ROUTE ------------------- */
 
 router.post("/", async (req, res) => {
-    const { source, prompt, density = "normal" } = req.body
+    const { prompt, density = "normal" } = req.body;
 
-    if (source !== "sketch") {
-        return res.status(400).json({ error: "Invalid source" })
-    }
+    // 1. Tell the browser to stay open for a stream
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
 
     try {
-        const design = await callAI(SYSTEM_PROMPT_1, {
-            productIntent: prompt || "modern SaaS dashboard"
-        })
+        // 2. Stage 1: Get the Plan (The list of screens)
+        const stream1 = callAI(SYSTEM_PROMPT_1, { productIntent: prompt });
+        const design = await gatherStream(stream1);
 
         if (!design?.screens) {
-            return res.status(400).json({ error: "Semantic generation failed" })
+            res.write(`data: ${JSON.stringify({ error: "Failed to plan" })}\n\n`);
+            return res.end();
         }
 
-        const withLayout = applyLayout(design, density)
+        // 3. Stage 2: Process each screen and PUSH it immediately
+        for (const screen of design.screens) {
+            // Apply layout to just THIS screen
+            const withLayout = applyLayout({ screens: [screen] }, density);
+            const normalized = normalizeForCanvas(withLayout);
 
-        /* -------- NORMALIZE FOR CANVAS -------- */
-        const normalized = normalizeForCanvas(withLayout)
+            // Ask the Design Enforcer to fix THIS specific screen
+            const stream2 = callAI(SYSTEM_PROMPT_2, normalized);
+            const refinedScreen = await gatherStream(stream2);
 
-        /* ---------- DESIGN PATTERNS ---------- */
-
-
-        const refinedLayout = await callAI(
-            SYSTEM_PROMPT_2,
-            normalized
-        )
-
-        const finailLayout = normalizeForCanvas(refinedLayout)
-
-        /* -------- VALIDATION(zod) -------- */
-
-        const validation = WireframeSchema.safeParse(finailLayout)
-
-        if (!validation.success) {
-            return res.status(400).json({
-                error: "Final layout failed validation",
-                details: validation.error.format()
-            })
+            // SEND TO USER IMMEDIATELY
+            res.write(`data: ${JSON.stringify({ type: "SCREEN_DONE", data: refinedScreen.screens[0] })}\n\n`);
         }
 
-        return res.json(validation.data)
+        res.write('data: {"type": "COMPLETE"}\n\n');
+        res.end();
 
     } catch (err) {
-        console.error(err)
-        return res.status(500).json({ error: "AI pipeline failed" })
+        console.error(err);
+        res.write(`data: ${JSON.stringify({ error: "Pipeline failed" })}\n\n`);
+        res.end();
     }
-})
-
+});
 
 export default router
