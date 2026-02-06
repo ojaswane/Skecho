@@ -21,3 +21,17 @@ export type Shape = {
   rotation: number
 }
 
+export type AIScreen = {
+  id: string
+  name: string
+  frameId: string
+  elements: {
+    id: string
+    type: string
+    role?: string
+    col: number
+    row: number
+    span: number
+    rowSpan: number
+  }[]
+}

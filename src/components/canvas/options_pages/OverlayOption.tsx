@@ -19,6 +19,7 @@ import render from '../../../lib/render/renderWireframe'
 import extractCanvasData from '@/lib/render/extractCanvasData'
 import GenerateButton from '@/components/ui/generateButton'
 import renderFromAI from '@/lib/canvas/RenderAiPatterns'
+import { AIScreen } from '../../../../lib/type'
 
 type WireframeElement = {
     type: string
@@ -98,21 +99,6 @@ const FramesOverlay = ({ frame }: any) => {
         }))
     }
 
-    type AIScreen = {
-        id: string
-        name: string
-        frameId: string
-        elements: {
-            id: string
-            type: string
-            role?: string
-            col: number
-            row: number
-            span: number
-            rowSpan: number
-        }[]
-    }
-
     function screenToAIScreen(screens: ScreenWithElements[]): AIScreen[] {
         return screens.map((s) => ({
             id: s.id,
@@ -121,8 +107,9 @@ const FramesOverlay = ({ frame }: any) => {
             elements: s.elements.map((el) => ({
                 ...el,
 
-                type: el.blocks?.length ? "card" : el.type || "text"
-            }))
+                type: (el as any).type ?? 'block'
+            })),
+            
         }))
     }
 
@@ -173,7 +160,7 @@ const FramesOverlay = ({ frame }: any) => {
                                 canvas,
                                 sourceFrame: frame,
                                 badge: "wireframe",
-                                role: screenPlan.role // "refinement" or "suggestion"
+                                role: screenPlan.role // refinement or suggestion
                             });
 
                             // Map the AI id to our actual canvas Frame ID
@@ -185,7 +172,6 @@ const FramesOverlay = ({ frame }: any) => {
                         const targetFrameId = idMap.current[payload.data.id];
                         const aiScreens = screenToAIScreen(aiToScreens({ screens: [payload.data] }, { ...frame, id: targetFrameId }));
 
-                        // Animate the build
                         renderFromAI(canvas, aiScreens);
                     }
                 }
