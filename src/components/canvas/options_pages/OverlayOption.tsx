@@ -332,17 +332,25 @@ const FramesOverlay = ({ frame }: any) => {
         }
     }
 
+
+
     function createNewFrame({
         canvas,
         sourceFrame,
         badge,
+        role = "refinement" 
     }: {
-        canvas: fabric.Canvas
-        sourceFrame: ArtboardFrame
-        badge: 'wireframe' | 'final'
+        canvas: fabric.Canvas,
+        sourceFrame: ArtboardFrame,
+        badge: 'wireframe' | 'final',
+        role?: "refinement" | "suggestion"
     }) {
-        const id = crypto.randomUUID()
-        const GAP = 600
+        const id = crypto.randomUUID();
+        const frames = useCanvasStore.getState().frames;
+        const GAP = 150;
+
+        // Smart positioning: Find the furthest right edge
+        const rightMost = frames.reduce((max, f) => Math.max(max, f.left + f.width), sourceFrame.left + sourceFrame.width);
 
         const frame: ArtboardFrame = {
             id,
@@ -350,52 +358,32 @@ const FramesOverlay = ({ frame }: any) => {
             badge,
             width: sourceFrame.width,
             height: sourceFrame.height,
-            left: sourceFrame.left + sourceFrame.width + GAP,
+            left: rightMost + GAP,
             top: sourceFrame.top,
             locked: false,
-            status: "ghost"
-        }
+        };
 
         const frameRect = new fabric.Rect({
             left: frame.left,
             top: frame.top,
             width: frame.width,
             height: frame.height,
-            fill: '#f9f9f9',
-            stroke: '#6366f1',
+            fill: role === "refinement" ? '#ffffff' : '#f8fafc',
+            stroke: role === "refinement" ? '#6366f1' : '#cbd5e1',
             strokeWidth: 2,
+            strokeDashArray: role === "suggestion" ? [10, 5] : [], // Dashed for suggestions
+            opacity: role === "suggestion" ? 0.6 : 1,
             selectable: true,
-            lockMovementX: true,
-            lockMovementY: true,
-            lockScalingX: true,
-            lockScalingY: true,
-            lockRotation: true,
-        })
+        });
 
-        frameRect.set('isFrame', true)
-        frameRect.set('frameId', id)
+        frameRect.set('isFrame', true);
+        frameRect.set('frameId', id);
+        frameRect.set('role', role); // Store the role on the fabric object
 
-        canvas.add(frameRect)
+        canvas.add(frameRect);
+        useCanvasStore.getState().addFrame(frame);
 
-        // const clipRect = new fabric.Rect({
-        //     left: frame.left,
-        //     top: frame.top,
-        //     width: frame.width,
-        //     height: frame.height,
-        //     absolutePositioned: true,
-        // })
-
-        // frameRect.set("clipPath", clipRect)
-
-
-        frameRect.set({
-            hasControls: false,
-            hasBorders: false,
-        })
-
-        useCanvasStore.getState().addFrame(frame)
-
-        return { frame, frameId: id }
+        return { frame, frameId: id };
     }
 
 
