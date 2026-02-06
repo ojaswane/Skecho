@@ -52,6 +52,7 @@ export type CanvasElement = {
 
 export type ArtboardFrame = {
     id: string
+    role?: 'refinement' | 'suggestion'
     device: FrameType
     badge: FrameBadge
     width: number
@@ -115,6 +116,7 @@ interface CanvasState {
     updateFrame: (id: string, data: Partial<ArtboardFrame>) => void
     setSelectedObject: (obj: fabric.Object | null) => void
     setDefaultTextObject: (text: fabric.Text) => void
+    deleteFrame: (id: string) => void;
 }
 
 /* ------------------ STORE ------------------ */
@@ -141,4 +143,9 @@ export const useCanvasStore = create<CanvasState>((set) => ({
         })),
     setSelectedObject: (obj) => set({ selectedObject: obj }),
     setDefaultTextObject: (text) => set({ defaultTextObject: text }),
+
+    deleteFrame: (id) => set((state) => ({
+        frames: state.frames.filter((f) => f.id !== id),
+        activeFrameId: state.activeFrameId === id ? null : state.activeFrameId,
+    }))
 }))

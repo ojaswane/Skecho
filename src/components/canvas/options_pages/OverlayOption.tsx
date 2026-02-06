@@ -2,7 +2,7 @@
 
 import React, { use, useEffect, useState } from 'react'
 import * as fabric from 'fabric'
-import { ImagePlus } from 'lucide-react'
+import { Check, ImagePlus, X } from 'lucide-react'
 import type { ArtboardFrame } from '../../../../lib/store/canvasStore'
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Badge } from '@/components/ui/badge'
@@ -33,6 +33,7 @@ const FramesOverlay = ({ frame }: any) => {
     const loadingFrameRef = React.useRef<fabric.Rect | null>(null)
     const shimmerRef = React.useRef<fabric.Rect | null>(null)
     const animationRef = React.useRef<number | null>(null)
+    const idMap = React.useRef<Record<string, string>>({});
 
     /* ------------------ UTILS ------------------ */
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
@@ -285,43 +286,52 @@ const FramesOverlay = ({ frame }: any) => {
                     // Ghost Frames
                     if (payload.type === "PLAN") {
                         payload.screens.forEach((screenPlan: any) => {
-                            // Create the empty Ghost frame for each screen the AI planned
+                            // Create frames based on the role the AI decided
                             const { frame: newFrame } = createNewFrame({
                                 canvas,
                                 sourceFrame: frame,
                                 badge: "wireframe",
-                            })
-                            // Store these IDs so we can find them when the content arrives
-                            screenPlan.targetFrameId = newFrame.id
-                        })
+                                role: screenPlan.role // "refinement" or "suggestion"
+                            });
+
+                            // Map the AI id to our actual canvas Frame ID
+                            idMap.current[screenPlan.id] = newFrame.id;
+                        });
+                    }
+
+                    if (payload.type === "SCREEN_DONE") {
+                        const targetFrameId = idMap.current[payload.data.id];
+                        const aiScreens = screenToAIScreen(aiToScreens({ screens: [payload.data] }, { ...frame, id: targetFrameId }));
+
+                        // Animate the build
+                        renderFromAI(canvas, aiScreens);
                     }
 
                     // SCREEN ARRIVAL
-                    if (payload.type === "SCREEN_DONE") {
-                        const screenData = payload.data
+                    // if (payload.type === "SCREEN_DONE") {
+                    //     const screenData = payload.data
 
-                        // 1. Find the frame we created in Phase 1
-                        // (You'll need a way to map the AI screen ID to your Frame ID)
+                    //     // 1. Find the frame we created in Phase 1
 
-                        // 2. Render blocks with Animation
-                        const aiScreens = screenToAIScreen(aiToScreens({ screens: [screenData] }, frame))
+                    //     // 2. Render blocks with Animation
+                    //     const aiScreens = screenToAIScreen(aiToScreens({ screens: [screenData] }, frame))
 
-                        // We call your render function
-                        renderFromAI(canvas, aiScreens)
+                    //     // We call your render function
+                    //     renderFromAI(canvas, aiScreens)
 
-                        // 3. APPLY ANIMATION TO NEW OBJECTS
-                        const newObjects = canvas.getObjects().slice(-screenData.frames.length)
-                        newObjects.forEach((obj, i) => {
-                            const finalTop = obj.top!
-                            obj.set({ opacity: 0, top: finalTop + 20 })
-                            obj.animate({ opacity: 1, top: finalTop }, {
-                                duration: 500,
-                                delay: i * 50,
-                                easing: fabric.util.ease.easeOutQuart,
-                                onChange: canvas.renderAll.bind(canvas)
-                            })
-                        })
-                    }
+                    //     // 3. APPLY ANIMATION TO NEW OBJECTS
+                    //     const newObjects = canvas.getObjects().slice(-screenData.frames.length)
+                    //     newObjects.forEach((obj, i) => {
+                    //         const finalTop = obj.top!
+                    //         obj.set({ opacity: 0, top: finalTop + 20 })
+                    //         obj.animate({ opacity: 1, top: finalTop }, {
+                    //             duration: 500,
+                    //             delay: i * 50,
+                    //             easing: fabric.util.ease.easeOutQuart,
+                    //             onChange: canvas.renderAll.bind(canvas)
+                    //         })
+                    //     })
+                    // }
                 }
             }
 
@@ -338,7 +348,7 @@ const FramesOverlay = ({ frame }: any) => {
         canvas,
         sourceFrame,
         badge,
-        role = "refinement" 
+        role = "refinement"
     }: {
         canvas: fabric.Canvas,
         sourceFrame: ArtboardFrame,
@@ -412,6 +422,65 @@ const FramesOverlay = ({ frame }: any) => {
 
     const BAR_HEIGHT = 44
     const BAR_GAP = 18
+
+
+
+
+
+    const handleAcceptSuggestion = (frameId: string) => {
+        if (!canvas) return;
+
+        const fabricFrame = canvas.getObjects().find(
+            (obj: any) => obj.get?.('isFrame') && obj.get?.('frameId') === frameId
+        );
+
+        if (fabricFrame) {
+            fabricFrame.set({
+                strokeDashArray: [],
+                stroke: '#6366f1',
+            });
+
+            // Use the explicit animation config object
+            const animOptions: any = {
+                property: 'opacity',
+                to: 1,
+                duration: 300,
+                easing: fabric.util.ease.easeOutQuart,
+                onChange: () => canvas.requestRenderAll(),
+            };
+
+            fabricFrame.animate(animOptions);
+
+            useCanvasStore.getState().updateFrame(frameId, {
+                badge: 'wireframe'
+            });
+        }
+    };
+
+    const handleRejectSuggestion = (frameId: string) => {
+        if (!canvas) return;
+
+        // 1. Remove from Canvas with a fade-out
+        const objectsToRemove = canvas.getObjects().filter(
+            (obj: any) => obj.get?.('frameId') === frameId || obj.get?.('belongsToFrame') === frameId
+        );
+
+        objectsToRemove.forEach(obj => {
+            obj.animate({
+                property: 'opacity',
+                to: 0,
+                duration: 200,
+                onChange: () => canvas.requestRenderAll(),
+                onComplete: () => {
+                    canvas.remove(obj);
+                }
+            } as any);
+        });
+
+        // 2. Remove from Store
+        // (You'll need a deleteFrame action in your Zustand store)
+        useCanvasStore.getState().deleteFrame(frameId);
+    };
 
     /* ------------------ BADGE ------------------ */
     const renderBadge = () => {
@@ -493,6 +562,25 @@ const FramesOverlay = ({ frame }: any) => {
                         </Select>
 
                         {renderBadge()}
+                        
+                        {
+                            frame.role === 'suggestion' && (
+                                <div className="absolute -top-12 left-0 w-full flex justify-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+                                    <button
+                                        onClick={() => handleAcceptSuggestion(frame.id)}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg flex items-center gap-1"
+                                    >
+                                        <Check className="w-3 h-3" /> Keep Suggestion
+                                    </button>
+                                    <button
+                                        onClick={() => handleRejectSuggestion(frame.id)}
+                                        className="bg-white hover:bg-red-50 text-red-600 px-3 py-1 rounded-full text-xs font-medium shadow-lg border border-red-100"
+                                    >
+                                        <X className="w-3 h-3" /> Discard
+                                    </button>
+                                </div>
+                            )
+                        }
 
                         <Separator orientation="vertical" className="h-5 bg-white/20" />
 
