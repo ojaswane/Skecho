@@ -15,16 +15,13 @@ export function layoutCard(
         const rule = SemanticVisualMap[block.kind];
         if (!rule) continue;
 
-        // 1. DYNAMIC WIDTH CALCULATION
+        //  DYNAMIC WIDTH CALCULATION
         let width = rule.widthPercent
             ? rule.widthPercent * usableWidth
             : rule.size ?? usableWidth;
 
         width = Math.min(width, usableWidth); // Clamp to card width
 
-        // SMART HORIZONTAL PACKING 
-        // If this block and the next block are both small (e.g., Avatar + Title),
-        // we should keep them on the same Y line.
         let left = padding;
         const nextBlock = blocks[i + 1];
         const nextRule = nextBlock ? SemanticVisualMap[nextBlock.kind] : null;
