@@ -60,122 +60,6 @@ const FramesOverlay = ({ frame }: any) => {
         }
     }, [canvas])
 
-    /* -------------------AI Loading --------------------*/
-
-    const createLoadingOverlay = () => {
-        if (!canvas) return
-
-        const fabricFrame = canvas
-            .getObjects()
-            .find(
-                (obj: any) =>
-                    obj.get?.('isFrame') && obj.get?.('frameId') === frame.id
-            )
-
-        if (!fabricFrame) {
-            console.log("Frame not found for loader")
-            return
-        }
-
-        const themeColor = '#6366f1'
-        const left = fabricFrame.left!
-        const top = fabricFrame.top!
-        const width = fabricFrame.width! * fabricFrame.scaleX!
-        const height = fabricFrame.height! * fabricFrame.scaleY!
-
-        // Base overlay (transparent background)
-        const loadingFrame = new fabric.Rect({
-            left,
-            top,
-            width,
-            height,
-            rx: 8,
-            ry: 8,
-            fill: themeColor,
-            opacity: 0.1,
-            stroke: themeColor,
-            strokeWidth: 1,
-            selectable: false,
-            evented: false,
-        })
-
-        // Shimmer bar that grows from top
-        const shimmer = new fabric.Rect({
-            left,
-            top,
-            width,
-            height: 0,// Start at 0 height
-            rx: 8,
-            ry: 8,
-            fill: themeColor,
-            opacity: 0.25,
-            selectable: false,
-            evented: false,
-        })
-
-        canvas.add(loadingFrame)
-        canvas.add(shimmer)
-        canvas.bringObjectToFront(loadingFrame)
-        canvas.bringObjectToFront(shimmer)
-        loadingFrame.set('excludeFromExport', true)
-        shimmer.set('excludeFromExport', true)
-
-        // Animate height from top to bottom
-        const duration = 900 // milliseconds
-        let start = performance.now()
-
-        const animate = (time: number) => {
-            const elapsed = time - start
-            const progress = Math.min(elapsed / duration, 1)
-            shimmer.set({ height: height * progress })
-            canvas.requestRenderAll()
-            if (progress < 1) {
-                animationRef.current = requestAnimationFrame(animate)
-            } else {
-                // loop the animation
-                start = performance.now()
-                animationRef.current = requestAnimationFrame(animate)
-            }
-        }
-
-        animationRef.current = requestAnimationFrame(animate)
-
-        loadingFrameRef.current = loadingFrame
-        shimmerRef.current = shimmer
-    }
-
-
-    const removeLoadingOverlay = () => {
-        if (animationRef.current) {
-            cancelAnimationFrame(animationRef.current)
-            animationRef.current = null
-        }
-
-        if (!canvas) return
-
-        const shimmer = shimmerRef.current
-        const loadingFrame = loadingFrameRef.current
-
-        if (shimmer) {
-            shimmer.animate({ opacity: 0 }, {
-                duration: 150,
-                onChange: canvas.renderAll.bind(canvas),
-                onComplete: () => canvas.remove(shimmer),
-            })
-        }
-
-        if (loadingFrame) {
-            loadingFrame.animate({ opacity: 0 }, {
-                duration: 150,
-                onChange: canvas.renderAll.bind(canvas),
-                onComplete: () => canvas.remove(loadingFrame),
-            })
-        }
-
-        shimmerRef.current = null
-        loadingFrameRef.current = null
-    }
-
 
     /* ------------------ AI GENERATION ------------------ */
 
@@ -306,32 +190,6 @@ const FramesOverlay = ({ frame }: any) => {
                         // Animate the build
                         renderFromAI(canvas, aiScreens);
                     }
-
-                    // SCREEN ARRIVAL
-                    // if (payload.type === "SCREEN_DONE") {
-                    //     const screenData = payload.data
-
-                    //     // 1. Find the frame we created in Phase 1
-
-                    //     // 2. Render blocks with Animation
-                    //     const aiScreens = screenToAIScreen(aiToScreens({ screens: [screenData] }, frame))
-
-                    //     // We call your render function
-                    //     renderFromAI(canvas, aiScreens)
-
-                    //     // 3. APPLY ANIMATION TO NEW OBJECTS
-                    //     const newObjects = canvas.getObjects().slice(-screenData.frames.length)
-                    //     newObjects.forEach((obj, i) => {
-                    //         const finalTop = obj.top!
-                    //         obj.set({ opacity: 0, top: finalTop + 20 })
-                    //         obj.animate({ opacity: 1, top: finalTop }, {
-                    //             duration: 500,
-                    //             delay: i * 50,
-                    //             easing: fabric.util.ease.easeOutQuart,
-                    //             onChange: canvas.renderAll.bind(canvas)
-                    //         })
-                    //     })
-                    // }
                 }
             }
 
@@ -562,7 +420,7 @@ const FramesOverlay = ({ frame }: any) => {
                         </Select>
 
                         {renderBadge()}
-                        
+
                         {
                             frame.role === 'suggestion' && (
                                 <div className="absolute -top-12 left-0 w-full flex justify-center gap-2 animate-in fade-in slide-in-from-bottom-2">
