@@ -30,9 +30,6 @@ const FramesOverlay = ({ frame }: any) => {
     const [, forceUpdate] = useState(0)
     const [loader, setloader] = useState(false)
     const [userPrompt, setPrompt] = useState('')
-    const loadingFrameRef = React.useRef<fabric.Rect | null>(null)
-    const shimmerRef = React.useRef<fabric.Rect | null>(null)
-    const animationRef = React.useRef<number | null>(null)
     const idMap = React.useRef<Record<string, string>>({});
 
     /* ------------------ UTILS ------------------ */
@@ -66,15 +63,14 @@ const FramesOverlay = ({ frame }: any) => {
     type ScreenWithElements = Screen & {
         elements: {
             id: string
-            type: string
             role?: string
             col: number
             row: number
             span: number
             rowSpan: number
+            blocks: any[]
         }[]
     }
-
 
     function aiToScreens(
         aiResponse: any,
@@ -85,21 +81,19 @@ const FramesOverlay = ({ frame }: any) => {
         return aiResponse.screens.map((s: any) => ({
             id: s.id ?? crypto.randomUUID(),
             name: s.name ?? "AI Screen",
-
             frame: {
                 id: targetFrame.id,
                 width: targetFrame.width,
                 height: targetFrame.height,
             },
-
-            elements: (s.frames ?? []).map((el: any) => ({
+            elements: (s.elements || s.frames || []).map((el: any) => ({
                 id: el.id ?? crypto.randomUUID(),
-                type: el.type ?? "card",
                 role: el.role,
                 col: el.col ?? 1,
                 row: el.row ?? 1,
                 span: el.span ?? 1,
                 rowSpan: el.rowSpan ?? 1,
+                blocks: el.blocks ?? []
             })),
         }))
     }
@@ -124,7 +118,11 @@ const FramesOverlay = ({ frame }: any) => {
             id: s.id,
             name: s.name,
             frameId: s.frame.id,
-            elements: s.elements,
+            elements: s.elements.map((el) => ({
+                ...el,
+
+                type: el.blocks?.length ? "card" : el.type || "text"
+            }))
         }))
     }
 
