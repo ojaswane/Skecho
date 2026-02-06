@@ -21,17 +21,20 @@ export type Shape = {
   rotation: number
 }
 
-export type AIScreen = {
-  id: string
-  name: string
-  frameId: string
+export interface AIScreen {
+  id: string;
+  name: string;
+  frameId: string;
   elements: {
-    id: string
-    type: string
-    role?: string
-    col: number
-    row: number
-    span: number
-    rowSpan: number
-  }[]
+    id: string;
+    role?: string;
+    col: number;
+    row: number;
+    span: number;
+    rowSpan: number;
+    blocks: {
+      id: string;
+      kind: "body_text" | "profile_image" | "content_image" | "title_text" | "meta_text" | "primary_action";
+    }[];
+  }[];
 }

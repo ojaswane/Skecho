@@ -105,14 +105,22 @@ const FramesOverlay = ({ frame }: any) => {
             name: s.name,
             frameId: s.frame.id,
             elements: s.elements.map((el) => ({
-                ...el,
-
+                id: el.id,
+                role: el.role,
+                col: el.col,
+                row: el.row,
+                span: el.span,
+                rowSpan: el.rowSpan,
+                // The renderer requires the blocks array
+                blocks: (el.blocks || []).map((block: any) => ({
+                    id: block.id ?? crypto.randomUUID(),
+                    // Ensure 'kind' matches the specific union type required
+                    kind: block.kind ?? "body_text",
+                })),
                 type: (el as any).type ?? 'block'
-            })),
-            
+            }))
         }))
     }
-
 
 
     const GenerateTypeSketch = async () => {
