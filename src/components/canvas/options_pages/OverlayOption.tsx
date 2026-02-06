@@ -177,8 +177,13 @@ const FramesOverlay = ({ frame }: any) => {
                     }
 
                     if (payload.type === "SCREEN_DONE") {
+                        console.log("1. AI Payload Received:", payload.data); // Is the AI actually sending data?
+
                         const targetFrameId = idMap.current[payload.data.id];
+                        console.log("2. Target Frame ID:", targetFrameId); // Does this ID exist in your canvas?
+
                         const aiScreens = screenToAIScreen(aiToScreens({ screens: [payload.data] }, { ...frame, id: targetFrameId }));
+                        console.log("3. Mapped AIScreens:", aiScreens); // Is the mapping function returning empty arrays?
 
                         renderFromAI(canvas, aiScreens);
                     }
