@@ -173,7 +173,7 @@ const FramesOverlay = ({ frame }: any) => {
 
                             // Map the AI id to our actual canvas Frame ID
                             idMap.current[screenPlan.id] = newFrame.id;
-                        });
+                        }); 
                     }
 
                     if (payload.type === "SCREEN_DONE") {
