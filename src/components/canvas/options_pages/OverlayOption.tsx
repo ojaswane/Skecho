@@ -124,8 +124,12 @@ const FramesOverlay = ({ frame }: any) => {
 
 
     const GenerateTypeSketch = async () => {
-        if (!canvas) return
+        if (!canvas) {
+            console.error("Canvas not found")
+            return
+        }
         const canvasData = extractCanvasData(canvas)
+        console.log('button is clicked')
 
         try {
             setloader(true)
@@ -150,42 +154,59 @@ const FramesOverlay = ({ frame }: any) => {
             const decoder = new TextDecoder()
 
             while (true) {
-                const { done, value } = await reader.read()
-                if (done) break
+                const { done, value } = await reader.read();
+                if (done) break;
 
-                const chunk = decoder.decode(value)
-                const lines = chunk.split("\n\n")
+                const chunk = decoder.decode(value, { stream: true });
+
+                // Sometimes multiple JSON objects come in one chunk, 
+                // and sometimes one JSON object is split across two chunks.
+                const lines = chunk.split("\n");
 
                 for (const line of lines) {
-                    if (!line.startsWith("data: ")) continue
-                    const payload = JSON.parse(line.replace("data: ", ""))
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine || !trimmedLine.startsWith("data: ")) continue;
 
-                    // Ghost Frames
-                    if (payload.type === "PLAN") {
-                        payload.screens.forEach((screenPlan: any) => {
-                            // Create frames based on the role the AI decided
-                            const { frame: newFrame } = createNewFrame({
-                                canvas,
-                                sourceFrame: frame,
-                                badge: "wireframe",
-                                role: screenPlan.role // refinement or suggestion
+                    try {
+                        const rawData = trimmedLine.replace("data: ", "");
+
+                        if (rawData === "[DONE]") break;
+
+                        const payload = JSON.parse(rawData);
+                        console.log("FULL PAYLOAD:", payload);
+
+                        const actualData = payload.data || payload
+                        if (actualData.type === "PLAN") {
+                            console.log("Creating Ghost Frames for Plan:", payload.screens);
+
+                            payload.screens.forEach((screenPlan: any) => {
+                                const { frame: newFrame } = createNewFrame({
+                                    canvas,
+                                    sourceFrame: frame,
+                                    badge: "wireframe",
+                                    role: screenPlan.role || "refinement"
+                                });
+                                idMap.current[screenPlan.id] = newFrame.id;
                             });
+                        }
 
-                            // Map the AI id to our actual canvas Frame ID
-                            idMap.current[screenPlan.id] = newFrame.id;
-                        }); 
-                    }
+                        if (payload.type === "SCREEN_DONE") {
+                            const targetFrameId = idMap.current[payload.data.id];
+                            console.log("Rendering to Frame:", targetFrameId);
 
-                    if (payload.type === "SCREEN_DONE") {
-                        console.log("1. AI Payload Received:", payload.data); // Is the AI actually sending data?
+                            if (!targetFrameId) {
+                                console.warn(" No target frame found for ID:", payload.data.id);
+                                continue;
+                            }
 
-                        const targetFrameId = idMap.current[payload.data.id];
-                        console.log("2. Target Frame ID:", targetFrameId); // Does this ID exist in your canvas?
+                            const rawAiData = aiToScreens({ screens: [payload.data] }, { ...frame, id: targetFrameId });
+                            const aiScreens = screenToAIScreen(rawAiData);
 
-                        const aiScreens = screenToAIScreen(aiToScreens({ screens: [payload.data] }, { ...frame, id: targetFrameId }));
-                        console.log("3. Mapped AIScreens:", aiScreens); // Is the mapping function returning empty arrays?
-
-                        renderFromAI(canvas, aiScreens);
+                            renderFromAI(canvas, aiScreens);
+                            canvas.requestRenderAll();
+                        }
+                    } catch (e) {
+                        console.error("Error parsing stream line:", trimmedLine, e);
                     }
                 }
             }
