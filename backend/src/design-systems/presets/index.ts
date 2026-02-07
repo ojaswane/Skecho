@@ -1,4 +1,4 @@
-import { minimalSaasPreset } from "./minimal-Saas";
+import { minimalSaasPreset } from "./minimal-Saas.js";
 
 const document = {
     id: "doc_01",

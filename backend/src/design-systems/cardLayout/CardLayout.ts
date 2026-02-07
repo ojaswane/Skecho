@@ -1,5 +1,5 @@
-import SemanticVisualMap from "../sematicMap/SematicMaps"
-import type { SemanticBlock, LaidOutBlock } from "../../../lib/types"
+import SemanticVisualMap from "../sematicMap/SematicMaps.js"
+import type { SemanticBlock, LaidOutBlock } from "../../../lib/types.js"
 
 export function layoutCard(
     blocks: SemanticBlock[],

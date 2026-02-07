@@ -1,7 +1,7 @@
 import fetch from "node-fetch"
 import Router from "express"
-import { WireframeSchema } from "../../validation/wireframe.schema"
-import DENSITY_MAP from "../design-systems/densityMap/density_map"
+import { WireframeSchema } from "../../validation/wireframe.schema.js"
+import DENSITY_MAP from "../design-systems/densityMap/density_map.js"
 
 const router = Router()
 
