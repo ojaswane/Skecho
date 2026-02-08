@@ -158,7 +158,7 @@ const FramesOverlay = ({ frame }: any) => {
 
                 const chunk = decoder.decode(value, { stream: true });
 
-                // Sometimes multiple JSON objects come in one chunk, 
+                // Sometimes multiple JSON objects come in one chunk,
                 // and sometimes one JSON object is split across two chunks.
                 const lines = chunk.split("\n");
 
