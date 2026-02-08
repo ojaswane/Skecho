@@ -199,6 +199,7 @@ async function* callAI(system: string, payload: any) {
                 if (content) yield content;
             } catch (e) {
                 // Ignore partial JSON chunks
+                console.error("Failed to parse chunk:", message);
             }
         }
     }
@@ -206,12 +207,19 @@ async function* callAI(system: string, payload: any) {
 
 async function gatherStream(stream: AsyncGenerator<string>) {
     let fullText = "";
-    for await (const chunk of stream) {
-        // OpenRouter streams often wrap chunks in 'data: {...}' strings
-        // This is a simple way to extract the actual content
-        fullText += chunk;
+    try {
+        for await (const chunk of stream) {
+            fullText += chunk;
+        }
+        const json = extractJSON(fullText);
+        if (!json) {
+            console.error("AI returned invalid JSON. Raw text:", fullText);
+        }
+        return json;
+    } catch (e) {
+        console.error("Error gathering stream:", e);
+        return null;
     }
-    return extractJSON(fullText); // Use your existing extractJSON function
 }
 
 function normalizeForCanvas(layout: any) {
@@ -284,20 +292,25 @@ router.post("/", async (req, res) => {
 
         // Process each screen and PUSH it immediately
         for (const screen of design.screens) {
-            // Apply layout to just THIS screen
-            const withLayout = applyLayout({ screens: [screen] }, density);
-            const normalized = normalizeForCanvas(withLayout);
+            try {
+                // Ensure frames exist before layout
+                if (!screen.frames) screen.frames = [];
 
-            // Ask the Design Enforcer to fix THIS specific screen
-            const stream2 = callAI(SYSTEM_PROMPT_2, normalized);
-            const refinedScreen = await gatherStream(stream2);
+                // Layout
+                const withLayout = applyLayout({ screens: [screen] }, density as any);
+                const normalized = normalizeForCanvas(withLayout);
 
-            // SEND TO USER IMMEDIATELY
-            res.write(`data: ${JSON.stringify({ type: "SCREEN_DONE", data: refinedScreen.screens[0] })}\n\n`);
+                // Skip refinement if it's causing the crash
+                // For now, let's just send the normalized screen to see it work!
+                res.write(`data: ${JSON.stringify({
+                    type: "SCREEN_DONE",
+                    data: normalized.screens[0]
+                })}\n\n`);
+
+            } catch (screenErr) {
+                console.error("Error processing individual screen:", screenErr);
+            }
         }
-
-        res.write('data: {"type": "COMPLETE"}\n\n');
-        res.end();
 
     } catch (err) {
         console.error(err);
