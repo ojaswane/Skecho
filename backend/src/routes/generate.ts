@@ -92,7 +92,10 @@ Root key must be "screens".
 
 
 /* ----------------- FUNCTIONS ---------------*/
-function applyLayout(design: any, density: keyof typeof DENSITY_MAP) {
+
+type DensityLevel = 'airy' | 'normal' | 'compact';
+function applyLayout(design: any, density: DensityLevel = "normal") {
+    //  the specific configuration for the chosen density
     const densityConfig = DENSITY_MAP[density];
     const TOTAL_COLUMNS = 12;
 
@@ -101,16 +104,15 @@ function applyLayout(design: any, density: keyof typeof DENSITY_MAP) {
         screens: design.screens.map((screen: any) => {
             let currentRow = 1;
 
-            // This allows the AI to suggest widths, otherwise we default to 12
             return {
                 ...screen,
-                frames: screen.frames.map((frame: any) => {
+                // Fallback to empty array to prevent mapping over undefined
+                frames: (screen.frames || []).map((frame: any) => {
                     const isDominant = frame.role === "dominant";
 
-                    // SMART SPAN LOGIC: Instead of hardcoded col=2
-                    // Hero = Wide, Feed = Medium, Sidebar = Narrow
                     let span = frame.span || (isDominant ? 12 : 6);
-                    let col = frame.col || (span === 12 ? 1 : (12 - span) / 2 + 1);
+
+                    let col = frame.col || (span === 12 ? 1 : Math.floor((12 - span) / 2) + 1);
 
                     const rowSpan = isDominant
                         ? densityConfig.dominantRowSpan
@@ -125,7 +127,6 @@ function applyLayout(design: any, density: keyof typeof DENSITY_MAP) {
                         type: "card"
                     };
 
-                    // Only stack vertically if the span is large (Auto-stacking)
                     if (span > 8) {
                         currentRow += rowSpan + densityConfig.rowGap;
                     }
