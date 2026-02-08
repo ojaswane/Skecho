@@ -174,37 +174,35 @@ async function* callAI(system: string, payload: any) {
         })
     });
 
-    if (!response.body) return;
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error(" OpenRouter Error:", errorText);
+        return;
+    }
 
-    // Casting to any here solves the TS error while keeping the logic functional
-    const reader = (response.body as any).getReader();
-    const decoder = new TextDecoder();
+    for await (const chunk of response.body as any) {
+        const decoder = new TextDecoder();
+        const chunkText = decoder.decode(chunk);
 
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-
-        // OpenRouter/OpenAI send multiple 'data: {...}' blocks in one chunk
-        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+        // Look for lines starting with data:
+        const lines = chunkText.split('\n');
 
         for (const line of lines) {
-            const message = line.replace(/^data: /, '');
-            if (message === '[DONE]') return;
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6).trim();
+
+            if (data === '[DONE]') return;
 
             try {
-                const parsed = JSON.parse(message);
+                const parsed = JSON.parse(data);
                 const content = parsed.choices[0]?.delta?.content;
                 if (content) yield content;
             } catch (e) {
-                // Ignore partial JSON chunks
-                console.error("Failed to parse chunk:", message);
+                // not that imp
             }
         }
     }
 }
-
 async function gatherStream(stream: AsyncGenerator<string>) {
     let fullText = "";
     try {
