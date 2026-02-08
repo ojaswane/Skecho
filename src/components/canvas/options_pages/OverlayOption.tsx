@@ -114,7 +114,7 @@ const FramesOverlay = ({ frame }: any) => {
                 // The renderer requires the blocks array
                 blocks: (el.blocks || []).map((block: any) => ({
                     id: block.id ?? crypto.randomUUID(),
-                    // Ensure 'kind' matches the specific union type required
+                    // Ensure kind matches the specific union type required
                     kind: block.kind ?? "body_text",
                 })),
                 type: (el as any).type ?? 'block'
@@ -152,7 +152,6 @@ const FramesOverlay = ({ frame }: any) => {
             if (!response.body) return
             const reader = response.body.getReader()
             const decoder = new TextDecoder()
-
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -173,33 +172,35 @@ const FramesOverlay = ({ frame }: any) => {
                         if (rawData === "[DONE]") break;
 
                         const payload = JSON.parse(rawData);
-                        console.log("FULL PAYLOAD:", payload);
+                        console.log("FULL PAYLOAD RECEIVED:", payload);
 
-                        const actualData = payload.data || payload
-                        if (actualData.type === "PLAN") {
-                            console.log("Creating Ghost Frames for Plan:", payload.screens);
-
+                        // creation of frame
+                        if (payload.type === "PLAN") {
+                            console.log("Creating Ghost Frames:", payload.screens);
                             payload.screens.forEach((screenPlan: any) => {
                                 const { frame: newFrame } = createNewFrame({
                                     canvas,
                                     sourceFrame: frame,
                                     badge: "wireframe",
-                                    role: screenPlan.role || "refinement"
+                                    role: screenPlan.role || "suggestion"
                                 });
+
                                 idMap.current[screenPlan.id] = newFrame.id;
                             });
                         }
 
+                        //Handle the ACTUAL CONTENT
                         if (payload.type === "SCREEN_DONE") {
                             const targetFrameId = idMap.current[payload.data.id];
-                            console.log("Rendering to Frame:", targetFrameId);
 
                             if (!targetFrameId) {
-                                console.warn(" No target frame found for ID:", payload.data.id);
-                                continue;
+                                console.warn("No pre-created frame found, rendering to current.");
                             }
 
-                            const rawAiData = aiToScreens({ screens: [payload.data] }, { ...frame, id: targetFrameId });
+                            const rawAiData = aiToScreens(
+                                { screens: [payload.data] },
+                                { ...frame, id: targetFrameId || frame.id }
+                            );
                             const aiScreens = screenToAIScreen(rawAiData);
 
                             renderFromAI(canvas, aiScreens);

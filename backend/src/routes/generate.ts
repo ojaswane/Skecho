@@ -35,7 +35,7 @@ Output ONLY valid JSON:
     }
   ]
 }
-  
+
 REFINEMENT RULE: If existingLayout is provided, the first screen MUST follow that layout strictly.
 EXPANSION RULE: Suggested screens must use the same design language as the refinement.
 `;
@@ -273,6 +273,11 @@ router.post("/", async (req, res) => {
         });
         const design = await gatherStream(stream1);
         console.log("AI PLAN:", JSON.stringify(design, null, 2))
+
+        res.write(`data: ${JSON.stringify({
+            type: "PLAN",
+            screens: design.screens.map((s: any) => ({ id: s.id, role: s.role }))
+        })}\n\n`);
 
         if (!design?.screens) {
             console.error("No screens in design!");
