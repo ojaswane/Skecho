@@ -274,8 +274,10 @@ router.post("/", async (req, res) => {
             productIntent: prompt
         });
         const design = await gatherStream(stream1);
+        console.log("AI PLAN:", JSON.stringify(design, null, 2))
 
         if (!design?.screens) {
+            console.error("No screens in design!");
             res.write(`data: ${JSON.stringify({ error: "Failed to plan" })}\n\n`);
             return res.end();
         }
