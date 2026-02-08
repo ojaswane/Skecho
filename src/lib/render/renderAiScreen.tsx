@@ -1,4 +1,4 @@
-import { layoutCard } from "../../../backend/src/design-systems/cardLayout/CardLayout"
+import { layoutCard } from "../design-systems/cardLayout/CardLayout"
 import { renderSemanticBlock } from "@/lib/render/renderSemanticBlock"
 import * as fabric from "fabric"
 
@@ -14,7 +14,7 @@ function renderCardShell(
         gap: 16,
     }
 
-    
+
     const left =
         frame.left! +
         GRID.padding +
@@ -78,7 +78,7 @@ export default function renderAIScreens(
                     card.width!
                 )
 
-                
+
                 for (const block of laidOut) {
                     const obj = renderSemanticBlock(block)
                     obj.left += card.left!

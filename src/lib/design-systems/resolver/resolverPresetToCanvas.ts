@@ -1,6 +1,6 @@
 import * as fabric from "fabric"
-import { renderCard } from "../../canvas/renderer/renderCards.js"
-import { renderText } from "../../canvas/renderer/renderText.js"
+import { renderCard } from "../../../../backend/src/canvas/renderer/renderCards.js"
+import { renderText } from "../../../../backend/src/canvas/renderer/renderText.js"
 
 type LayoutNode = {
     type: "card" | "text"

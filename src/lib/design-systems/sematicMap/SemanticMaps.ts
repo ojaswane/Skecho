@@ -1,5 +1,5 @@
 import { Images, CircleUser } from "lucide-react"
-import { SemanticVisualRule } from "../../../lib/types.js"
+import { SemanticVisualRule } from "../../../../backend/lib/types.js"
 
 // frame.blocks.forEach(block => {
 //   const visual = SemanticVisualMap[block.semantic]

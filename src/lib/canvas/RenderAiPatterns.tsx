@@ -1,5 +1,5 @@
 import * as fabric from "fabric"
-import { layoutCard } from "../../../backend/src/design-systems/cardLayout/CardLayout"
+import { layoutCard } from "../design-systems/cardLayout/CardLayout"
 import { renderSemanticBlock } from "@/lib/render/renderSemanticBlock"
 
 

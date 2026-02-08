@@ -1,5 +1,5 @@
-import { resolvePresetToCanvas } from "../../../backend/src/design-systems/resolver/resolverPresetToCanvas"
-import { minimalSaasPreset } from "../../../backend/src/design-systems/presets/minimal-Saas"
+import { resolvePresetToCanvas } from "../design-systems/resolver/resolverPresetToCanvas"
+import { minimalSaasPreset } from "../design-systems/presets/minimal-Saas"
 
 export async function generateAndRender(canvas: fabric.Canvas, prompt: string) {
     const res = await fetch("/api/generate-wireframe", {
