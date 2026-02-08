@@ -11,7 +11,8 @@ app.use(cors())
 app.use(express.json())
 
 app.use("/generate", generateRoute)
+const PORT = process.env.PORT || 3001;
 
-app.listen(3001, () => {
-    console.log("Backend running")
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 })
