@@ -14,6 +14,6 @@ const DENSITY_MAP = {
         dominantRowSpan: 2,
         supportingRowSpan: 1
     }
-} as const
+} as const;
 
 export default DENSITY_MAP
