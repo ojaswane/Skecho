@@ -28,23 +28,14 @@ Output ONLY valid JSON:
       "role": "refinement", 
       "id": "screen_1", 
       "name": "Refined Sketch", 
-      "layoutPattern": "..." 
-    },
-    { 
-      "role": "suggestion", 
-      "id": "screen_2", 
-      "name": "Suggested Dashboard", 
-      "layoutPattern": "..." 
-    },
-    { 
-      "role": "suggestion", 
-      "id": "screen_3", 
-      "name": "Suggested Settings", 
-      "layoutPattern": "..." 
+      "frames": [
+        { "id": "f1", "role": "dominant", "text": "Header Area" },
+        { "id": "f2", "role": "supporting", "text": "Content Card" }
+      ]
     }
   ]
 }
-
+  
 REFINEMENT RULE: If existingLayout is provided, the first screen MUST follow that layout strictly.
 EXPANSION RULE: Suggested screens must use the same design language as the refinement.
 `;
@@ -167,6 +158,7 @@ async function* callAI(system: string, payload: any) {
         body: JSON.stringify({
             model: "deepseek/deepseek-chat",
             stream: true,
+            max_tokens: 2000,
             messages: [
                 { role: "system", content: system },
                 { role: "user", content: JSON.stringify(payload) }
@@ -318,3 +310,28 @@ router.post("/", async (req, res) => {
 });
 
 export default router
+
+// STRICT OUTPUT FORMAT:
+// Output ONLY valid JSON:
+// {
+//   "screens": [
+//     {
+//       "role": "refinement",
+//       "id": "screen_1",
+//       "name": "Refined Sketch",
+//       "layoutPattern": "..."
+//     },
+//     {
+//       "role": "suggestion",
+//       "id": "screen_2",
+//       "name": "Suggested Dashboard",
+//       "layoutPattern": "..."
+//     },
+//     {
+//       "role": "suggestion",
+//       "id": "screen_3",
+//       "name": "Suggested Settings",
+//       "layoutPattern": "..."
+//     }
+//   ]
+// }
