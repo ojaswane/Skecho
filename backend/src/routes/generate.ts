@@ -129,24 +129,45 @@ type OpenRouterResponse = {
 /* ---------------- UTILS ---------------- */
 
 function extractJSON(text: string) {
-    const match = text.match(/\{[\s\S]*\}/)
-    if (!match) return null
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+
     try {
-        return JSON.parse(match[0])
-    } catch {
-        return null
+        const cleanJson = match[0]
+            .replace(/```json/g, "")
+            .replace(/```/g, "");
+        return JSON.parse(cleanJson);
+    } catch (e) {
+        console.error("JSON Parse Error. Raw text found:", match[0]);
+        return null;
     }
 }
 
 console.log("Key Check:", process.env.GEMINI_API_KEY?.slice(0, 5) + "...");
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+    console.error("GEMINI_API_KEY is missing in environment variables.");
+    process.exit(1);
+}
+
+const getModel = (systemPrompt: string) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("API Key missing at runtime");
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    return genAI.getGenerativeModel({
+        model: "models/gemini-1.5-flash",
+        systemInstruction: systemPrompt,
+        generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.2,
+        }
+    });
+};
 
 async function* callAI(SYSTEM_PROMPT: string, payload: { imageBase64?: string, prompt?: string }) {
 
-    const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        systemInstruction: SYSTEM_PROMPT, // Gemini prompt support
-    });
+    const model = getModel(SYSTEM_PROMPT);
 
     // Prepare the content parts (Text + Image)
     const parts: any[] = [payload.prompt || "Analyze this sketch for a SaaS layout."];
@@ -243,7 +264,7 @@ function normalizeForCanvas(layout: any) {
 router.post("/", async (req, res) => {
     const { prompt, imageBase64, density = "normal" } = req.body;
 
-    // Tell the browser to stay open for a stream
+    // Telling the browser to stay open for a stream
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -252,7 +273,7 @@ router.post("/", async (req, res) => {
         // Get the Plan 
         const stream1 = callAI(SYSTEM_PROMPT_1, {
             prompt: prompt || "Analyze this sketch and refine it.",
-            imageBase64: imageBase64 // This is the crucial link!
+            imageBase64: imageBase64
         });
         const design = await gatherStream(stream1);
         console.log("AI PLAN:", JSON.stringify(design, null, 2))
@@ -262,13 +283,14 @@ router.post("/", async (req, res) => {
             screens: design.screens.map((s: any) => ({ id: s.id, role: s.role }))
         })}\n\n`);
 
-        if (!design?.screens) {
-            console.error("No screens in design!");
-            res.write(`data: ${JSON.stringify({ error: "Failed to plan" })}\n\n`);
+        if (!design || !design.screens) {
+            console.error("AI PLAN failed or returned null.");
+            res.write(`data: ${JSON.stringify({ error: "AI failed to generate a plan." })}\n\n`);
             return res.end();
         }
 
-        // Process each screen and PUSH it immediately
+        console.log("AI PLAN:", JSON.stringify(design, null, 2));
+
         for (const screen of design.screens) {
             try {
                 // Ensure frames exist before layout
