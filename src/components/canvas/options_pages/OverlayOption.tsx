@@ -135,8 +135,8 @@ const FramesOverlay = ({ frame }: any) => {
             setloader(true)
 
             const imageBase64 = canvas.toDataURL({
-                format: "png",
-                quality: 0.8,
+                format: "jpeg",
+                quality: 0.5,
                 multiplier: 2, // Increase resolution for better AI analysis
             })
 
