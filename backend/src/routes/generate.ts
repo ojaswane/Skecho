@@ -156,7 +156,7 @@ const getModel = (systemPrompt: string) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     return genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-1.5-flash",
         systemInstruction: systemPrompt,
         generationConfig: {
             responseMimeType: "application/json",
@@ -258,65 +258,66 @@ function normalizeForCanvas(layout: any) {
     return layout
 }
 
-
 /* ---------------- ROUTE ------------------- */
 
 router.post("/", async (req, res) => {
     const { prompt, imageBase64, density = "normal" } = req.body;
 
-    // Telling the browser to stay open for a stream
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
     try {
-        // Get the Plan 
         const stream1 = callAI(SYSTEM_PROMPT_1, {
             prompt: prompt || "Analyze this sketch and refine it.",
             imageBase64: imageBase64
         });
+
         const design = await gatherStream(stream1);
-        console.log("AI PLAN:", JSON.stringify(design, null, 2))
+
+        if (!design || !design.screens) {
+            console.error(" AI failed to return a plan (Quota or Parse Error).");
+            res.write(`data: ${JSON.stringify({
+                error: "QUOTA_EXCEEDED",
+                message: "Gemini API limit reached. Please wait 60 seconds."
+            })}\n\n`);
+            return res.end();
+        }
+
+        console.log("AI PLAN RECEIVED:", JSON.stringify(design, null, 2));
 
         res.write(`data: ${JSON.stringify({
             type: "PLAN",
-            screens: design.screens.map((s: any) => ({ id: s.id, role: s.role }))
+            screens: design.screens.map((s: any) => ({
+                id: s.id || crypto.randomUUID(),
+                role: s.role || "suggestion"
+            }))
         })}\n\n`);
-
-        if (!design || !design.screens) {
-            console.error("❌ AI failed to return a plan (likely Quota/Rate Limit).");
-            res.write(`data: ${JSON.stringify({
-                error: "QUOTA_EXCEEDED",
-                message: "Please wait a few minutes or use a smaller image."
-            })}\n\n`);
-            return res.end(); 
-        }
-        console.log("AI PLAN:", JSON.stringify(design, null, 2));
 
         for (const screen of design.screens) {
             try {
-                // Ensure frames exist before layout
                 if (!screen.frames) screen.frames = [];
 
-                // Layout
                 const withLayout = applyLayout({ screens: [screen] }, density as any);
                 const normalized = normalizeForCanvas(withLayout);
 
-                // Skip refinement if it's causing the crash
-                // For now, let's just send the normalized screen to see it work!
                 res.write(`data: ${JSON.stringify({
                     type: "SCREEN_DONE",
                     data: normalized.screens[0]
                 })}\n\n`);
 
             } catch (screenErr) {
-                console.error("Error processing individual screen:", screenErr);
+                console.error("Error processing screen:", screenErr);
             }
         }
 
+        res.write(`data: [DONE]\n\n`);
+        res.end();
+
     } catch (err) {
-        console.error(err);
-        res.write(`data: ${JSON.stringify({ error: "Pipeline failed" })}\n\n`);
+        console.error("Pipeline Error:", err);
+        // Clean error response
+        res.write(`data: ${JSON.stringify({ error: "API_ERROR", message: "Check server logs for quota details" })}\n\n`);
         res.end();
     }
 });
