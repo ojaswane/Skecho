@@ -134,12 +134,19 @@ const FramesOverlay = ({ frame }: any) => {
         try {
             setloader(true)
 
+            const imageBase64 = canvas.toDataURL({
+                format: "png",
+                quality: 0.8,
+                multiplier: 2, // Increase resolution for better AI analysis
+            })
+
             const response = await fetch("http://localhost:4000/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     source: "sketch",
                     prompt: userPrompt.trim(),
+                    imageBase64: imageBase64,
                     existingLayout: canvasData,
                     frame: {
                         width: frame.width,
