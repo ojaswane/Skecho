@@ -2,6 +2,7 @@ import fetch from "node-fetch"
 import Router from "express"
 import { WireframeSchema } from "../../validation/wireframe.schema.js"
 import DENSITY_MAP from "../constants/densityMap/density_map.js"
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const router = Router()
 
@@ -195,6 +196,7 @@ async function* callAI(system: string, payload: any) {
         }
     }
 }
+
 async function gatherStream(stream: AsyncGenerator<string>) {
     let fullText = "";
     try {
