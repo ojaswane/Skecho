@@ -156,7 +156,7 @@ const getModel = (systemPrompt: string) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     return genAI.getGenerativeModel({
-        model: "models/gemini-1.5-flash",
+        model: "gemini-2.0-flash",
         systemInstruction: systemPrompt,
         generationConfig: {
             responseMimeType: "application/json",
@@ -284,11 +284,13 @@ router.post("/", async (req, res) => {
         })}\n\n`);
 
         if (!design || !design.screens) {
-            console.error("AI PLAN failed or returned null.");
-            res.write(`data: ${JSON.stringify({ error: "AI failed to generate a plan." })}\n\n`);
-            return res.end();
+            console.error("❌ AI failed to return a plan (likely Quota/Rate Limit).");
+            res.write(`data: ${JSON.stringify({
+                error: "QUOTA_EXCEEDED",
+                message: "Please wait a few minutes or use a smaller image."
+            })}\n\n`);
+            return res.end(); 
         }
-
         console.log("AI PLAN:", JSON.stringify(design, null, 2));
 
         for (const screen of design.screens) {

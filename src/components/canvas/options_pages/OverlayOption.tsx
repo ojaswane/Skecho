@@ -133,11 +133,12 @@ const FramesOverlay = ({ frame }: any) => {
 
         try {
             setloader(true)
+            const parts: any[] = []
 
             const imageBase64 = canvas.toDataURL({
                 format: "jpeg",
-                quality: 0.5,
-                multiplier: 0.5, // Increase resolution for better AI analysis
+                quality: 0.2,
+                multiplier: 0.5,
             })
 
             const response = await fetch("http://localhost:4000/generate", {
