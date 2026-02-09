@@ -148,7 +148,7 @@ async function* callAI(SYSTEM_PROMPT: string, payload: { imageBase64?: string, p
     });
 
     // Prepare the content parts (Text + Image)
-    const parts: any[] = [payload.prompt || "Analyze this sketch for a Yoga/SaaS layout."];
+    const parts: any[] = [payload.prompt || "Analyze this sketch for a SaaS layout."];
 
     if (payload.imageBase64) {
         parts.push({
