@@ -14,32 +14,21 @@ router.get("/", (_, res) => {
 
 /* ---------------- SYSTEM PROMPT ---------------- */
 const SYSTEM_PROMPT_1 = `
-You are a SENIOR PRODUCT DESIGNER.
-You will receive a user's prompt and potentially an "existingLayout" (their sketch).
+You are a SENIOR PRODUCT DESIGNER specialized in Yoga/SaaS aesthetics.
+You will receive a user's prompt and an image of their hand-drawn sketch.
 
 TASK:
-1. Identify the 'Refined' screen: This is the user's sketch cleaned up and perfected. 
-2. Identify 'Expansion' screens: These are 2 logical "next steps" in the user journey.
+1. REFINEMENT: Interpret the sketch. If the user drew a circle at the top, it's a "dominant" logo or profile. Boxes are "frames". 
+2. STRUCTURE: Return a JSON structure representing the refined version of that sketch plus two expansion screens.
+
+YOGA/SAAS STYLE RULES:
+- Use SERIF_ELEGANT for dominant headers.
+- Use SANS_MODERN for supporting cards.
+- Maximize white space (Airy density).
 
 STRICT OUTPUT FORMAT:
-Output ONLY valid JSON:
-{
-  "screens": [
-    { 
-      "role": "refinement", 
-      "id": "screen_1", 
-      "name": "Refined Sketch", 
-      "frames": [
-        { "id": "f1", "role": "dominant", "text": "Header Area" },
-        { "id": "f2", "role": "supporting", "text": "Content Card" }
-      ]
-    }
-  ]
-}
-
-REFINEMENT RULE: If existingLayout is provided, the first screen MUST follow that layout strictly.
-EXPANSION RULE: Suggested screens must use the same design language as the refinement.
-`;
+(Keep your existing JSON schema here)
+`
 
 const DESIGN_CONSTITUTION = `
 NON - NEGOTIABLE DESIGN LAWS:
@@ -149,51 +138,41 @@ function extractJSON(text: string) {
     }
 }
 
-async function* callAI(system: string, payload: any) {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            model: "deepseek/deepseek-chat",
-            stream: true,
-            max_tokens: 2000,
-            messages: [
-                { role: "system", content: system },
-                { role: "user", content: JSON.stringify(payload) }
-            ]
-        })
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+
+async function* callAI(SYSTEM_PROMPT: string, payload: { imageBase64?: string, prompt?: string }) {
+
+    const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        systemInstruction: SYSTEM_PROMPT, // Gemini prompt support
     });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error(" OpenRouter Error:", errorText);
-        return;
+    // Prepare the content parts (Text + Image)
+    const parts: any[] = [payload.prompt || "Analyze this sketch for a Yoga/SaaS layout."];
+
+    if (payload.imageBase64) {
+        parts.push({
+            inlineData: {
+                mimeType: "image/png",
+                data: payload.imageBase64.split(",")[1]
+            }
+        });
     }
 
-    for await (const chunk of response.body as any) {
-        const decoder = new TextDecoder();
-        const chunkText = decoder.decode(chunk);
+    try {
+        // Start the stream
+        const result = await model.generateContentStream(parts);
 
-        // Look for lines starting with data:
-        const lines = chunkText.split('\n');
-
-        for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const data = line.slice(6).trim();
-
-            if (data === '[DONE]') return;
-
-            try {
-                const parsed = JSON.parse(data);
-                const content = parsed.choices[0]?.delta?.content;
-                if (content) yield content;
-            } catch (e) {
-                // not that imp
+        // Iterate through the stream chunks
+        for await (const chunk of result.stream) {
+            const chunkText = chunk.text();
+            if (chunkText) {
+                yield chunkText;
             }
         }
+    } catch (error) {
+        console.error("Gemini Stream Error:", error);
+        throw error;
     }
 }
 
@@ -261,7 +240,7 @@ function normalizeForCanvas(layout: any) {
 /* ---------------- ROUTE ------------------- */
 
 router.post("/", async (req, res) => {
-    const { prompt, density = "normal" } = req.body;
+    const { prompt, imageBase64, density = "normal" } = req.body;
 
     // Tell the browser to stay open for a stream
     res.setHeader('Content-Type', 'text/event-stream');
@@ -271,7 +250,8 @@ router.post("/", async (req, res) => {
     try {
         // Get the Plan 
         const stream1 = callAI(SYSTEM_PROMPT_1, {
-            productIntent: prompt
+            prompt: prompt || "Analyze this sketch and refine it.",
+            imageBase64: imageBase64 // This is the crucial link!
         });
         const design = await gatherStream(stream1);
         console.log("AI PLAN:", JSON.stringify(design, null, 2))
@@ -317,28 +297,3 @@ router.post("/", async (req, res) => {
 });
 
 export default router
-
-// STRICT OUTPUT FORMAT:
-// Output ONLY valid JSON:
-// {
-//   "screens": [
-//     {
-//       "role": "refinement",
-//       "id": "screen_1",
-//       "name": "Refined Sketch",
-//       "layoutPattern": "..."
-//     },
-//     {
-//       "role": "suggestion",
-//       "id": "screen_2",
-//       "name": "Suggested Dashboard",
-//       "layoutPattern": "..."
-//     },
-//     {
-//       "role": "suggestion",
-//       "id": "screen_3",
-//       "name": "Suggested Settings",
-//       "layoutPattern": "..."
-//     }
-//   ]
-// }
