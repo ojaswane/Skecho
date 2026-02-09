@@ -138,7 +138,8 @@ function extractJSON(text: string) {
     }
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+console.log("Key Check:", process.env.GEMINI_API_KEY?.slice(0, 5) + "...");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 async function* callAI(SYSTEM_PROMPT: string, payload: { imageBase64?: string, prompt?: string }) {
 

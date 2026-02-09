@@ -1,6 +1,7 @@
 import express from "express"
 import cors from "cors"
 import generateRoute from "./routes/generate.js"
+import 'dotenv/config'
 import dotenv from 'dotenv'
 
 dotenv.config()
