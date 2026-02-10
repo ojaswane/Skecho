@@ -154,8 +154,8 @@ async function* callAI(SYSTEM_PROMPT: string, payload: { imageBase64?: string, p
                 "HTTP-Referer": "http://localhost:3000",
                 "X-Title": "Wireframe-App"
             },
-            body: JSON.stringify({
-                model: "google/gemini-2.0-flash-exp:free",
+            body: JSON.stringify({ 
+                model: "openai/gpt-4o-mini",
                 stream: true,
                 messages: [
                     {
