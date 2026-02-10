@@ -1,17 +1,9 @@
-import fetch from "node-fetch"
-import { randomUUID } from "crypto"
-import Router from "express"
-import { WireframeSchema } from "../../validation/wireframe.schema.js"
-import DENSITY_MAP from "../constants/densityMap/density_map.js"
+import { randomUUID } from "crypto";
+import Router from "express";
+import DENSITY_MAP from "../constants/densityMap/density_map.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const router = Router()
-
-/* ---------------- TEST ---------------- */
-
-router.get("/", (_, res) => {
-    res.json({ status: "ok", message: "Backend running" })
-})
+const router = Router();
 
 /* ---------------- SYSTEM PROMPT ---------------- */
 const SYSTEM_PROMPT_1 = `
@@ -29,7 +21,7 @@ YOGA/SAAS STYLE RULES:
 
 STRICT OUTPUT FORMAT:
 (Keep your existing JSON schema here)
-`
+`;
 
 const DESIGN_CONSTITUTION = `
 NON - NEGOTIABLE DESIGN LAWS:
@@ -63,43 +55,24 @@ Output ONLY valid JSON.
 Root key must be "screens".
 `
 
-// const BLOCK_ORDER = [
-//     "profile_image",
-//     "content_image",
-//     "title_text",
-//     "meta_text",
-//     "body_text",
-//     "primary_action"
-// ]
-
-
-/* ----------------- FUNCTIONS ---------------*/
-
+/* ----------------- LAYOUT UTILS ---------------*/
 type DensityLevel = 'airy' | 'normal' | 'compact';
 function applyLayout(design: any, density: DensityLevel = "normal") {
-    //  the specific configuration for the chosen density
     const densityConfig = DENSITY_MAP[density];
     const TOTAL_COLUMNS = 12;
-
     return {
         ...design,
         screens: design.screens.map((screen: any) => {
             let currentRow = 1;
-
             return {
                 ...screen,
-                // Fallback to empty array to prevent mapping over undefined
                 frames: (screen.frames || []).map((frame: any) => {
                     const isDominant = frame.role === "dominant";
-
                     let span = frame.span || (isDominant ? 12 : 6);
-
                     let col = frame.col || (span === 12 ? 1 : Math.floor((12 - span) / 2) + 1);
-
                     const rowSpan = isDominant
                         ? densityConfig.dominantRowSpan
                         : densityConfig.supportingRowSpan;
-
                     const placed = {
                         ...frame,
                         col: Math.floor(col),
@@ -108,11 +81,9 @@ function applyLayout(design: any, density: DensityLevel = "normal") {
                         rowSpan,
                         type: "card"
                     };
-
                     if (span > 8) {
                         currentRow += rowSpan + densityConfig.rowGap;
                     }
-
                     return placed;
                 })
             };
@@ -120,19 +91,27 @@ function applyLayout(design: any, density: DensityLevel = "normal") {
     };
 }
 
-
-/* ---------------- TYPES ---------------- */
-
-type OpenRouterResponse = {
-    choices: { message: { content: string } }[]
+function normalizeForCanvas(layout: any) {
+    layout.screens = layout.screens.map((s, si) => ({
+        id: s.id || `screen-${si + 1}`,
+        name: s.name || `Screen ${si + 1}`,
+        frames: (s.frames || []).map((f, fi) => ({
+            id: f.id || `frame-${si}-${fi}`,
+            type: f.type || "card",
+            role: f.role,
+            text: f.text,
+            col: f.col ?? f.colStart ?? 1,
+            row: f.row ?? f.rowStart ?? 1,
+            span: f.span ?? f.colSpan ?? 12,
+            rowSpan: f.rowSpan ?? 1,
+        })),
+    }));
+    return layout;
 }
 
-/* ---------------- UTILS ---------------- */
-
-function extractJSON(text: string) {
+function parseGeminiJson(text: string) {
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) return null;
-
     try {
         const cleanJson = match[0]
             .replace(/```json/g, "")
@@ -144,182 +123,59 @@ function extractJSON(text: string) {
     }
 }
 
-async function* callAI(SYSTEM_PROMPT: string, payload: { imageBase64?: string, prompt?: string }) {
-    try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": "http://localhost:3000",
-                "X-Title": "Wireframe-App"
-            },
-            body: JSON.stringify({ 
-                model: "openai/gpt-4o-mini",
-                stream: true,
-                messages: [
-                    {
-                        role: "system",
-                        content: SYSTEM_PROMPT
-                    },
-                    {
-                        role: "user",
-                        content: [
-                            { type: "text", text: payload.prompt || "Generate a UI layout based on this sketch." },
-                            {
-                                type: "image_url",
-                                image_url: {
-                                    url: payload.imageBase64
-                                }
-                            }
-                        ]
-                    }
-                ]
-            })
-        });
-
-
-        if (!response.ok) {
-            const errBody = await response.json();
-            // Defensive: errBody may be any type
-            const message = (typeof errBody === 'object' && errBody && 'error' in errBody && typeof errBody.error === 'object' && errBody.error && 'message' in errBody.error)
-                ? (errBody.error.message as string)
-                : "OpenRouter API Error";
-            throw new Error(message);
+    async function callGemini(systemPrompt: string, payload: { imageBase64?: string, prompt?: string }) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("GEMINI_API_KEY is missing in environment variables.");
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        systemInstruction: systemPrompt,
+        generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.2,
         }
+    });
 
-        // Node.js ReadableStream does not have getReader, so use a polyfill if needed
-        let reader: any;
-        if (response.body && typeof (response.body as any).getReader === 'function') {
-            reader = (response.body as any).getReader();
-        } else if (response.body && typeof (response.body as any).on === 'function') {
-            // Node.js stream.Readable
-            const stream = response.body as NodeJS.ReadableStream;
-            const { Readable } = await import('stream');
-            const readable = Readable.from(stream);
-            const iterator = readable[Symbol.asyncIterator]();
-            reader = {
-                async read() {
-                    const { value, done } = await iterator.next();
-                    return { value, done };
-                }
-            };
-        } else {
-            throw new Error('No compatible stream reader found');
-        }
-        const decoder = new TextDecoder();
+    const userParts: any[] = [];
+    if (payload.prompt) userParts.push({ text: payload.prompt });
+    if (payload.imageBase64) userParts.push({ inlineData: { mimeType: "image/png", data: payload.imageBase64 } });
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value);
-            const lines = chunk.split("\n").filter(line => line.trim() !== "");
-
-            for (const line of lines) {
-                if (line.includes("[DONE]")) return;
-                if (!line.startsWith("data: ")) continue;
-
-                try {
-                    const data = JSON.parse(line.replace("data: ", ""));
-                    const content = data.choices[0]?.delta?.content;
-                    if (content) yield content;
-                } catch (e) { /* ignore partial chunks */ }
-            }
-        }
-    } catch (error) {
-        console.error("AI Fetch Error:", error);
-        throw error;
+    const result = await model.generateContent({ contents: [{ role: "user", parts: userParts }] });
+    let text = result.response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    if (!text) {
+        const fallback = result.response.text;
+        text = typeof fallback === "function" ? fallback() : fallback || "";
     }
-}
-
-async function gatherStream(stream: AsyncGenerator<string>) {
-    let fullText = "";
-    try {
-        for await (const chunk of stream) {
-            fullText += chunk;
-        }
-        const json = extractJSON(fullText);
-        if (!json) {
-            console.error("AI returned invalid JSON. Raw text:", fullText);
-        }
-        return json;
-    } catch (e) {
-        console.error("Error gathering stream:", e);
-        return null;
-    }
-}
-
-function normalizeForCanvas(layout: any) {
-    layout.screens = layout.screens.map((s, si) => ({
-        id: s.id || `screen-${si + 1}`,
-        name: s.name || `Screen ${si + 1}`,
-
-        frames: (s.frames || []).map((f, fi) => {
-            const col =
-                f.col ??
-                f.colStart ??
-                1
-
-            const row =
-                f.row ??
-                f.rowStart ??
-                1
-
-            const span =
-                f.span ??
-                f.colSpan ??
-                12
-
-            const rowSpan =
-                f.rowSpan ??
-                1
-
-            return {
-                id: f.id || `frame-${si}-${fi}`,
-                type: f.type || "card",
-                role: f.role,
-                text: f.text,
-
-                col,
-                row,
-                span,
-                rowSpan,
-            }
-        }),
-    }))
-
-    console.log("PRE-ZOD:", JSON.stringify(layout, null, 2))
-    return layout
+    return text;
 }
 
 /* ---------------- ROUTE ------------------- */
-
 router.post("/", async (req, res) => {
     const { prompt, imageBase64, density = "normal" } = req.body;
 
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
 
     try {
-        const stream1 = callAI(SYSTEM_PROMPT_1, {
+        // 1. Get design from Gemini
+        const geminiText = await callGemini(SYSTEM_PROMPT_1, {
             prompt: prompt || "Analyze this sketch and refine it.",
             imageBase64: imageBase64
         });
-
-        const design = await gatherStream(stream1);
+        const design = parseGeminiJson(geminiText);
 
         if (!design || !design.screens) {
-            console.error("AI failed to return a plan.");
+            console.error("AI didn't return a valid design structure. Raw:", geminiText);
             res.write(`data: ${JSON.stringify({
                 error: "AI_PARSE_ERROR",
-                message: "The AI didn't return a valid design structure. Check OpenRouter credits."
+                message: "The AI didn't return a valid design structure. Check Gemini API key/credits.",
+                raw: geminiText
             })}\n\n`);
             return res.end();
         }
-        console.log("AI PLAN RECEIVED:", JSON.stringify(design, null, 2));
 
+        // 2. Stream PLAN event
         res.write(`data: ${JSON.stringify({
             type: "PLAN",
             screens: design.screens.map((s: any) => ({
@@ -328,18 +184,16 @@ router.post("/", async (req, res) => {
             }))
         })}\n\n`);
 
+        // 3. Stream each screen after layout/normalization
         for (const screen of design.screens) {
             try {
                 if (!screen.frames) screen.frames = [];
-
                 const withLayout = applyLayout({ screens: [screen] }, density as any);
                 const normalized = normalizeForCanvas(withLayout);
-
                 res.write(`data: ${JSON.stringify({
                     type: "SCREEN_DONE",
                     data: normalized.screens[0]
                 })}\n\n`);
-
             } catch (screenErr) {
                 console.error("Error processing screen:", screenErr);
             }
@@ -350,10 +204,9 @@ router.post("/", async (req, res) => {
 
     } catch (err) {
         console.error("Pipeline Error:", err);
-        // Clean error response
-        res.write(`data: ${JSON.stringify({ error: "API_ERROR", message: "Check server logs for quota details" })}\n\n`);
+        res.write(`data: ${JSON.stringify({ error: "API_ERROR", message: "Check server logs for Gemini details" })}\n\n`);
         res.end();
     }
 });
 
-export default router
+export default router;
