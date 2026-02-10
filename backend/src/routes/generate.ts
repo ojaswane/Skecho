@@ -1,4 +1,5 @@
 import fetch from "node-fetch"
+import { randomUUID } from "crypto"
 import Router from "express"
 import { WireframeSchema } from "../../validation/wireframe.schema.js"
 import DENSITY_MAP from "../constants/densityMap/density_map.js"
@@ -143,57 +144,116 @@ function extractJSON(text: string) {
     }
 }
 
-console.log("Key Check:", process.env.GEMINI_API_KEY?.slice(0, 5) + "...");
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-    console.error("GEMINI_API_KEY is missing in environment variables.");
-    process.exit(1);
-}
+// console.log("Key Check:", process.env.GEMINI_API_KEY?.slice(0, 5) + "...");
+// const apiKey = process.env.GEMINI_API_KEY;
+// if (!apiKey) {
+//     console.error("GEMINI_API_KEY is missing in environment variables.");
+//     process.exit(1);
+// }
 
-const getModel = (systemPrompt: string) => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error("API Key missing at runtime");
+// const getModel = (systemPrompt: string) => {
+//     const apiKey = process.env.GEMINI_API_KEY;
+//     if (!apiKey) throw new Error("API Key missing at runtime");
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    return genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        systemInstruction: systemPrompt,
-        generationConfig: {
-            responseMimeType: "application/json",
-            temperature: 0.2,
-        }
-    });
-};
+//     const genAI = new GoogleGenerativeAI(apiKey);
+//     return genAI.getGenerativeModel({
+//         model: "gemini-1.5-flash",
+//         systemInstruction: systemPrompt,
+//         generationConfig: {
+//             responseMimeType: "application/json",
+//             temperature: 0.2,
+//         }
+//     });
+// };
+
 
 async function* callAI(SYSTEM_PROMPT: string, payload: { imageBase64?: string, prompt?: string }) {
-
-    const model = getModel(SYSTEM_PROMPT);
-
-    // Prepare the content parts (Text + Image)
-    const parts: any[] = [payload.prompt || "Analyze this sketch for a SaaS layout."];
-
-    if (payload.imageBase64) {
-        parts.push({
-            inlineData: {
-                mimeType: "image/png",
-                data: payload.imageBase64.split(",")[1]
-            }
-        });
-    }
-
     try {
-        // Start the stream
-        const result = await model.generateContentStream(parts);
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                "Content-Type": "application/json",
+                // Required by OpenRouter for some models
+                "HTTP-Referer": "http://localhost:3000",
+                "X-Title": "Wireframe-App"
+            },
+            body: JSON.stringify({
+                // Change to a model that can see images
+                model: "openai/gpt-4o-mini",
+                stream: true,
+                messages: [
+                    {
+                        role: "system",
+                        content: SYSTEM_PROMPT
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            { type: "text", text: payload.prompt || "Generate a UI layout based on this sketch." },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: payload.imageBase64 // This sends the canvas drawing to the AI
+                                }
+                            }
+                        ]
+                    }
+                ]
+            })
+        });
 
-        // Iterate through the stream chunks
-        for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
-            if (chunkText) {
-                yield chunkText;
+
+        if (!response.ok) {
+            const errBody = await response.json();
+            // Defensive: errBody may be any type
+            const message = (typeof errBody === 'object' && errBody && 'error' in errBody && typeof errBody.error === 'object' && errBody.error && 'message' in errBody.error)
+                ? (errBody.error.message as string)
+                : "OpenRouter API Error";
+            throw new Error(message);
+        }
+
+        // Node.js ReadableStream does not have getReader, so use a polyfill if needed
+        let reader: any;
+        if (response.body && typeof (response.body as any).getReader === 'function') {
+            reader = (response.body as any).getReader();
+        } else if (response.body && typeof (response.body as any).on === 'function') {
+            // Node.js stream.Readable
+            const stream = response.body as NodeJS.ReadableStream;
+            const { Readable } = await import('stream');
+            const readable = Readable.from(stream);
+            const iterator = readable[Symbol.asyncIterator]();
+            reader = {
+                async read() {
+                    const { value, done } = await iterator.next();
+                    return { value, done };
+                }
+            };
+        } else {
+            throw new Error('No compatible stream reader found');
+        }
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n").filter(line => line.trim() !== "");
+
+            for (const line of lines) {
+                if (line.includes("[DONE]")) return;
+                if (!line.startsWith("data: ")) continue;
+
+                try {
+                    const data = JSON.parse(line.replace("data: ", ""));
+                    const content = data.choices[0]?.delta?.content;
+                    if (content) yield content;
+                } catch (e) { /* ignore partial chunks */ }
             }
         }
     } catch (error) {
-        console.error("Gemini Stream Error:", error);
+        console.error("AI Fetch Error:", error);
         throw error;
     }
 }
@@ -276,20 +336,19 @@ router.post("/", async (req, res) => {
         const design = await gatherStream(stream1);
 
         if (!design || !design.screens) {
-            console.error(" AI failed to return a plan (Quota or Parse Error).");
+            console.error("AI failed to return a plan.");
             res.write(`data: ${JSON.stringify({
-                error: "QUOTA_EXCEEDED",
-                message: "Gemini API limit reached. Please wait 60 seconds."
+                error: "AI_PARSE_ERROR",
+                message: "The AI didn't return a valid design structure. Check OpenRouter credits."
             })}\n\n`);
             return res.end();
         }
-
         console.log("AI PLAN RECEIVED:", JSON.stringify(design, null, 2));
 
         res.write(`data: ${JSON.stringify({
             type: "PLAN",
             screens: design.screens.map((s: any) => ({
-                id: s.id || crypto.randomUUID(),
+                id: s.id || randomUUID(),
                 role: s.role || "suggestion"
             }))
         })}\n\n`);
