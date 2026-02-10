@@ -144,29 +144,6 @@ function extractJSON(text: string) {
     }
 }
 
-// console.log("Key Check:", process.env.GEMINI_API_KEY?.slice(0, 5) + "...");
-// const apiKey = process.env.GEMINI_API_KEY;
-// if (!apiKey) {
-//     console.error("GEMINI_API_KEY is missing in environment variables.");
-//     process.exit(1);
-// }
-
-// const getModel = (systemPrompt: string) => {
-//     const apiKey = process.env.GEMINI_API_KEY;
-//     if (!apiKey) throw new Error("API Key missing at runtime");
-
-//     const genAI = new GoogleGenerativeAI(apiKey);
-//     return genAI.getGenerativeModel({
-//         model: "gemini-1.5-flash",
-//         systemInstruction: systemPrompt,
-//         generationConfig: {
-//             responseMimeType: "application/json",
-//             temperature: 0.2,
-//         }
-//     });
-// };
-
-
 async function* callAI(SYSTEM_PROMPT: string, payload: { imageBase64?: string, prompt?: string }) {
     try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -174,13 +151,11 @@ async function* callAI(SYSTEM_PROMPT: string, payload: { imageBase64?: string, p
             headers: {
                 "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
                 "Content-Type": "application/json",
-                // Required by OpenRouter for some models
                 "HTTP-Referer": "http://localhost:3000",
                 "X-Title": "Wireframe-App"
             },
             body: JSON.stringify({
-                // Change to a model that can see images
-                model: "openai/gpt-4o-mini",
+                model: "google/gemini-2.0-flash-exp:free",
                 stream: true,
                 messages: [
                     {
@@ -194,7 +169,7 @@ async function* callAI(SYSTEM_PROMPT: string, payload: { imageBase64?: string, p
                             {
                                 type: "image_url",
                                 image_url: {
-                                    url: payload.imageBase64 // This sends the canvas drawing to the AI
+                                    url: payload.imageBase64
                                 }
                             }
                         ]
