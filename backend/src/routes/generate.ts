@@ -5,6 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const router = Router();
 
+
 /* ---------------- SYSTEM PROMPT ---------------- */
 const SYSTEM_PROMPT_1 = `
 You are a SENIOR PRODUCT DESIGNER specialized in Yoga/SaaS aesthetics.
