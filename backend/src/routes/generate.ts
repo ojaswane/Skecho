@@ -139,8 +139,16 @@ async function callGemini(systemPrompt: string, payload: { imageBase64?: string,
 
     const userParts: any[] = [];
     if (payload.prompt) userParts.push({ text: payload.prompt });
-    if (payload.imageBase64) userParts.push({ inlineData: { mimeType: "image/png", data: payload.imageBase64 } });
+    if (payload.imageBase64) {
+        const rawData = payload.imageBase64.split(",")[1] || payload.imageBase64;
 
+        userParts.push({
+            inlineData: {
+                mimeType: "image/png",
+                data: rawData
+            }
+        });
+    }
     const result = await model.generateContent({ contents: [{ role: "user", parts: userParts }] });
     let text = result.response.candidates?.[0]?.content?.parts?.[0]?.text || "";
     if (!text) {
