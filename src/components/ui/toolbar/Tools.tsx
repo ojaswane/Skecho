@@ -163,7 +163,17 @@ const Tools = () => {
                 onChange={handleImageUpload}
             />
 
-            <div className="col-span-1 flex justify-center items-center">
+            <div className="col-span-1 flex flex-col gap-4 justify-center items-center">
+                {/* This is the input section for what are you building */}
+                <div className=" backdrop-blur-xl 
+                    dark:bg-white/10 border dark:border-white/10 dark:text-neutral-300
+                    bg-black/30 border-black/20 text-black  saturate-150 shadow-lg p-2 w-2xl h-15 rounded-full">
+                    <div>
+                        
+                    </div>
+                </div>
+
+
                 <div className="inline-flex items-center rounded-full backdrop-blur-xl
                     dark:bg-white/10 border dark:border-white/10 dark:text-neutral-300
                     bg-black/30 border-black/20 text-black p-1 saturate-150 shadow-lg"
