@@ -167,9 +167,14 @@ const Tools = () => {
                 {/* This is the input section for what are you building */}
                 <div className=" backdrop-blur-xl 
                     dark:bg-white/10 border dark:border-white/10 dark:text-neutral-300
-                    bg-black/30 border-black/20 text-black  saturate-150 shadow-lg p-2 w-2xl h-15 rounded-full">
+                    bg-black/30 border-black/20 text-black  saturate-150 shadow-lg p-2 w-2xl h-15 rounded-2xl">
                     <div>
-                        <Input/>
+                        <Input className="rounded-full"
+                        placeholder="Describe what you are building..."
+                        />
+                    </div>
+                    <div>
+                        
                     </div>
                 </div>
 
