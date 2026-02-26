@@ -1,4 +1,4 @@
-import 'dotenv/config'; // THIS MUST BE LINE 1
+import 'dotenv/config';
 import express from "express";
 import cors from "cors";
 import generateRoute from "./routes/generate.js";
