@@ -21,6 +21,7 @@ import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
 import { Input } from "@/components/ui/input"
 type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow" | 'Sketch'
+import { Plus } from 'lucide-react';
 
 const Tools = () => {
     const { activeTool, setActiveTool } = useCanvasStore()
@@ -167,15 +168,15 @@ const Tools = () => {
                 {/* This is the input section for what are you building */}
                 <div className=" backdrop-blur-xl 
                     dark:bg-white/10 border dark:border-white/10 dark:text-neutral-300
-                    bg-black/30 border-black/20 text-black  saturate-150 shadow-lg p-2 w-2xl h-15 rounded-2xl">
+                    bg-black/30 border-black/20 text-black  saturate-150 shadow-lg p-2 w-2xl h-20 rounded-2xl">
                     <div>
                         <Input className="rounded-full"
                         placeholder="Describe what you are building..."
                         />
                     </div>
-                    <div>
-                        
-                    </div>
+                    <button className="w-7 h-7 mt-1 rounded-full border-dashed border-2 flex justify-center items-center">
+                        <Plus className="w-5 h-5"/>
+                    </button>
                 </div>
 
 
