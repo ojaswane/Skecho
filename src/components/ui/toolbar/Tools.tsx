@@ -19,7 +19,7 @@ import {
 import * as fabric from "fabric"
 import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
-
+import { Input } from "@/components/ui/input"
 type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow" | 'Sketch'
 
 const Tools = () => {
@@ -169,7 +169,7 @@ const Tools = () => {
                     dark:bg-white/10 border dark:border-white/10 dark:text-neutral-300
                     bg-black/30 border-black/20 text-black  saturate-150 shadow-lg p-2 w-2xl h-15 rounded-full">
                     <div>
-                        
+                        <Input/>
                     </div>
                 </div>
 
