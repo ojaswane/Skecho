@@ -463,7 +463,7 @@ const FramesOverlay = ({ frame }: any) => {
                                     >
                                         <X className="w-3 h-3" /> Discard
                                     </button>
-                                </div>
+                                </div>  
                             )
                         }
 

@@ -32,7 +32,7 @@ const Layers = () => {
     return (
         <div
             className="
-        w-64 h-full mt-10 rounded-xl
+        w-64 h-full mt-5 rounded-xl
         border border-white/20
         bg-white/10 dark:bg-white/5
         backdrop-blur-2xl

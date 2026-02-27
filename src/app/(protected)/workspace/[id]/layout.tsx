@@ -20,7 +20,7 @@ const Layout = () => {
       <div className="flex flex-1 overflow-hidden">
 
         {/* Layers */}
-        <div className="w-72 flex-shrink-0 flex flex-col justify-center items-center mr-2">
+        <div className="w-72 flex-shrink-0 flex flex-col justify-center items-center mr-1">
           <Layers />
         </div>
 
@@ -30,7 +30,7 @@ const Layout = () => {
         </div>
 
         {/* RIGHT SIDEBAR  */}
-        <div className="w-72 flex-shrink-0 flex flex-col justify-center items-center ml-2">
+        <div className="w-72 flex-shrink-0 flex flex-col justify-center items-center ml-1">
           <Objectdetails />
         </div>
 
