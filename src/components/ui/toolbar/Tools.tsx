@@ -165,7 +165,7 @@ const Tools = () => {
 
             <div className="col-span-1 flex flex-col gap-4 justify-center items-center">
 
-                {/* This is the input section for what are you building */}
+                {/* Describe section */}
                 <div className="flex items-center gap-2 p-1.5 px-3 w-full max-w-xl
                 backdrop-blur-xl saturate-150 shadow-sm rounded-full
                 dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10">
@@ -194,7 +194,7 @@ const Tools = () => {
                                 key={tool.name}
                                 title={tool.name}
                                 onClick={() => handleToolClick(tool.name)}
-                                className={`inline-grid h-9 w-9 place-items-center rounded-full transition-all
+                                className={`inline-grid h-7 w-7 place-items-center rounded-full transition-all
                                 ${isActive
                                         ? "bg-black/20 dark:bg-white/20"
                                         : "hover:bg-black/10 dark:hover:bg-white/10"
@@ -205,14 +205,14 @@ const Tools = () => {
                         )
                     })}
 
-                    <span className="mx-2 flex justify-center items-center">
+                    {/* <span className="mx-2 flex justify-center items-center">
                         <ThemeToggleButton
                             variant="circle-blur"
                             start="bottom-up"
                             blur
                             className="w-7 h-7"
                         />
-                    </span>
+                    </span> */}
                 </div>
             </div>
         </>

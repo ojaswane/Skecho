@@ -14,7 +14,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   const { setCanvas: setStoreCanvas, setSelectedObject } = useCanvasStore()
 
   /* =========================
-      CANVAS INIT
+    CANVAS INIT
   ========================= */
 
   useEffect(() => {
@@ -24,7 +24,6 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
       backgroundColor: theme === 'dark' ? '#1a1a1a' : '#ffffff',
       selection: true
     })
-    c.border
     c.setWidth(window.innerWidth)
     c.setHeight(window.innerHeight - 120)
 
