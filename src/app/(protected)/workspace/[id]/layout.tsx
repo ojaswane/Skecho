@@ -20,17 +20,17 @@ const Layout = () => {
       <div className="flex flex-1 overflow-hidden">
 
         {/* Layers */}
-        <div className="w-72">
+        <div className="w-72 flex-shrink-0 flex flex-col justify-center items-center mr-2">
           <Layers />
         </div>
 
         {/* CANVAS AREA */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
           <CanvasBoard theme={theme} />
         </div>
 
-        {/* RIGHT SIDEBAR (properties panel) */}
-        <div className="w-72 ">
+        {/* RIGHT SIDEBAR  */}
+        <div className="w-72 flex-shrink-0 flex flex-col justify-center items-center ml-2">
           <Objectdetails />
         </div>
 
