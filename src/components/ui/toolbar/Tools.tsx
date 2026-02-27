@@ -166,17 +166,20 @@ const Tools = () => {
 
             <div className="col-span-1 flex flex-col gap-4 justify-center items-center">
                 {/* This is the input section for what are you building */}
-                <div className=" backdrop-blur-xl 
-                    dark:bg-white/10 border dark:border-white/10 dark:text-neutral-300
-                    bg-black/30 border-black/20 text-black  saturate-150 shadow-lg p-2 w-2xl h-20 rounded-2xl">
-                    <div>
-                        <Input className="rounded-full"
-                        placeholder="Describe what you are building..."
-                        />
-                    </div>
-                    <button className="w-7 h-7 mt-1 rounded-full border-dashed border-2 flex justify-center items-center">
-                        <Plus className="w-5 h-5"/>
+                <div className="flex items-center gap-2 p-1.5 px-3 w-full max-w-xl
+                backdrop-blur-xl saturate-150 shadow-sm rounded-full
+                dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10">
+
+                    <button className="flex-shrink-0 w-6 h-6 rounded-full border-dashed border border-neutral-500/50 
+                       flex justify-center items-center hover:bg-white/10 transition-colors">
+                        <Plus className="w-4 h-4 text-neutral-500" />
                     </button>
+
+                    <input
+                        className="flex-1 bg-transparent border-none outline-none text-sm py-1
+                   dark:text-neutral-300 text-neutral-800 placeholder:text-neutral-500"
+                        placeholder="Describe what you are building..."
+                    />
                 </div>
 
 
