@@ -19,7 +19,6 @@ import {
 import * as fabric from "fabric"
 import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
-import { Input } from "@/components/ui/input"
 type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow" | 'Sketch'
 import { Plus } from 'lucide-react';
 
@@ -165,6 +164,7 @@ const Tools = () => {
             />
 
             <div className="col-span-1 flex flex-col gap-4 justify-center items-center">
+                
                 {/* This is the input section for what are you building */}
                 <div className="flex items-center gap-2 p-1.5 px-3 w-full max-w-xl
                 backdrop-blur-xl saturate-150 shadow-sm rounded-full
