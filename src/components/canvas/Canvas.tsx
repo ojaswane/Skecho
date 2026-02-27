@@ -275,7 +275,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
 
   return (
     <div className="relative w-full h-full overflow-hidden mt-5 flex justify-center items-start">
-      <div className="rounded-2xl shadow-lg overflow-hidden vignette-effect" style={{ background: theme === 'dark' ? '#1a1a1a' : '#fff', position: 'relative' }}>
+      <div className="rounded-2xl shadow-lg overflow-hidden vignette-effect" style={{ background: theme === 'dark' ? '#1a1a1a' : '#fff', position: 'relative', marginBottom: '0' }}>
         <canvas ref={canvasRef} style={{ borderRadius: '1rem', display: 'block' }} />
         <div className="absolute inset-0 pointer-events-none">
           <SelectionOverlay />
