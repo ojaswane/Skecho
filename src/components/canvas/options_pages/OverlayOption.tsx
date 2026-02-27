@@ -467,28 +467,17 @@ const FramesOverlay = ({ frame }: any) => {
                             )
                         }
 
-                        <Separator orientation="vertical" className="h-5 bg-white/20" />
-
-                        <input
-                            placeholder="Project name"
-                            className="bg-white/10 px-3 py-1.5 rounded-md outline-none"
-                            onChange={((e) => setPrompt(e.target.value))}
-                        />
-
-                        <input
-                            placeholder="Notes"
-                            className="bg-white/10 px-3 py-1.5 rounded-md outline-none"
-                        />
                     </div>
 
                     {/* RIGHT */}
                     <div className="flex gap-2">
-                        <label className="px-3 py-1.5 flex items-center gap-2 rounded-md bg-white/20 cursor-pointer">
+                        {/* <label className="px-3 py-1.5 flex items-center gap-2 rounded-md bg-white/20 cursor-pointer">
                             <ImagePlus className="w-4 h-4" />
                             Inspiration
                             <input type="file" multiple hidden />
-                        </label>
+                        </label> */}
 
+                        {/* This is for testing perpose */}
                         <GenerateButton onClick={GenerateTypeSketch} >
                             {loader ? (
                                 <span className="">
