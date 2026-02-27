@@ -177,6 +177,8 @@ const Tools = () => {
                     <input
                         className="flex-1 bg-transparent border-none outline-none text-sm py-1 dark:text-neutral-300 text-neutral-800 placeholder:text-neutral-500"
                         placeholder="Describe what you are building..."
+                        title={"inspired image"}
+                        name="inspired image"
                     />
                 </div>
 
