@@ -24,7 +24,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
       backgroundColor: theme === 'dark' ? '#1a1a1a' : '#ffffff',
       selection: true
     })
-
+    c.border
     c.setWidth(window.innerWidth)
     c.setHeight(window.innerHeight - 120)
 
@@ -236,12 +236,52 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [canvas])
 
 
+  // Add vignette effect styles once on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const vignetteStyleId = 'canvas-vignette-style';
+      if (!document.getElementById(vignetteStyleId)) {
+        const style = document.createElement('style');
+        style.id = vignetteStyleId;
+        style.innerHTML = `
+          .vignette-effect {
+            position: relative;
+          }
+          .vignette-effect::after {
+            content: '';
+            pointer-events: none;
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            height: 98%; /* leave bottom border clear */
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            z-index: 10;
+            box-shadow:
+              0 0 0 16px rgba(0,0,0,0.08),
+              0 0 64px 32px rgba(0,0,0,0.13);
+            background: linear-gradient(to bottom, rgba(0,0,0,0.13) 0%, rgba(0,0,0,0.07) 80%, rgba(0,0,0,0) 100%);
+            filter: blur(4px);
+            opacity: 0.85;
+            transition: opacity 0.3s;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+  }, []);
+
   return (
-    <div className="relative w-full h-full overflow-hidden">
-      <canvas ref={canvasRef} />
-      <div className="absolute inset-0 pointer-events-none">
-        <SelectionOverlay />
-        <FrameOverlays />
+    <div className="relative w-full h-full overflow-hidden mt-8 flex justify-center items-start">
+      <div className="rounded-2xl shadow-lg overflow-hidden vignette-effect" style={{ background: theme === 'dark' ? '#1a1a1a' : '#fff', position: 'relative' }}>
+        <canvas ref={canvasRef} style={{ borderRadius: '1rem', display: 'block' }} />
+        <div className="absolute inset-0 pointer-events-none">
+          <SelectionOverlay />
+          <FrameOverlays />
+        </div>
       </div>
     </div>
   )

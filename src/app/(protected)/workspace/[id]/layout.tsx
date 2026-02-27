@@ -11,7 +11,7 @@ const Layout = () => {
   const theme = useCanvasStore((s) => s.theme);
 
   return (
-    <main className="flex flex-col h-screen dark:bg-[#1a1a1a] bg-white dark:text-white text-black">
+    <main className="flex flex-col h-screen dark:bg-black bg-white dark:text-white text-black">
 
       {/* TOP NAV */}
       <Navbar />
