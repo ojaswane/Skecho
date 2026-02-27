@@ -160,60 +160,42 @@ async function callGemini(systemPrompt: string, payload: { imageBase64?: string,
 
 /* ---------------- ROUTE ------------------- */
 router.post("/", async (req, res) => {
-    const { prompt, imageBase64, density = "normal" } = req.body;
+    const { prompt, imageBase64, density = "airy" } = req.body;
 
+    // Set up real-time stream
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
     try {
-        // 1. Get design from Gemini
-        const geminiText = await callGemini(SYSTEM_PROMPT_1, {
-            prompt: prompt || "Analyze this sketch and refine it.",
-            imageBase64: imageBase64
+        // Step 1: Call Gemini
+        const rawText = await callGemini(SYSTEM_PROMPT_1, {
+            prompt: prompt || "Design this SaaS page",
+            imageBase64
         });
-        const design = parseGeminiJson(geminiText);
 
-        if (!design || !design.screens) {
-            console.error("AI didn't return a valid design structure. Raw:", geminiText);
-            res.write(`data: ${JSON.stringify({
-                error: "AI_PARSE_ERROR",
-                message: "The AI didn't return a valid design structure. Check Gemini API key/credits.",
-                raw: geminiText
-            })}\n\n`);
-            return res.end();
-        }
+        const design = parseGeminiJson(rawText);
+        if (!design?.screens) throw new Error("AI_INVALID_FORMAT");
 
-        // 2. Stream PLAN event
-        res.write(`data: ${JSON.stringify({
-            type: "PLAN",
-            screens: design.screens.map((s: any) => ({
-                id: s.id || randomUUID(),
-                role: s.role || "suggestion"
-            }))
-        })}\n\n`);
+        // Send the Plan , Immediate Feedback
+        res.write(`data: ${JSON.stringify({ type: "PLAN", screens: design.screens.map(s => s.name) })}\n\n`);
 
-        // 3. Stream each screen after layout/normalization
+        // Process and Stream Screens one by one
         for (const screen of design.screens) {
-            try {
-                if (!screen.frames) screen.frames = [];
-                const withLayout = applyLayout({ screens: [screen] }, density as any);
-                const normalized = normalizeForCanvas(withLayout);
-                res.write(`data: ${JSON.stringify({
-                    type: "SCREEN_DONE",
-                    data: normalized.screens[0]
-                })}\n\n`);
-            } catch (screenErr) {
-                console.error("Error processing screen:", screenErr);
-            }
+            // Force grid alignment using your Layout Utils
+            const withLayout = applyLayout({ screens: [screen] }, density);
+            const finalData = normalizeForCanvas(withLayout).screens[0];
+
+            // Push to frontend in real-time
+            res.write(`data: ${JSON.stringify({ type: "SCREEN_DONE", data: finalData })}\n\n`);
         }
 
-        res.write(`data: [DONE]\n\n`);
+        res.write("data: [DONE]\n\n");
         res.end();
 
-    } catch (err) {
-        console.error("Pipeline Error:", err);
-        res.write(`data: ${JSON.stringify({ error: "API_ERROR", message: "Check server logs for Gemini details" })}\n\n`);
+    } catch (err: any) {
+        console.error("Pipeline Failure:", err.message);
+        res.write(`data: ${JSON.stringify({ error: "PIPELINE_ERROR", message: err.message })}\n\n`);
         res.end();
     }
 });
