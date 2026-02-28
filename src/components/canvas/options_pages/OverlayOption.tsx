@@ -328,8 +328,8 @@ const FramesOverlay = ({ frame }: any) => {
         const id = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
 
         const rect = new fabric.Rect({
-            width: frame.width - 1,
-            height: frame.height - 50,
+            width: frame.width + 180,
+            height: frame.height + 220,
             fill: 'rgba(255, 255, 255, 0.02)',
             stroke: '#444',
             strokeDashArray: [15, 10],
@@ -358,8 +358,8 @@ const FramesOverlay = ({ frame }: any) => {
         });
 
         const ghostGroup = new fabric.Group([rect, labelBg, labelText], {
-            left: frame.left + 20,
-            top: frame.top + 100,
+            left: frame.left - 90,
+            top: frame.top - 150,
             selectable: false,
             hasControls: true,
         } as any);
