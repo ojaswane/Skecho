@@ -373,6 +373,7 @@ const FramesOverlay = ({ frame }: any) => {
         ghostGroup.add(rect);
         ghostGroup.add(labelBg);
         ghostGroup.add(labelText);
+        ghostGroup.sendObjectToBack(rect);
 
         canvas.add(ghostGroup);
         canvas.requestRenderAll();
