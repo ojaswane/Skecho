@@ -331,8 +331,7 @@ const FramesOverlay = ({ frame }: any) => {
             width: frame.width - 40,
             height: frame.height - 100,
             fill: 'rgba(255, 255, 255, 0.02)',
-            // fill: "transparent",
-            stroke: '#444', // Darker dashed
+            stroke: '#444',
             strokeDashArray: [15, 10],
             rx: 20,
             ry: 20,
@@ -342,7 +341,7 @@ const FramesOverlay = ({ frame }: any) => {
         const labelBg = new fabric.Rect({
             width: 70,
             height: 24,
-            fill: '#1a1a1a', 
+            fill: '#1a1a1a',
             rx: 12,
             ry: 12,
             left: 10,
@@ -362,7 +361,7 @@ const FramesOverlay = ({ frame }: any) => {
             left: frame.left + 20,
             top: frame.top + 100,
             selectable: true,
-            hasControls: true, 
+            hasControls: true,
         } as any);
 
         ghostGroup.set('data', {
