@@ -362,6 +362,8 @@ const FramesOverlay = ({ frame }: any) => {
             top: frame.top - 150,
             selectable: false,
             hasControls: true,
+            evented: true,
+            lockScalingFlip: true
         } as any);
 
         ghostGroup.set('data', {
@@ -370,64 +372,73 @@ const FramesOverlay = ({ frame }: any) => {
             belongsToFrame: frame.id
         });
 
-        ghostGroup.add(rect);
-        ghostGroup.add(labelBg);
-        ghostGroup.add(labelText);
-        ghostGroup.sendObjectToBack(rect);
-
         canvas.add(ghostGroup);
+        ghostGroup.sendObjectToBack(rect);
         canvas.requestRenderAll();
     };
 
+
+
     useEffect(() => {
-        if (!canvas) return
-        addGhostZone()
+        if (!canvas) return;
 
-        const update = () => {
-            // Find all ghost zones 
-            const ghosts = canvas.getObjects().filter(
-                (obj: any) => obj.data?.isGhost && obj.data?.belongsToFrame === frame.id
-            );
+        // Optional: Only add if one doesn't exist for this frame
+        const existing = canvas.getObjects().find(
+            (obj: any) => obj.data?.isGhost && obj.data?.belongsToFrame === frame.id
+        );
+        if (!existing) addGhostZone();
 
-            // If the frame moves, we need to re-render the overlay UI
-            forceUpdate((n) => n + 1);
-        }
+        const updateUI = () => forceUpdate((n) => n + 1);
 
-        // This is the "Sticky" logic
-        const handleMoving = (e: any) => {
+        // This handles both Moving and Scaling in real-time
+        const handleSync = (e: any) => {
             const target = e.target;
-            // Check if the object being moved is the Artboard Frame
+
+            // Check if the object being manipulated is the parent Artboard Frame
             if (target.get?.('isFrame') && target.get?.('frameId') === frame.id) {
                 const ghosts = canvas.getObjects().filter(
                     (obj: any) => obj.data?.isGhost && obj.data?.belongsToFrame === frame.id
                 );
 
-                ghosts.forEach((ghost) => {
-                    // Move the ghost by the same delta as the frame
-                    const deltaX = target.left - (target._lastLeft || target.left);
-                    const deltaY = target.top - (target._lastTop || target.top);
+                ghosts.forEach((ghost: any) => {
+                    const g = ghost as fabric.Group;
+                    const backgroundRect = g.item(0) as fabric.Rect;
 
-                    ghost.set({
-                        left: ghost.left + deltaX,
-                        top: ghost.top + deltaY
+                    // 1. Calculate current visual dimensions of the frame
+                    const currentWidth = target.width * (target.scaleX || 1);
+                    const currentHeight = target.height * (target.scaleY || 1);
+
+                    // 2. Update the ghost's background rectangle size
+                    // We add our padding 
+                    backgroundRect.set({
+                        width: currentWidth + 180,
+                        height: currentHeight + 220
                     });
-                    ghost.setCoords();
+
+                    // 3. Update the Group's position to stay centered on the frame
+                    g.set({
+                        left: target.left - 90,
+                        top: target.top - 150,
+                        scaleX: 1,
+                        scaleY: 1
+                    });
+
+                    g.setCoords();
                 });
             }
-            // Store current position for next delta calculation
-            target._lastLeft = target.left;
-            target._lastTop = target.top;
         };
 
-        canvas.on('object:moving', handleMoving);
-        canvas.on('mouse:wheel', update);
-        canvas.on('after:render', update);
+        canvas.on('object:moving', handleSync);
+        canvas.on('object:scaling', handleSync);
+        canvas.on('mouse:wheel', updateUI);
+        canvas.on('after:render', updateUI);
 
         return () => {
-            canvas.off('object:moving', handleMoving);
-            canvas.off('mouse:wheel', update);
-            canvas.off('after:render', update);
-        }
+            canvas.off('object:moving', handleSync);
+            canvas.off('object:scaling', handleSync);
+            canvas.off('mouse:wheel', updateUI);
+            canvas.off('after:render', updateUI);
+        };
     }, [canvas, frame.id]);
 
 

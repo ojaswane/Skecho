@@ -145,7 +145,9 @@ export default function DefaultText() {
         placeholder.set("frameId", frame.id)
         placeholder.set("isPlaceholder", true)
 
+
         canvas.add(placeholder)
+        canvas.bringObjectToFront(placeholder)
         canvas.renderAll()
 
         useCanvasStore.getState().setDefaultTextObject(placeholder)
@@ -177,72 +179,21 @@ export default function DefaultText() {
     const y = (frame.top + centerY) * vpt[3] + vpt[5]
 
     return (
-        <div
-            style={{
-                position: 'absolute',
-                left: x,
-                top: y,
-                transform: `translate(-50%, 0) scale(${zoom})`,
-                transformOrigin: 'top center',
-                pointerEvents: 'auto',
-                whiteSpace: 'nowrap'
-            }}
-            className="rounded-full fixed flex items-center gap-2 p-4 bg-black/80 hover:bg-black/70 cursor-pointer"
-        >
-            <Dialog>
-                <DialogTrigger className="flex items-center gap-2 text-white px-5 py-2 text-4xl tracking-tighter">
-                    Type your prompt instead
-                    <CircleChevronRight className="w-5 h-5" />
-                </DialogTrigger>
+        // <div
+        //     style={{
+        //         position: 'absolute',
+        //         left: x,
+        //         top: y,
+        //         transform: `translate(-50%, 0) scale(${zoom})`,
+        //         transformOrigin: 'top center',
+        //         pointerEvents: 'auto',
+        //         whiteSpace: 'nowrap'
+        //     }}
+        //     className="rounded-full fixed flex items-center gap-2 p-4 bg-black/80 hover:bg-black/70 cursor-pointer"
+        // >
 
-                <DialogContent className="bg-[#1e1e1e] border border-white/10 rounded-3xl p-6 w-[420px] text-white">
-                    <DialogHeader>
-                        <div className="text-3xl tracking-tighter leading-tight">
-                            Great! Type your<br />prompt here.
-                        </div>
-                    </DialogHeader>
-
-                    <div className="mt-6 flex flex-col gap-3">
-                        <input
-                            placeholder="Idea Title (eg. SaaS App)"
-                            className="w-2/3 rounded-full bg-white/10 px-4 py-2 outline-none"
-                        />
-
-                        <Textarea
-                            placeholder="Type here..."
-                            className="bg-white/10 border-0 rounded-2xl"
-                        />
-
-                        <div className="flex gap-2 mt-2">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button className="flex w-full items-center gap-2 rounded-full border border-white/20 px-4 py-2 hover:bg-white/10">
-                                        <ImagePlus className="w-4 h-4" />
-                                        Inspiration Image
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    Add your inspired image
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        onClick={GenerateFromText}
-                                        className="flex w-full items-center justify-center gap-2 rounded-full bg-white text-black px-5 py-2 font-medium">
-                                        <Sparkles className="w-4 h-4" />
-                                        Generate
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    Generate wireframe
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        </div>
+        // </div>
+        <>
+        </>
     )
 }
