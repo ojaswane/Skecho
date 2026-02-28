@@ -310,7 +310,6 @@ const FramesOverlay = ({ frame }: any) => {
             }
         })
 
-        addGhostZone()
 
     }, [canvas])
 
@@ -328,18 +327,11 @@ const FramesOverlay = ({ frame }: any) => {
     const addGhostZone = () => {
         const id = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
 
-        //  The Dashed Container
-        const ghostGroup = new fabric.Group([], {
-            left: frame.left + 20,
-            top: frame.top + 100,
-        } as any);
-
-        ghostGroup.set('data', { isGhost: true, sectionId: id, belongsToFrame: frame.id });
-
         const rect = new fabric.Rect({
             width: frame.width - 40,
-            height: 250,
+            height: frame.height - 100,
             fill: 'rgba(255, 255, 255, 0.02)',
+            // fill: "transparent",
             stroke: '#444', // Darker dashed
             strokeDashArray: [15, 10],
             rx: 20,
@@ -348,18 +340,35 @@ const FramesOverlay = ({ frame }: any) => {
 
         // 2. The Label as 'Section 1'
         const labelBg = new fabric.Rect({
-            width: 80, height: 30,
-            fill: '#222',
-            rx: 10, ry: 10,
-            left: 0, top: -40 // just above the dashed line
+            width: 70,
+            height: 24,
+            fill: '#1a1a1a', 
+            rx: 12,
+            ry: 12,
+            left: 10,
+            top: -12
         });
 
         const labelText = new fabric.Text(id, {
-            fontSize: 14,
-            fill: '#ccc',
-            left: 10,
-            top: -33,
-            fontFamily: 'Inter'
+            fontSize: 11,
+            fill: '#999999',
+            left: 20,
+            top: -7,
+            fontFamily: 'Inter',
+            fontWeight: 'bold'
+        });
+
+        const ghostGroup = new fabric.Group([rect, labelBg, labelText], {
+            left: frame.left + 20,
+            top: frame.top + 100,
+            selectable: true,
+            hasControls: true, 
+        } as any);
+
+        ghostGroup.set('data', {
+            isGhost: true,
+            sectionId: id,
+            belongsToFrame: frame.id
         });
 
         ghostGroup.add(rect);
@@ -369,6 +378,57 @@ const FramesOverlay = ({ frame }: any) => {
         canvas.add(ghostGroup);
         canvas.requestRenderAll();
     };
+
+    useEffect(() => {
+        if (!canvas) return
+        addGhostZone()
+
+        const update = () => {
+            // Find all ghost zones 
+            const ghosts = canvas.getObjects().filter(
+                (obj: any) => obj.data?.isGhost && obj.data?.belongsToFrame === frame.id
+            );
+
+            // If the frame moves, we need to re-render the overlay UI
+            forceUpdate((n) => n + 1);
+        }
+
+        // This is the "Sticky" logic
+        const handleMoving = (e: any) => {
+            const target = e.target;
+            // Check if the object being moved is the Artboard Frame
+            if (target.get?.('isFrame') && target.get?.('frameId') === frame.id) {
+                const ghosts = canvas.getObjects().filter(
+                    (obj: any) => obj.data?.isGhost && obj.data?.belongsToFrame === frame.id
+                );
+
+                ghosts.forEach((ghost) => {
+                    // Move the ghost by the same delta as the frame
+                    const deltaX = target.left - (target._lastLeft || target.left);
+                    const deltaY = target.top - (target._lastTop || target.top);
+
+                    ghost.set({
+                        left: ghost.left + deltaX,
+                        top: ghost.top + deltaY
+                    });
+                    ghost.setCoords();
+                });
+            }
+            // Store current position for next delta calculation
+            target._lastLeft = target.left;
+            target._lastTop = target.top;
+        };
+
+        canvas.on('object:moving', handleMoving);
+        canvas.on('mouse:wheel', update);
+        canvas.on('after:render', update);
+
+        return () => {
+            canvas.off('object:moving', handleMoving);
+            canvas.off('mouse:wheel', update);
+            canvas.off('after:render', update);
+        }
+    }, [canvas, frame.id]);
 
 
     const handleAcceptSuggestion = (frameId: string) => {
