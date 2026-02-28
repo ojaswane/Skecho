@@ -32,6 +32,8 @@ const FramesOverlay = ({ frame }: any) => {
     const [loader, setloader] = useState(false)
     const [userPrompt, setPrompt] = useState('')
     const idMap = React.useRef<Record<string, string>>({});
+    const [isDrawingZone, setIsDrawingZone] = useState(false);
+    const [activeGhostZone, setActiveGhostZone] = useState<fabric.Rect | null>(null);
 
     /* ------------------ UTILS ------------------ */
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
@@ -463,7 +465,7 @@ const FramesOverlay = ({ frame }: any) => {
                                     >
                                         <X className="w-3 h-3" /> Discard
                                     </button>
-                                </div>  
+                                </div>
                             )
                         }
 
