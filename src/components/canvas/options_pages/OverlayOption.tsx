@@ -143,13 +143,23 @@ const FramesOverlay = ({ frame }: any) => {
                 multiplier: 0.05,
             })
 
+
+            const ghostData = activeGhostZone ? {
+                x: activeGhostZone.left - frame.left,
+                y: activeGhostZone.top - frame.top,
+                width: activeGhostZone.getScaledWidth(),
+                height: activeGhostZone.getScaledHeight(),
+            } : null;
+
             const response = await fetch("http://localhost:4000/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+
                 body: JSON.stringify({
                     source: "sketch",
                     prompt: userPrompt.trim(),
                     imageBase64: imageBase64,
+                    ghostZone: ghostData,
                     existingLayout: canvasData,
                     frame: {
                         width: frame.width,
@@ -300,6 +310,8 @@ const FramesOverlay = ({ frame }: any) => {
             }
         })
 
+        addGhostZone()
+
     }, [canvas])
 
     if (!canvas) return null
@@ -314,27 +326,47 @@ const FramesOverlay = ({ frame }: any) => {
     // ==================== Section for Frames ===================
 
     const addGhostZone = () => {
-        if (!canvas) return;
+        const id = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
 
-        const ghost = new fabric.Rect({
-            left: frame.left + 50,
-            top: frame.top + 50,
-            width: frame.width - 100,
-            height: 200,
-            fill: 'transparent',
-            stroke: '#6366f1',
-            strokeDashArray: [10, 5],
-            strokeWidth: 2,
-            selectable: true, // Let them move/resize it to define the area
-            hasControls: true,
-            transparentCorners: false,
-            cornerColor: '#6366f1',
-            data: { isGhostZone: true, parentFrameId: frame.id }
+        //  The Dashed Container
+        const ghostGroup = new fabric.Group([], {
+            left: frame.left + 20,
+            top: frame.top + 100,
+        } as any);
+
+        ghostGroup.set('data', { isGhost: true, sectionId: id , belongsToFrame: frame.id });
+
+        const rect = new fabric.Rect({
+            width: frame.width - 40,
+            height: 250,
+            fill: 'rgba(255, 255, 255, 0.02)',
+            stroke: '#444', // Darker dashed 
+            strokeDashArray: [15, 10],
+            rx: 20, ry: 20,
         });
 
-        canvas.add(ghost);
-        canvas.setActiveObject(ghost);
-        setActiveGhostZone(ghost);
+        // 2. The Label as 'Section 1'
+        const labelBg = new fabric.Rect({
+            width: 80, height: 30,
+            fill: '#222',
+            rx: 10, ry: 10,
+            left: 0, top: -40 // just above the dashed line
+        });
+
+        const labelText = new fabric.Text(id, {
+            fontSize: 14,
+            fill: '#ccc',
+            left: 10,
+            top: -33,
+            fontFamily: 'Inter'
+        });
+
+        ghostGroup.add(rect);
+        ghostGroup.add(labelBg);
+        ghostGroup.add(labelText);
+
+        canvas.add(ghostGroup);
+        canvas.requestRenderAll();
     };
 
 
