@@ -334,15 +334,16 @@ const FramesOverlay = ({ frame }: any) => {
             top: frame.top + 100,
         } as any);
 
-        ghostGroup.set('data', { isGhost: true, sectionId: id , belongsToFrame: frame.id });
+        ghostGroup.set('data', { isGhost: true, sectionId: id, belongsToFrame: frame.id });
 
         const rect = new fabric.Rect({
             width: frame.width - 40,
             height: 250,
             fill: 'rgba(255, 255, 255, 0.02)',
-            stroke: '#444', // Darker dashed 
+            stroke: '#444', // Darker dashed
             strokeDashArray: [15, 10],
-            rx: 20, ry: 20,
+            rx: 20,
+            ry: 20,
         });
 
         // 2. The Label as 'Section 1'
