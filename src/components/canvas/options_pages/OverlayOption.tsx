@@ -311,7 +311,31 @@ const FramesOverlay = ({ frame }: any) => {
     const BAR_GAP = 18
 
 
+    // ==================== Section for Frames ===================
 
+    const addGhostZone = () => {
+        if (!canvas) return;
+
+        const ghost = new fabric.Rect({
+            left: frame.left + 50,
+            top: frame.top + 50,
+            width: frame.width - 100,
+            height: 200,
+            fill: 'transparent',
+            stroke: '#6366f1',
+            strokeDashArray: [10, 5],
+            strokeWidth: 2,
+            selectable: true, // Let them move/resize it to define the area
+            hasControls: true,
+            transparentCorners: false,
+            cornerColor: '#6366f1',
+            data: { isGhostZone: true, parentFrameId: frame.id }
+        });
+
+        canvas.add(ghost);
+        canvas.setActiveObject(ghost);
+        setActiveGhostZone(ghost);
+    };
 
 
     const handleAcceptSuggestion = (frameId: string) => {
@@ -347,7 +371,7 @@ const FramesOverlay = ({ frame }: any) => {
     const handleRejectSuggestion = (frameId: string) => {
         if (!canvas) return;
 
-        // 1. Remove from Canvas with a fade-out
+        //  Remove from Canvas with a fade-out
         const objectsToRemove = canvas.getObjects().filter(
             (obj: any) => obj.get?.('frameId') === frameId || obj.get?.('belongsToFrame') === frameId
         );
@@ -364,8 +388,6 @@ const FramesOverlay = ({ frame }: any) => {
             } as any);
         });
 
-        // 2. Remove from Store
-        // (You'll need a deleteFrame action in your Zustand store)
         useCanvasStore.getState().deleteFrame(frameId);
     };
 
