@@ -325,7 +325,7 @@ const FramesOverlay = ({ frame }: any) => {
     // ==================== Section for Frames ===================
 
     const addGhostZone = () => {
-        const TOP_SAFETY_MARGIN = 60;
+        const TOP_SAFETY_MARGIN = 70;
         const GAP = 80;
         const PADDING = 60;
         const labelTextContent = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
