@@ -325,59 +325,91 @@ const FramesOverlay = ({ frame }: any) => {
     // ==================== Section for Frames ===================
 
     const addGhostZone = () => {
-        const aiId = `AI Zone`;
-        const GAP = 40
-        const sketchId = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
+        const GAP = 60; // Space between Sketch and AI frames
+        const PADDING = 40; // Internal padding inside the dashed box
+        const labelTextContent = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
 
-        const rect = new fabric.Rect({
-            width: frame.width + 180,
-            height: frame.height + 220,
-            fill: 'rgba(255, 255, 255, 0.02)',
-            stroke: '#7d7d7d',
-            strokeDashArray: [15, 10],
-            rx: 20,
-            ry: 20,
+        // 1. The Main Outer Container (Dashed Section)
+        // Width is (frame * 2) + GAP + (PADDING * 2)
+        const containerWidth = (frame.width * 2) + GAP + (PADDING * 2);
+        const containerHeight = frame.height + (PADDING * 2) + 40;
+
+        const outerContainer = new fabric.Rect({
+            width: containerWidth,
+            height: containerHeight,
+            fill: 'transparent',
+            stroke: '#333',
+            strokeDashArray: [10, 8],
+            rx: 30,
+            ry: 30,
+            strokeWidth: 2
         });
 
-        // 2. The Label as 'Section 1'
+        // 2. The Pill Label
         const labelBg = new fabric.Rect({
-            width: 120,
-            height: 40,
-            fill: '#7d7d7d',
-            rx: 25,
-            ry: 20,
+            width: 100,
+            height: 34,
+            fill: '#1a1a1a',
+            rx: 17,
+            ry: 17,
             left: 30,
-            top: -17,
-            borderColor: '#7d7d7d'
+            top: -17, // Half-hangs over the top edge
+            stroke: '#333',
+            strokeWidth: 1
         });
 
-        const labelText = new fabric.Text(sketchId, {
-            fontSize: 24,
-            fill: '#292929',
-            left: 43,
-            top: -11,
-            fontFamily: 'arial',
-            charSpacing: -70,
-            fontWeight: 'bold',
+        const labelText = new fabric.Text(labelTextContent, {
+            fontSize: 13,
+            fill: '#eee',
+            left: 48,
+            top: -7,
+            fontFamily: 'Inter, Arial',
+            fontWeight: '500'
         });
 
-        const ghostGroup = new fabric.Group([rect, labelBg, labelText], {
-            left: frame.left - 90,
-            top: frame.top - 150,
+        // 3. The Sketch Background (Light Grey)
+        const sketchBg = new fabric.Rect({
+            left: PADDING,
+            top: PADDING + 10,
+            width: frame.width,
+            height: frame.height,
+            fill: '#d1d1d1',
+            rx: 20,
+            ry: 20
+        });
+
+        // 4. The AI Zone Background (Light Grey)
+        const aiBg = new fabric.Rect({
+            left: PADDING + frame.width + GAP,
+            top: PADDING + 10,
+            width: frame.width,
+            height: frame.height,
+            fill: '#d1d1d1',
+            rx: 20,
+            ry: 20
+        });
+
+        const ghostGroup = new fabric.Group([
+            outerContainer,
+            labelBg,
+            labelText,
+            sketchBg,
+            aiBg
+        ], {
+            left: frame.left - PADDING,
+            top: frame.top - (PADDING + 10),
             selectable: false,
-            hasControls: true,
             evented: true,
-            lockScalingFlip: true
         } as any);
 
         ghostGroup.set('data', {
             isGhost: true,
-            sectionId: id,
+            sectionId: labelTextContent,
             belongsToFrame: frame.id
         });
 
         canvas.add(ghostGroup);
-        ghostGroup.sendObjectToBack(rect);
+        canvas.sendObjectToBack(ghostGroup);
         canvas.requestRenderAll();
     };
 
@@ -386,7 +418,6 @@ const FramesOverlay = ({ frame }: any) => {
     useEffect(() => {
         if (!canvas) return;
 
-        // Optional: Only add if one doesn't exist for this frame
         const existing = canvas.getObjects().find(
             (obj: any) => obj.data?.isGhost && obj.data?.belongsToFrame === frame.id
         );
@@ -400,33 +431,39 @@ const FramesOverlay = ({ frame }: any) => {
 
             // Check if the object being manipulated is the parent Artboard Frame
             if (target.get?.('isFrame') && target.get?.('frameId') === frame.id) {
+
                 const ghosts = canvas.getObjects().filter(
                     (obj: any) => obj.data?.isGhost && obj.data?.belongsToFrame === frame.id
                 );
 
                 ghosts.forEach((ghost: any) => {
                     const g = ghost as fabric.Group;
-                    const backgroundRect = g.item(0) as fabric.Rect;
+                    const outer = g.item(0) as fabric.Rect;
+                    const sketch = g.item(3) as fabric.Rect;
+                    const ai = g.item(4) as fabric.Rect;
 
-                    // 1. Calculate current visual dimensions of the frame
-                    const currentWidth = target.width * (target.scaleX || 1);
-                    const currentHeight = target.height * (target.scaleY || 1);
+                    const curW = target.width * target.scaleX;
+                    const curH = target.height * target.scaleY;
+                    const GAP = 60;
+                    const PADDING = 40;
 
-                    // 2. Update the ghost's background rectangle size
-                    // We add our padding 
-                    backgroundRect.set({
-                        width: currentWidth + 180,
-                        height: currentHeight + 220
+                    // Update dimensions
+                    outer.set({
+                        width: (curW * 2) + GAP + (PADDING * 2),
+                        height: curH + (PADDING * 2) + 40
+                    });
+                    sketch.set({ width: curW, height: curH });
+                    ai.set({
+                        width: curW,
+                        height: curH,
+                        left: PADDING + curW + GAP
                     });
 
-                    // 3. Update the Group's position to stay centered on the frame
+                    // Stick group to the frame
                     g.set({
-                        left: target.left - 90,
-                        top: target.top - 150,
-                        scaleX: 1,
-                        scaleY: 1
+                        left: target.left - PADDING,
+                        top: target.top - (PADDING + 10)
                     });
-
                     g.setCoords();
                 });
             }
@@ -547,8 +584,12 @@ const FramesOverlay = ({ frame }: any) => {
         useCanvasStore.getState().updateFrame(frame.id, { width, height })
     }
 
+    const aiBoxX = frame.left + frame.width + 100;
+    const aiScreenPos = canvasToScreen(canvas, aiBoxX, frame.top);
+
     /* ------------------ UI ------------------ */
     return (
+
         <div
             className="absolute pointer-events-auto"
             style={{
@@ -556,6 +597,16 @@ const FramesOverlay = ({ frame }: any) => {
                 top: pos.y - (BAR_HEIGHT + BAR_GAP) * zoom,
             }}
         >
+            <div
+                className="ai-gradient-overlay absolute pointer-events-none"
+                style={{
+                    left: aiScreenPos.x,
+                    top: aiScreenPos.y,
+                    width: frame.width * zoom,
+                    height: frame.height * zoom,
+                    borderRadius: 20 * zoom,
+                }}
+            />
             <div
                 style={{
                     transform: `scale(${zoom})`,
@@ -624,6 +675,8 @@ const FramesOverlay = ({ frame }: any) => {
                     </div>
                 </div>
             </div>
+
+
         </div>
     )
 }
