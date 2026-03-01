@@ -28,13 +28,13 @@ const Tools = () => {
 
     const tools = [
         { name: "Select" as Tool, icon: MousePointer2 },
-        { name: "Sketch" as Tool, icon: Brush },
         { name: "Frame" as Tool, icon: Frame },
+        { name: "Brush" as Tool, icon: Brush },
+        { name: "Arrow" as Tool, icon: ArrowRight },
         { name: "Rectangle" as Tool, icon: Square },
         { name: "Circle" as Tool, icon: Circle },
         { name: "Text" as Tool, icon: Type },
         { name: "Image" as Tool, icon: ImageIcon },
-        { name: "Arrow" as Tool, icon: ArrowRight },
     ]
 
     const handleToolClick = (toolName: Tool) => {
