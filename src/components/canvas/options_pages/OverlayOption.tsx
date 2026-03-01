@@ -334,7 +334,7 @@ const FramesOverlay = ({ frame }: any) => {
         const containerWidth = (frame.width * 2) + GAP + (PADDING * 2);
         const containerHeight = frame.height + (PADDING * 2) + 40;
 
-        // Section container 
+        // Section container
         const outerContainer = new fabric.Rect({
             width: containerWidth,
             height: containerHeight,
@@ -441,8 +441,8 @@ const FramesOverlay = ({ frame }: any) => {
                     const sketch = g.item(3) as fabric.Rect;
                     const ai = g.item(4) as fabric.Rect;
 
-                    const curW = target.width * target.scaleX;
-                    const curH = target.height * target.scaleY;
+                    const curW = target.width * target.scaleX; // Current width considering scaling
+                    const curH = target.height * target.scaleY; // Current height considering scaling
                     const GAP = 80;
                     const PADDING = 60;
 
