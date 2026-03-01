@@ -444,8 +444,8 @@ const FramesOverlay = ({ frame }: any) => {
 
                     const curW = target.width * target.scaleX;
                     const curH = target.height * target.scaleY;
-                    const GAP = 60;
-                    const PADDING = 40;
+                    const GAP = 80;
+                    const PADDING = 60;
 
                     // Update dimensions
                     outer.set({
