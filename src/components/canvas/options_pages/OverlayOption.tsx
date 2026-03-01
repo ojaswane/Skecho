@@ -325,6 +325,7 @@ const FramesOverlay = ({ frame }: any) => {
     // ==================== Section for Frames ===================
 
     const addGhostZone = () => {
+        const TOP_SAFETY_MARGIN = 40;
         const GAP = 80;
         const PADDING = 60;
         const LABEL_OFFSET_Y = 17;
@@ -339,14 +340,16 @@ const FramesOverlay = ({ frame }: any) => {
             width: containerWidth,
             height: containerHeight,
             fill: 'transparent',
-            stroke: '#333',
+            stroke: '#444', // Slightly lighter to see it better
             strokeDashArray: [10, 8],
             rx: 30,
             ry: 30,
             strokeWidth: 2,
             originX: 'center',
-            originY: 'center'
+            originY: 'center',
+            top: 0
         });
+
         // 3. The Label
         const labelBg = new fabric.Rect({
             width: 100,
@@ -355,34 +358,22 @@ const FramesOverlay = ({ frame }: any) => {
             rx: 17,
             ry: 17,
             left: -containerWidth / 2 + 30,
-            top: -containerHeight / 2 - 17,
+            top: -containerHeight / 2 - 17, // Pushes it above the dashed line
             stroke: '#333',
             strokeWidth: 1
         });
 
         const labelText = new fabric.Text(labelTextContent, {
-            fontSize: 13,
-            fill: '#eee',
+            fontSize: 12,
+            fill: '#999',
             left: -containerWidth / 2 + 48,
             top: -containerHeight / 2 - 7,
-            fontFamily: 'Inter, Arial',
-            fontWeight: '500'
+            fontFamily: 'Inter, Arial'
         });
-
-
-        // const sketchBg = new fabric.Rect({
-        //     left: PADDING,
-        //     top: PADDING,
-        //     width: frame.width,
-        //     height: frame.height,
-        //     fill: '#d1d1d1',
-        //     rx: 20,
-        //     ry: 20
-        // });
 
         const sketchBg = new fabric.Rect({
             left: -containerWidth / 2 + PADDING,
-            top: -frame.height / 2, // Centers it vertically within the group
+            top: -frame.height / 2 + (TOP_SAFETY_MARGIN / 2),
             width: frame.width,
             height: frame.height,
             fill: '#d1d1d1',
@@ -392,7 +383,7 @@ const FramesOverlay = ({ frame }: any) => {
 
         const aiBg = new fabric.Rect({
             left: GAP / 2,
-            top: -frame.height / 2,
+            top: -frame.height / 2 + (TOP_SAFETY_MARGIN / 2),
             width: frame.width,
             height: frame.height,
             fill: '#d1d1d1',
@@ -400,7 +391,7 @@ const FramesOverlay = ({ frame }: any) => {
             ry: 20
         });
 
-        
+
         const ghostGroup = new fabric.Group([
             outerContainer,
             labelBg,
@@ -408,9 +399,9 @@ const FramesOverlay = ({ frame }: any) => {
             sketchBg,
             aiBg
         ], {
-            // Position the group so the 'sketchBg' aligns perfectly under the actual frame
+            // Position the group so the sketchBg aligns perfectly under the actual frame
             left: frame.left - PADDING,
-            top: frame.top - PADDING,
+            top: frame.top - PADDING - TOP_SAFETY_MARGIN,
             selectable: false,
             evented: false, // Prevents ghost zone from blocking clicks to the artboard
         } as any);
