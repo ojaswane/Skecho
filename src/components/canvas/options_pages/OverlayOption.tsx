@@ -325,27 +325,28 @@ const FramesOverlay = ({ frame }: any) => {
     // ==================== Section for Frames ===================
 
     const addGhostZone = () => {
-        const GAP = 60; // Space between Sketch and AI frames
-        const PADDING = 40; // Internal padding inside the dashed box
+        const GAP = 80;
+        const PADDING = 60;
+        const LABEL_OFFSET_Y = 17;
         const labelTextContent = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
 
-        // 1. The Main Outer Container (Dashed Section)
-        // Width is (frame * 2) + GAP + (PADDING * 2)
+        // Calculate dimensions based on the current frame size
         const containerWidth = (frame.width * 2) + GAP + (PADDING * 2);
         const containerHeight = frame.height + (PADDING * 2) + 40;
 
+        // 2. The Main Outer Container (Dashed Section)
         const outerContainer = new fabric.Rect({
             width: containerWidth,
             height: containerHeight,
             fill: 'transparent',
-            stroke: '#333',
+            stroke: '#444',
             strokeDashArray: [10, 8],
             rx: 30,
             ry: 30,
             strokeWidth: 2
         });
 
-        // 2. The Pill Label
+        // 3. The Label
         const labelBg = new fabric.Rect({
             width: 100,
             height: 34,
@@ -353,7 +354,7 @@ const FramesOverlay = ({ frame }: any) => {
             rx: 17,
             ry: 17,
             left: 30,
-            top: -17, // Half-hangs over the top edge
+            top: -LABEL_OFFSET_Y,
             stroke: '#333',
             strokeWidth: 1
         });
@@ -362,26 +363,26 @@ const FramesOverlay = ({ frame }: any) => {
             fontSize: 13,
             fill: '#eee',
             left: 48,
-            top: -7,
+            top: -LABEL_OFFSET_Y + 10,
             fontFamily: 'Inter, Arial',
             fontWeight: '500'
         });
 
-        // 3. The Sketch Background (Light Grey)
-        const sketchBg = new fabric.Rect({
-            left: PADDING,
-            top: PADDING + 10,
-            width: frame.width,
-            height: frame.height,
-            fill: '#d1d1d1',
-            rx: 20,
-            ry: 20
-        });
 
-        // 4. The AI Zone Background (Light Grey)
+        // const sketchBg = new fabric.Rect({
+        //     left: PADDING,
+        //     top: PADDING,
+        //     width: frame.width,
+        //     height: frame.height,
+        //     fill: '#d1d1d1',
+        //     rx: 20,
+        //     ry: 20
+        // });
+
+
         const aiBg = new fabric.Rect({
             left: PADDING + frame.width + GAP,
-            top: PADDING + 10,
+            top: PADDING,
             width: frame.width,
             height: frame.height,
             fill: '#d1d1d1',
@@ -393,13 +394,14 @@ const FramesOverlay = ({ frame }: any) => {
             outerContainer,
             labelBg,
             labelText,
-            sketchBg,
+            // sketchBg,
             aiBg
         ], {
+            // Position the group so the 'sketchBg' aligns perfectly under the actual frame
             left: frame.left - PADDING,
-            top: frame.top - (PADDING + 10),
+            top: frame.top - PADDING,
             selectable: false,
-            evented: true,
+            evented: false, // Prevents ghost zone from blocking clicks to the artboard
         } as any);
 
         ghostGroup.set('data', {
@@ -412,8 +414,6 @@ const FramesOverlay = ({ frame }: any) => {
         canvas.sendObjectToBack(ghostGroup);
         canvas.requestRenderAll();
     };
-
-
 
     useEffect(() => {
         if (!canvas) return;
@@ -429,7 +429,6 @@ const FramesOverlay = ({ frame }: any) => {
         const handleSync = (e: any) => {
             const target = e.target;
 
-            // Check if the object being manipulated is the parent Artboard Frame
             if (target.get?.('isFrame') && target.get?.('frameId') === frame.id) {
 
                 const ghosts = canvas.getObjects().filter(

@@ -28,7 +28,7 @@ const Tools = () => {
     const tools = [
         { name: "Select" as Tool, icon: MousePointer2 },
         { name: "Frame" as Tool, icon: Frame },
-        { name: "Brush" as Tool, icon: Brush },
+        { name: "Sketch" as Tool, icon: Brush },
         { name: "Arrow" as Tool, icon: ArrowRight },
         { name: "Rectangle" as Tool, icon: Square },
         { name: "Circle" as Tool, icon: Circle },
