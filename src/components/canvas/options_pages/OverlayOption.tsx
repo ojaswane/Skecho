@@ -325,7 +325,9 @@ const FramesOverlay = ({ frame }: any) => {
     // ==================== Section for Frames ===================
 
     const addGhostZone = () => {
-        const id = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
+        const aiId = `AI Zone`;
+        const GAP = 40
+        const sketchId = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
 
         const rect = new fabric.Rect({
             width: frame.width + 180,
@@ -346,10 +348,10 @@ const FramesOverlay = ({ frame }: any) => {
             ry: 20,
             left: 30,
             top: -17,
-            borderColor:'#7d7d7d'
+            borderColor: '#7d7d7d'
         });
 
-        const labelText = new fabric.Text(id, {
+        const labelText = new fabric.Text(sketchId, {
             fontSize: 24,
             fill: '#292929',
             left: 43,
