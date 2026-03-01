@@ -334,7 +334,7 @@ const FramesOverlay = ({ frame }: any) => {
         const containerWidth = (frame.width * 2) + GAP + (PADDING * 2);
         const containerHeight = frame.height + (PADDING * 2) + 40;
 
-        // 2. The Main Outer Container (Dashed Section)
+        // Section container 
         const outerContainer = new fabric.Rect({
             width: containerWidth,
             height: containerHeight,
