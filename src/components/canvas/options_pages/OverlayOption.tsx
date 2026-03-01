@@ -344,16 +344,16 @@ const FramesOverlay = ({ frame }: any) => {
             fill: '#7d7d7d',
             rx: 25,
             ry: 20,
-            left: 10,
-            top: -12,
+            left: 30,
+            top: -17,
             borderColor:'#7d7d7d'
         });
 
         const labelText = new fabric.Text(id, {
             fontSize: 24,
             fill: '#292929',
-            left: 20,
-            top: -7,
+            left: 40,
+            top: -11,
             fontFamily: 'arial',
             charSpacing: -70,
             fontWeight: 'bold',
