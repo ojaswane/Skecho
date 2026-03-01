@@ -331,7 +331,7 @@ const FramesOverlay = ({ frame }: any) => {
             width: frame.width + 180,
             height: frame.height + 220,
             fill: 'rgba(255, 255, 255, 0.02)',
-            stroke: '#444',
+            stroke: '#7d7d7d',
             strokeDashArray: [15, 10],
             rx: 20,
             ry: 20,
@@ -339,22 +339,24 @@ const FramesOverlay = ({ frame }: any) => {
 
         // 2. The Label as 'Section 1'
         const labelBg = new fabric.Rect({
-            width: 70,
-            height: 24,
-            fill: '#1a1a1a',
-            rx: 12,
-            ry: 12,
+            width: 120,
+            height: 40,
+            fill: '#7d7d7d',
+            rx: 25,
+            ry: 20,
             left: 10,
-            top: -12
+            top: -12,
+            borderColor:'#7d7d7d'
         });
 
         const labelText = new fabric.Text(id, {
-            fontSize: 11,
-            fill: '#999999',
+            fontSize: 24,
+            fill: '#292929',
             left: 20,
             top: -7,
-            fontFamily: 'Inter',
-            fontWeight: 'bold'
+            fontFamily: 'arial',
+            charSpacing: -70,
+            fontWeight: 'bold',
         });
 
         const ghostGroup = new fabric.Group([rect, labelBg, labelText], {

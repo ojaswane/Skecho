@@ -2,19 +2,6 @@
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Text } from 'fabric'
 import React, { useEffect, useState } from 'react'
-import { CircleChevronRight, ImagePlus, Sparkles } from 'lucide-react'
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { Textarea } from '@/components/ui/textarea'
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 const DEFAULT_TEXT = {
     text: "Sketch Your Idea Here!",
