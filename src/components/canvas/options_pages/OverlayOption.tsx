@@ -339,13 +339,14 @@ const FramesOverlay = ({ frame }: any) => {
             width: containerWidth,
             height: containerHeight,
             fill: 'transparent',
-            stroke: '#444',
+            stroke: '#333',
             strokeDashArray: [10, 8],
             rx: 30,
             ry: 30,
-            strokeWidth: 2
+            strokeWidth: 2,
+            originX: 'center',
+            originY: 'center'
         });
-
         // 3. The Label
         const labelBg = new fabric.Rect({
             width: 100,
@@ -353,8 +354,8 @@ const FramesOverlay = ({ frame }: any) => {
             fill: '#1a1a1a',
             rx: 17,
             ry: 17,
-            left: 30,
-            top: -LABEL_OFFSET_Y,
+            left: -containerWidth / 2 + 30,
+            top: -containerHeight / 2 - 17,
             stroke: '#333',
             strokeWidth: 1
         });
@@ -362,8 +363,8 @@ const FramesOverlay = ({ frame }: any) => {
         const labelText = new fabric.Text(labelTextContent, {
             fontSize: 13,
             fill: '#eee',
-            left: 48,
-            top: -LABEL_OFFSET_Y + 10,
+            left: -containerWidth / 2 + 48,
+            top: -containerHeight / 2 - 7,
             fontFamily: 'Inter, Arial',
             fontWeight: '500'
         });
@@ -379,10 +380,9 @@ const FramesOverlay = ({ frame }: any) => {
         //     ry: 20
         // });
 
-
-        const aiBg = new fabric.Rect({
-            left: PADDING + frame.width + GAP,
-            top: PADDING,
+        const sketchBg = new fabric.Rect({
+            left: -containerWidth / 2 + PADDING,
+            top: -frame.height / 2, // Centers it vertically within the group
             width: frame.width,
             height: frame.height,
             fill: '#d1d1d1',
@@ -390,11 +390,22 @@ const FramesOverlay = ({ frame }: any) => {
             ry: 20
         });
 
+        const aiBg = new fabric.Rect({
+            left: GAP / 2,
+            top: -frame.height / 2,
+            width: frame.width,
+            height: frame.height,
+            fill: '#d1d1d1',
+            rx: 20,
+            ry: 20
+        });
+
+        
         const ghostGroup = new fabric.Group([
             outerContainer,
             labelBg,
             labelText,
-            // sketchBg,
+            sketchBg,
             aiBg
         ], {
             // Position the group so the 'sketchBg' aligns perfectly under the actual frame
