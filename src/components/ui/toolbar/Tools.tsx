@@ -17,7 +17,6 @@ import {
     IText as text,
 } from "fabric"
 import * as fabric from "fabric"
-import { ThemeToggleButton } from "@/components/ui/skiper-ui/Skiper26(bottom-up)"
 import { useCanvasStore } from "../../../../lib/store/canvasStore"
 type Tool = "Select" | "Frame" | "Rectangle" | "Circle" | "Text" | "Image" | "Arrow" | 'Sketch'
 import { Plus } from 'lucide-react';
