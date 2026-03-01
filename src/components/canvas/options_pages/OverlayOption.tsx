@@ -352,7 +352,7 @@ const FramesOverlay = ({ frame }: any) => {
         const labelText = new fabric.Text(id, {
             fontSize: 24,
             fill: '#292929',
-            left: 40,
+            left: 43,
             top: -11,
             fontFamily: 'arial',
             charSpacing: -70,
