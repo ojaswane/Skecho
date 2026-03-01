@@ -584,7 +584,7 @@ const FramesOverlay = ({ frame }: any) => {
     }
 
     const aiBoxX = frame.left + frame.width + 100;
-    const aiScreenPos = canvasToScreen(canvas, aiBoxX, frame.top);
+    const aiScreenPos = canvasToScreen(canvas, aiBoxX, frame.top); // Position AI screen to the right of the frame, with some padding
 
     /* ------------------ UI ------------------ */
     return (
