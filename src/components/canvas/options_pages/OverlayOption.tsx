@@ -70,14 +70,20 @@ const FramesOverlay = ({ frame }: any) => {
             const objects = canvas.getObjects();
 
             const drawings = objects.filter((obj: any) => {
-                // 1. Ignore the Artboard Frames
+                // 1. Ignore anything explicitly marked as a Frame
                 if (obj.isFrame || obj.get?.('isFrame')) return false;
 
-                // 2. Ignore the Ghost Group/Sections
-                if (obj.data?.isGhost || obj.type === 'group') return false;
+                // 2. Ignore anything marked as a Ghost (using both data and custom props)
+                if (obj.data?.isGhost || obj.isGhost) return false;
 
-                // 3. Ignore technical objects (active selections, etc.)
-                if (obj.type === 'activeSelection') return false;
+                // 3. Ignore ALL groups (since your ghost zone is a group)
+                if (obj.type === 'group') return false;
+
+                // 4. Ignore the internal parts of the ghost zone if they ungroup
+                if (obj.strokeDashArray || obj.type === 'text') {
+                    // If it's part of our UI, ignore it
+                    if (obj.fill === 'transparent' || obj.fill === '#000' || obj.fill === '#999') return false;
+                }
 
                 return true;
             });
