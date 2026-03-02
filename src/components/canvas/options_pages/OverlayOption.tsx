@@ -353,13 +353,13 @@ const FramesOverlay = ({ frame }: any) => {
         const labelBg = new fabric.Rect({
             width: 100,
             height: 34,
-            fill: '#1a1a1a',
+            fill: '#000',
             rx: 17,
             ry: 17,
             left: -containerWidth / 2 + 30,
             top: -containerHeight / 2 - 17, // Pushes it above the dashed line
-            stroke: '#333',
-            strokeWidth: 1
+            stroke: '#787878',
+            strokeWidth: 2
         });
 
         const labelText = new fabric.Text(labelTextContent, {
