@@ -339,7 +339,7 @@ const FramesOverlay = ({ frame }: any) => {
             width: containerWidth,
             height: containerHeight,
             fill: 'transparent',
-            stroke: '#444', // Slightly lighter to see it better
+            stroke: '#616161', // Slightly lighter to see it better
             strokeDashArray: [10, 8],
             rx: 30,
             ry: 30,
@@ -351,8 +351,8 @@ const FramesOverlay = ({ frame }: any) => {
 
         // 3. The Label
         const labelBg = new fabric.Rect({
-            width: 100,
-            height: 34,
+            width: 120,
+            height: 45,
             fill: '#000',
             rx: 17,
             ry: 17,
@@ -363,12 +363,13 @@ const FramesOverlay = ({ frame }: any) => {
         });
 
         const labelText = new fabric.Text(labelTextContent, {
-            fontSize: 12,
+            fontSize: 24,
             fill: '#999',
             left: -containerWidth / 2 + 48,
             top: -containerHeight / 2 - 7,
-            fontFamily: 'Inter, Arial'
-        });
+            fontFamily: 'Inter, Arial',
+            charSpacing: -70
+        })
 
         const sketchBg = new fabric.Rect({
             left: -containerWidth / 2 + PADDING,
