@@ -7,7 +7,6 @@ import type { ArtboardFrame } from '../../../../lib/store/canvasStore'
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Badge } from '@/components/ui/badge'
 import { Screen } from "../../../../lib/store/canvasStore"
-import { Separator } from '@/components/ui/separator'
 import {
     Select,
     SelectContent,
@@ -15,11 +14,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import render from '../../../lib/render/renderWireframe'
 import extractCanvasData from '@/lib/render/extractCanvasData'
 import GenerateButton from '@/components/ui/generateButton'
 import renderFromAI from '@/lib/canvas/RenderAiPatterns'
 import { AIScreen } from '../../../../lib/type'
+import AiZoneGradient from '@/components/ui/Aizone/AiZone'
 
 type WireframeElement = {
     type: string
@@ -34,6 +33,8 @@ const FramesOverlay = ({ frame }: any) => {
     const idMap = React.useRef<Record<string, string>>({});
     const [isDrawingZone, setIsDrawingZone] = useState(false);
     const [activeGhostZone, setActiveGhostZone] = useState<fabric.Rect | null>(null);
+    const [isCanvasEmpty, setIsCanvasEmpty] = useState(true);
+
 
     /* ------------------ UTILS ------------------ */
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
@@ -60,6 +61,42 @@ const FramesOverlay = ({ frame }: any) => {
         }
     }, [canvas])
 
+
+    // check if there is any doodle on the canvas or not
+    useEffect(() => {
+        if (!canvas) return;
+
+        const checkCanvas = () => {
+            const objects = canvas.getObjects();
+
+            const drawings = objects.filter((obj: any) => {
+                // 1. Ignore the Artboard Frames
+                if (obj.isFrame || obj.get?.('isFrame')) return false;
+
+                // 2. Ignore the Ghost Group/Sections
+                if (obj.data?.isGhost || obj.type === 'group') return false;
+
+                // 3. Ignore technical objects (active selections, etc.)
+                if (obj.type === 'activeSelection') return false;
+
+                return true;
+            });
+
+            console.log("Filtered Drawings Count:", drawings.length);
+            setIsCanvasEmpty(drawings.length === 0);
+        };
+
+        // Listen for additions or removals
+        canvas.on('object:added', checkCanvas);
+        canvas.on('object:removed', checkCanvas);
+
+        checkCanvas();
+
+        return () => {
+            canvas.off('object:added', checkCanvas);
+            canvas.off('object:removed', checkCanvas);
+        };
+    }, [canvas]);
 
     /* ------------------ AI GENERATION ------------------ */
 
@@ -591,94 +628,99 @@ const FramesOverlay = ({ frame }: any) => {
     /* ------------------ UI ------------------ */
     return (
 
-        <div
-            className="absolute pointer-events-auto"
-            style={{
-                left: pos.x,
-                top: pos.y - (BAR_HEIGHT + BAR_GAP) * zoom,
-            }}
-        >
+        <>
             <div
-                className="ai-gradient-overlay absolute pointer-events-none"
+                className={`absolute pointer-events-none transition-all duration-700 ${isCanvasEmpty ? 'opacity-100' : 'opacity-20' // Just fade it out instead of deleting it
+                    }`}
                 style={{
                     left: aiScreenPos.x,
                     top: aiScreenPos.y,
                     width: frame.width * zoom,
                     height: frame.height * zoom,
-                    borderRadius: 20 * zoom,
-                }}
-            />
-            <div
-                style={{
-                    transform: `scale(${zoom})`,
-                    transformOrigin: 'top left',
-                    width: frame.width,
+                    zIndex: 0
                 }}
             >
-                <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl bg-black/70 text-white text-sm">
+                <AiZoneGradient />
+            </div>
+            <div
+                className="absolute pointer-events-auto"
+                style={{
+                    left: pos.x,
+                    top: pos.y - (BAR_HEIGHT + BAR_GAP) * zoom,
+                }}
+            >
+                <div
+                    style={{
+                        transform: `scale(${zoom})`,
+                        transformOrigin: 'top left',
+                        width: frame.width,
+                    }}
+                >
+                    <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl bg-black/70 text-white text-sm">
 
-                    {/* LEFT */}
-                    <div className="flex items-center gap-3">
-                        <Select defaultValue="Desktop" onValueChange={HandleFrameSize}>
-                            <SelectTrigger className="p-3 rounded-full bg-white/10 border-0">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-[#1e1e1e] text-white">
-                                <SelectItem value="Desktop">Desktop</SelectItem>
-                                <SelectItem value="Tablet">Tablet</SelectItem>
-                                <SelectItem value="Mobile">Mobile</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        {/* LEFT */}
+                        <div className="flex items-center gap-3">
+                            <Select defaultValue="Desktop" onValueChange={HandleFrameSize}>
+                                <SelectTrigger className="p-3 rounded-full bg-white/10 border-0">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1e1e1e] text-white">
+                                    <SelectItem value="Desktop">Desktop</SelectItem>
+                                    <SelectItem value="Tablet">Tablet</SelectItem>
+                                    <SelectItem value="Mobile">Mobile</SelectItem>
+                                </SelectContent>
+                            </Select>
 
-                        {renderBadge()}
+                            {renderBadge()}
 
-                        {
-                            frame.role === 'suggestion' && (
-                                <div className="absolute -top-12 left-0 w-full flex justify-center gap-2 animate-in fade-in slide-in-from-bottom-2">
-                                    <button
-                                        onClick={() => handleAcceptSuggestion(frame.id)}
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg flex items-center gap-1"
-                                    >
-                                        <Check className="w-3 h-3" /> Keep Suggestion
-                                    </button>
-                                    <button
-                                        onClick={() => handleRejectSuggestion(frame.id)}
-                                        className="bg-white hover:bg-red-50 text-red-600 px-3 py-1 rounded-full text-xs font-medium shadow-lg border border-red-100"
-                                    >
-                                        <X className="w-3 h-3" /> Discard
-                                    </button>
-                                </div>
-                            )
-                        }
+                            {
+                                frame.role === 'suggestion' && (
+                                    <div className="absolute -top-12 left-0 w-full flex justify-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+                                        <button
+                                            onClick={() => handleAcceptSuggestion(frame.id)}
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg flex items-center gap-1"
+                                        >
+                                            <Check className="w-3 h-3" /> Keep Suggestion
+                                        </button>
+                                        <button
+                                            onClick={() => handleRejectSuggestion(frame.id)}
+                                            className="bg-white hover:bg-red-50 text-red-600 px-3 py-1 rounded-full text-xs font-medium shadow-lg border border-red-100"
+                                        >
+                                            <X className="w-3 h-3" /> Discard
+                                        </button>
+                                    </div>
+                                )
+                            }
 
-                    </div>
+                        </div>
 
-                    {/* RIGHT */}
-                    <div className="flex gap-2">
-                        {/* <label className="px-3 py-1.5 flex items-center gap-2 rounded-md bg-white/20 cursor-pointer">
+                        {/* RIGHT */}
+                        <div className="flex gap-2">
+                            {/* <label className="px-3 py-1.5 flex items-center gap-2 rounded-md bg-white/20 cursor-pointer">
                             <ImagePlus className="w-4 h-4" />
                             Inspiration
                             <input type="file" multiple hidden />
-                        </label> */}
+                            </label> */}
 
-                        {/* This is for testing perpose */}
-                        <GenerateButton onClick={GenerateTypeSketch} >
-                            {loader ? (
-                                <span className="">
-                                    Generating...
-                                </span>
-                            ) : (
-                                <span className="">
-                                    Generate Wireframe
-                                </span>
-                            )}
-                        </GenerateButton>
+                            {/* This is for testing perpose */}
+                            <GenerateButton onClick={GenerateTypeSketch} >
+                                {loader ? (
+                                    <span className="">
+                                        Generating...
+                                    </span>
+                                ) : (
+                                    <span className="">
+                                        Generate Wireframe
+                                    </span>
+                                )}
+                            </GenerateButton>
+                        </div>
                     </div>
                 </div>
+
+
             </div>
-
-
-        </div>
+        </>
     )
 }
 
