@@ -333,8 +333,49 @@ const FramesOverlay = ({ frame }: any) => {
         canvas.add(frameRect);
         useCanvasStore.getState().addFrame(frame);
 
+
         return { frame, frameId: id };
     }
+
+
+    // ================= New COrresponding Ai frame ======================
+    const createAiZoneFrame = ({ canvas, sketchFrame }: {
+        canvas: fabric.Canvas,
+        sketchFrame: ArtboardFrame
+    }) => {
+        const id = crypto.randomUUID();
+        const GAP = 150;
+
+        const aiFrameData: ArtboardFrame = {
+            id,
+            device: sketchFrame.device,
+            badge: 'AiZone',
+            width: sketchFrame.width,
+            height: sketchFrame.height,
+            left: sketchFrame.left + sketchFrame.width + GAP,
+            top: sketchFrame.top,
+            locked: true,
+        };
+
+        const rect = new fabric.Rect({
+            left: aiFrameData.left,
+            top: aiFrameData.top,
+            width: aiFrameData.width,
+            height: aiFrameData.height,
+            fill: '#f8fafc',
+            stroke: '#6366f1',
+            strokeWidth: 2,
+            rx: 20,
+            ry: 20,
+            selectable: false
+        });
+
+        rect.set('isFrame', true);
+        rect.set('frameId', id);
+
+        canvas.add(rect);
+        useCanvasStore.getState().addFrame(aiFrameData);
+    };
 
 
 
