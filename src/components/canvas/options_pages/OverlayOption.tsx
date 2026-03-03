@@ -18,8 +18,7 @@ import extractCanvasData from '@/lib/render/extractCanvasData'
 import GenerateButton from '@/components/ui/generateButton'
 import renderFromAI from '@/lib/canvas/RenderAiPatterns'
 import { AIScreen } from '../../../../lib/type'
-import AiZoneGradient from '@/components/ui/Aizone/AiZone'
-import Grainient from '@/components/Grainient'
+import Grainient from '@/components/ui/Aizone/Grainient'
 
 type WireframeElement = {
     type: string
@@ -632,19 +631,20 @@ const FramesOverlay = ({ frame }: any) => {
     const aiBoxX = frame.left + frame.width + 100;
     const aiScreenPos = canvasToScreen(canvas, aiBoxX, frame.top); // Position AI screen to the right of the frame, with some padding
 
+
     /* ------------------ UI ------------------ */
     return (
 
         <>
             <div
-                className={`absolute pointer-events-none transition-all duration-700 ${isCanvasEmpty ? 'opacity-100' : 'opacity-20' // Just fade it out instead of deleting it
+                className={`absolute pointer-events-none  ${isCanvasEmpty ? 'opacity-100' : 'opacity-0' // Just fade it out instead of deleting it
                     }`}
                 style={{
                     left: aiScreenPos.x,
                     top: aiScreenPos.y,
                     width: frame.width * zoom,
                     height: frame.height * zoom,
-                    zIndex: 0
+                    zIndex: 0,
                 }}
             >
                 <Grainient />

@@ -23,6 +23,6 @@
       "@backend/*": ["./backend/src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backend/tsconfig.json"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backend/tsconfig.json", "src/components/ui/Aizone/Grainient.tsx"],
   "exclude": ["node_modules"]
 }
