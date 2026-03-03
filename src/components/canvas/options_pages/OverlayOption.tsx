@@ -19,6 +19,7 @@ import GenerateButton from '@/components/ui/generateButton'
 import renderFromAI from '@/lib/canvas/RenderAiPatterns'
 import { AIScreen } from '../../../../lib/type'
 import AiZoneGradient from '@/components/ui/Aizone/AiZone'
+import Grainient from '@/components/Grainient'
 
 type WireframeElement = {
     type: string
@@ -646,7 +647,7 @@ const FramesOverlay = ({ frame }: any) => {
                     zIndex: 0
                 }}
             >
-                <AiZoneGradient />
+                <Grainient />
             </div>
             <div
                 className="absolute pointer-events-auto"
