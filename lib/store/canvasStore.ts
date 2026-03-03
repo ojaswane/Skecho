@@ -50,8 +50,12 @@ export type CanvasElement = {
     text?: string
 }
 
+
 export type ArtboardFrame = {
     id: string
+    sectionId?: string    // Unique ID for the section
+    linkedFrameId?: string //  The ID of the partner frame in the pair (Sketch <-> AI Zone) => I am a Sketch frame, and my AI Result is Frame XYZ.
+    isMain?: boolean //  True if this is the Sketch frame in a pair, false if it's the AI Zone
     role?: 'refinement' | 'suggestion'
     device: FrameType
     badge: FrameBadge
@@ -112,6 +116,7 @@ interface CanvasState {
     setCanvas: (canvas: fabric.Canvas) => void
     setActiveTool: (tool: ToolType) => void
     addFrame: (frame: ArtboardFrame) => void
+    addSection: (sketchFrame: ArtboardFrame, aiFrame: ArtboardFrame) => void
     setActiveFrame: (id: string | null) => void
     updateFrame: (id: string, data: Partial<ArtboardFrame>) => void
     setSelectedObject: (obj: fabric.Object | null) => void
@@ -141,11 +146,22 @@ export const useCanvasStore = create<CanvasState>((set) => ({
         set((state) => ({
             frames: state.frames.map((f) => (f.id === id ? { ...f, ...data } : f)),
         })),
+
+    addSection: (sketchFrame, aiFrame) => set((state) => ({
+        frames: [...state.frames, sketchFrame, aiFrame]
+    })),
+
     setSelectedObject: (obj) => set({ selectedObject: obj }),
+
     setDefaultTextObject: (text) => set({ defaultTextObject: text }),
 
-    deleteFrame: (id) => set((state) => ({
-        frames: state.frames.filter((f) => f.id !== id),
-        activeFrameId: state.activeFrameId === id ? null : state.activeFrameId,
-    }))
+    deleteFrame: (id) => set((state) => {
+        const frameToDelete = state.frames.find(f => f.id === id);
+        const partnerId = frameToDelete?.linkedFrameId;
+
+        return {
+            frames: state.frames.filter((f) => f.id !== id && f.id !== partnerId),
+            activeFrameId: state.activeFrameId === id ? null : state.activeFrameId,
+        };
+    }),
 }))
