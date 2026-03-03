@@ -367,6 +367,22 @@ const FramesOverlay = ({ frame }: any) => {
 
     // ==================== Section for Frames ===================
 
+    const DEFAULT_AI_Heading = {
+        text: "Ai Zone",
+        fontSize: 65,
+        charSpacing: -70,
+        fill: "#000",
+        fontFamily: "arial"
+    }
+
+    const DEFAULT_AI_Text = {
+        text: "Sketch to get results",
+        fontSize: 65,
+        charSpacing: -70,
+        fill: "#000",
+        fontFamily: "arial"
+    }
+
     const addGhostZone = () => {
         const TOP_SAFETY_MARGIN = 70;
         const GAP = 80;

@@ -125,7 +125,7 @@ void main(){
 `;
 
 const Grainient: React.FC<GrainientProps> = ({
-  timeSpeed = 0.5,
+  timeSpeed = 1.0,
   colorBalance = 0.0,
   warpStrength = 1.0,
   warpFrequency = 5.0,
