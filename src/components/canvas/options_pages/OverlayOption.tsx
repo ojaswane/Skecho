@@ -244,7 +244,7 @@ const FramesOverlay = ({ frame }: any) => {
                                 const { frame: newFrame } = createNewFrame({
                                     canvas,
                                     sourceFrame: frame,
-                                    badge: "wireframe",
+                                    badge: "AiZone",
                                     role: screenPlan.role || "suggestion"
                                 });
 
@@ -292,7 +292,7 @@ const FramesOverlay = ({ frame }: any) => {
     }: {
         canvas: fabric.Canvas,
         sourceFrame: ArtboardFrame,
-        badge: 'wireframe' | 'final',
+        badge: 'Sketch' | 'AiZone',
         role?: "refinement" | "suggestion"
     }) {
         const id = crypto.randomUUID();
@@ -568,7 +568,7 @@ const FramesOverlay = ({ frame }: any) => {
             fabricFrame.animate(animOptions);
 
             useCanvasStore.getState().updateFrame(frameId, {
-                badge: 'wireframe'
+                badge: 'AiZone'
             });
         }
     };
@@ -599,9 +599,8 @@ const FramesOverlay = ({ frame }: any) => {
     /* ------------------ BADGE ------------------ */
     const renderBadge = () => {
         const map: Record<string, string> = {
-            idea: 'Idea',
-            wireframe: 'Wireframe',
-            final: 'Final',
+            'sketch': 'Sketch',
+            'Ai Zone': 'Ai Zone',
         }
 
         return (

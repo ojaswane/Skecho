@@ -3,7 +3,7 @@ import { create } from "zustand"
 import * as fabric from "fabric"
 
 export type FrameType = "desktop" | "tablet" | "mobile"
-export type FrameBadge = "idea" | "wireframe" | "final"
+export type FrameBadge = "Sketch" | "AiZone"
 
 export type SemanticBlock = {
     id: string

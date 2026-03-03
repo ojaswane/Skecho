@@ -58,7 +58,7 @@ export default function DefaultText() {
             fontWeight: 'bold',
             fontFamily: 'Arial',
             fill: "#000",
-            charSpacing: -50, // tracking-tighter
+            charSpacing: -70,
             originX: "center",
             top: 0
         })
@@ -68,7 +68,7 @@ export default function DefaultText() {
             fontSize: 14,
             fontFamily: 'Arial',
             fill: "rgba(0,0,0,0.5)",
-            charSpacing: 150, // wide tracking
+            charSpacing: -70,
             originX: "center",
             top: 50
         })
