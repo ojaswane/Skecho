@@ -385,7 +385,7 @@ const FramesOverlay = ({ frame }: any) => {
 
     const addGhostZone = () => {
         const TOP_SAFETY_MARGIN = 70;
-        const GAP = 80;
+        const GAP = 100;
         const PADDING = 60;
         const labelTextContent = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
 
@@ -643,6 +643,8 @@ const FramesOverlay = ({ frame }: any) => {
 
         useCanvasStore.getState().updateFrame(frame.id, { width, height })
     }
+
+    // Thix is the position for the AI screen, we calculate it based on the frame position and size, and we also apply the canvas zoom level to it. This way, the AI screen will always be positioned correctly relative to the frame, even when zooming in and out.
 
     const aiBoxX = frame.left + frame.width + 100;
     const aiScreenPos = canvasToScreen(canvas, aiBoxX, frame.top); // Position AI screen to the right of the frame, with some padding
