@@ -20,8 +20,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useEffect } from "react"
-import { useUserStore } from "../../lib/store/userStore"
-import { useProjectStore } from "../../lib/store/projectStore"
+import { useUserStore } from "../../../lib/store/userStore"
+import { useProjectStore } from "../../../lib/store/projectStore"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 

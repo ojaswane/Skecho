@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Triangle } from 'ogl';
+import DefaultText from './DefaultText/DefaultText';
 
 interface GrainientProps {
   timeSpeed?: number;
@@ -264,12 +265,7 @@ const Grainient: React.FC<GrainientProps> = ({
     <div ref={containerRef} className={`relative h-full w-full overflow-hidden ${className}`.trim()} >
       {/* Overlay Text Layer */}
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
-        <h2 className="text-4xl font-bold tracking-tighter text-black/90">
-          Ai Zone
-        </h2>
-        <p className="text-xs font-medium text-black/40 mt-1 uppercase tracking-widest">
-          Sketch To Get Results
-        </p>
+       {/* < DefaultText /> */}
       </div>
     </div>
   )

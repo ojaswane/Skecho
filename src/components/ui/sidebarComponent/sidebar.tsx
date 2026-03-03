@@ -8,7 +8,7 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { AppSidebar } from '@/components/app-sidebar'
+import { AppSidebar } from '../app-sidebar'
 import DrawerComponent from '@/components/ui/Drawer/Drawercomponent'
 import { ThemeToggleButton } from '@/components/ui/skiper-ui/Skiper26'
 
