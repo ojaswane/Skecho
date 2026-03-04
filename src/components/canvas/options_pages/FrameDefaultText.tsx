@@ -47,7 +47,8 @@ export default function DefaultText() {
         if (!canvas) return 0
         return canvas.getObjects().filter(obj =>
             !obj.get("isPlaceholder") &&
-            !obj.get("isFrame")
+            !obj.get("isFrame") &&
+            !obj.get("data")?.isGhost
         ).length
     }
 
@@ -60,6 +61,7 @@ export default function DefaultText() {
             if (!obj) return
             if (obj.get("isPlaceholder")) return
             if (obj.get("isFrame")) return
+            if (obj.get("data")?.isGhost) return
 
             setHasUserStarted(true)
 
@@ -110,7 +112,10 @@ export default function DefaultText() {
     useEffect(() => {
         if (!canvas || frames.length === 0 || hasUserStarted) return
 
-        const frame = frames[0]
+        const frame = frames.find((f) => {
+            const badge = String(f.badge || '').toLowerCase()
+            return badge === 'sketch' || badge === 'idea'
+        }) || frames[0]
 
         canvas.getObjects().forEach(obj => {
             if (obj.get("isPlaceholder")) canvas.remove(obj)
@@ -157,7 +162,10 @@ export default function DefaultText() {
     // Overlay visible only when canvas is empty
     if (!canvas || frames.length === 0 || hasUserStarted) return null
 
-    const frame = frames[0]
+    const frame = frames.find((f) => {
+        const badge = String(f.badge || '').toLowerCase()
+        return badge === 'sketch' || badge === 'idea'
+    }) || frames[0]
     const zoom = canvas.getZoom()
     const vpt = canvas.viewportTransform!
 

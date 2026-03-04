@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import * as fabric from 'fabric'
-import { Check, ImagePlus, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import type { ArtboardFrame } from '../../../../lib/store/canvasStore'
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
 import { Badge } from '@/components/ui/badge'
@@ -27,6 +27,7 @@ type WireframeElement = {
 
 const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
+    const frames = useCanvasStore((s) => s.frames)
     const [, forceUpdate] = useState(0)
     const [loader, setloader] = useState(false)
     const [userPrompt, setPrompt] = useState('')
@@ -34,6 +35,14 @@ const FramesOverlay = ({ frame }: any) => {
     const [isDrawingZone, setIsDrawingZone] = useState(false);
     const [activeGhostZone, setActiveGhostZone] = useState<fabric.Rect | null>(null);
     const [isCanvasEmpty, setIsCanvasEmpty] = useState(true);
+    const normalizedBadge = String(frame.badge || '').toLowerCase();
+    const isSourceSketchFrame = normalizedBadge === 'sketch' || normalizedBadge === 'idea';
+    const pairedAiFrame = isSourceSketchFrame
+        ? frames.find((f) => f.id === `${frame.id}_ai` || f.linkedFrameId === frame.id)
+        : null;
+    const FRAME_GAP = 100;
+    const SECTION_PADDING = 60;
+    const SECTION_TOP_MARGIN = 70;
 
 
     /* ------------------ UTILS ------------------ */
@@ -255,7 +264,7 @@ const FramesOverlay = ({ frame }: any) => {
     }) {
         const id = crypto.randomUUID();
         const frames = useCanvasStore.getState().frames;
-        const GAP = 150;
+        const GAP = FRAME_GAP;
 
         // Smart positioning: Find the furthest right edge
         const rightMost = frames.reduce((max, f) => Math.max(max, f.left + f.width), sourceFrame.left + sourceFrame.width);
@@ -297,19 +306,19 @@ const FramesOverlay = ({ frame }: any) => {
 
 
     // ================= New COrresponding Ai frame ======================
-    const createAiZoneFrame = ({ sketchFrame, badge }: {
+    const createAiZoneFrame = ({ sketchFrame }: {
         sketchFrame: ArtboardFrame,
-        badge: 'Sketch' | 'AiZone',
     }) => {
         if (!canvas) return null;
 
-        // FIX: Check against sketchFrame.id
-        const existing = canvas.getObjects().find(obj => (obj as any).frameId === sketchFrame.id + "_ai");
+        const aiId = `${sketchFrame.id}_ai`;
+        const existing = canvas.getObjects().find(obj => (obj as any).frameId === aiId);
+        const existingInStore = useCanvasStore.getState().frames.some((f) => f.id === aiId);
 
-        if (existing) return;
+        if (existing || existingInStore) return aiId;
 
-        const id = sketchFrame.id + "_ai"; // Consistent ID mapping
-        const GAP = 150;
+        const id = aiId; // Consistent ID mapping
+        const GAP = FRAME_GAP;
 
         const aiFrameData: ArtboardFrame = {
             id,
@@ -352,9 +361,6 @@ const FramesOverlay = ({ frame }: any) => {
     useEffect(() => {
         if (!canvas || !frame) return;
 
-        // Prevent recursive creation; only sketch-like frames can spawn an AI zone frame.
-        const normalizedBadge = String(frame.badge || '').toLowerCase();
-        const isSourceSketchFrame = normalizedBadge === 'sketch' || normalizedBadge === 'idea';
         if (!isSourceSketchFrame) return;
 
         const aiFrameId = `${frame.id}_ai`;
@@ -363,13 +369,12 @@ const FramesOverlay = ({ frame }: any) => {
         );
 
         if (!hasAiZone) {
-            createAiZoneFrame({ sketchFrame: frame, badge: 'AiZone' });
+            createAiZoneFrame({ sketchFrame: frame });
         }
-    }, [canvas, frame.id, frame.badge]);
-
+    }, [canvas, frame.id, isSourceSketchFrame]);
 
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas || !isSourceSketchFrame) return;
 
         const handleSelection = (e: any) => {
             const sel = e.selected?.[0]
@@ -388,12 +393,12 @@ const FramesOverlay = ({ frame }: any) => {
     }, [canvas])
 
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas || !isSourceSketchFrame) return;
 
         const performCheck = () => {
             const objects = canvas.getObjects();
             const drawings = objects.filter((obj: any) => {
-                return !obj.isFrame && !obj.data?.isGhost;
+                return !obj.isFrame && !obj.data?.isGhost && !obj.get?.('isPlaceholder');
             });
 
             // ONLY update state if the value actually changed
@@ -440,9 +445,9 @@ const FramesOverlay = ({ frame }: any) => {
     }
 
     const addGhostZone = () => {
-        const TOP_SAFETY_MARGIN = 70;
-        const GAP = 100;
-        const PADDING = 60;
+        const TOP_SAFETY_MARGIN = SECTION_TOP_MARGIN;
+        const GAP = FRAME_GAP;
+        const PADDING = SECTION_PADDING;
         const labelTextContent = `Section ${canvas.getObjects().filter(obj => (obj as any).data?.isGhost).length + 1}`;
 
         // Calculate dimensions based on the current frame size
@@ -533,7 +538,7 @@ const FramesOverlay = ({ frame }: any) => {
     };
 
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas || !isSourceSketchFrame) return;
 
         const existing = canvas.getObjects().find(
             (obj: any) => obj.data?.isGhost && obj.data?.belongsToFrame === frame.id
@@ -549,8 +554,8 @@ const FramesOverlay = ({ frame }: any) => {
                 );
 
                 ghosts.forEach((g: any) => {
-                    const PADDING = 60;
-                    const TOP_MARGIN = 70;
+                    const PADDING = SECTION_PADDING;
+                    const TOP_MARGIN = SECTION_TOP_MARGIN;
 
                     // Sync position to the frame
                     g.set({
@@ -563,7 +568,7 @@ const FramesOverlay = ({ frame }: any) => {
                         const curW = target.getScaledWidth();
                         const curH = target.getScaledHeight();
                         g.set({
-                            width: (curW * 2) + 100 + (PADDING * 2),
+                            width: (curW * 2) + FRAME_GAP + (PADDING * 2),
                             height: curH + (PADDING * 2) + 40
                         });
                     }
@@ -578,7 +583,7 @@ const FramesOverlay = ({ frame }: any) => {
             canvas.off('object:moving', handleSync);
             canvas.off('object:scaling', handleSync);
         };
-    }, [canvas, frame.id]);
+    }, [canvas, frame.id, isSourceSketchFrame]);
 
 
     const handleAcceptSuggestion = (frameId: string) => {
@@ -637,13 +642,15 @@ const FramesOverlay = ({ frame }: any) => {
     /* ------------------ BADGE ------------------ */
     const renderBadge = () => {
         const map: Record<string, string> = {
-            'sketch': 'Sketch',
-            'Ai Zone': 'Ai Zone',
+            'sketch': 'SketchZone',
+            'idea': 'SketchZone',
+            'aizone': 'AiZone',
         }
+        const key = String(frame.badge || '').toLowerCase()
 
         return (
             <Badge className="bg-white/15 text-lg text-white">
-                {map[frame.badge] ?? 'Idea'}
+                {map[key] ?? 'SketchZone'}
             </Badge>
         )
     }
@@ -683,27 +690,36 @@ const FramesOverlay = ({ frame }: any) => {
 
     // Thix is the position for the AI screen, we calculate it based on the frame position and size, and we also apply the canvas zoom level to it. This way, the AI screen will always be positioned correctly relative to the frame, even when zooming in and out.
 
-    const aiBoxX = frame.left + frame.width + 100;
-    const aiScreenPos = canvasToScreen(canvas, aiBoxX, frame.top); // Position AI screen to the right of the frame, with some padding
+    const aiScreenFrame = pairedAiFrame
+        ? pairedAiFrame
+        : (isSourceSketchFrame
+            ? { left: frame.left + frame.width + FRAME_GAP, top: frame.top, width: frame.width, height: frame.height }
+            : null);
+    const aiScreenPos = aiScreenFrame
+        ? canvasToScreen(canvas, aiScreenFrame.left, aiScreenFrame.top)
+        : null;
 
 
     /* ------------------ UI ------------------ */
     return (
 
         <>
-            <div
-                className={`absolute pointer-events-none  ${isCanvasEmpty ? 'opacity-100' : 'opacity-0' // Just fade it out instead of deleting it
-                    }`}
-                style={{
-                    left: aiScreenPos.x,
-                    top: aiScreenPos.y,
-                    width: frame.width * zoom,
-                    height: frame.height * zoom,
-                    zIndex: 0,
-                }}
-            >
-                <Grainient />
-            </div>
+            {isSourceSketchFrame && aiScreenPos && aiScreenFrame && (
+                <div
+                    className={`absolute pointer-events-none  ${isCanvasEmpty ? 'opacity-100' : 'opacity-0' // Just fade it out instead of deleting it
+                        }`}
+                    style={{
+                        left: aiScreenPos.x,
+                        top: aiScreenPos.y,
+                        width: aiScreenFrame.width * zoom + 1,
+                        height: aiScreenFrame.height * zoom +1,
+                        zIndex: 0,
+                        borderRadius : 20
+                    }}
+                >
+                    <Grainient />
+                </div>
+            )}
             <div
                 className="absolute pointer-events-auto"
                 style={{
@@ -765,17 +781,19 @@ const FramesOverlay = ({ frame }: any) => {
                             </label> */}
 
                             {/* This is for testing perpose */}
-                            <GenerateButton onClick={GenerateTypeSketch} >
-                                {loader ? (
-                                    <span className="">
-                                        Generating...
-                                    </span>
-                                ) : (
-                                    <span className="">
-                                        Generate Wireframe
-                                    </span>
-                                )}
-                            </GenerateButton>
+                            {isSourceSketchFrame && (
+                                <GenerateButton onClick={GenerateTypeSketch} >
+                                    {loader ? (
+                                        <span className="">
+                                            Generating...
+                                        </span>
+                                    ) : (
+                                        <span className="">
+                                            Generate Wireframe
+                                        </span>
+                                    )}
+                                </GenerateButton>
+                            )}
                         </div>
                     </div>
                 </div>
