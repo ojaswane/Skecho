@@ -712,9 +712,10 @@ const FramesOverlay = ({ frame }: any) => {
                         left: aiScreenPos.x,
                         top: aiScreenPos.y,
                         width: aiScreenFrame.width * zoom + 1,
-                        height: aiScreenFrame.height * zoom +1,
+                        height: aiScreenFrame.height * zoom + 1,
                         zIndex: 0,
-                        borderRadius : 20
+                        borderRadius: '10px',
+                        overflow: 'hidden',
                     }}
                 >
                     <Grainient />
