@@ -341,7 +341,7 @@ const FramesOverlay = ({ frame }: any) => {
             strokeWidth: 2,
             rx: 12,
             ry: 12,
-            selectable: true,
+            selectable: false,
         });
 
         rect.set({
@@ -714,7 +714,7 @@ const FramesOverlay = ({ frame }: any) => {
                         width: aiScreenFrame.width * zoom + 1,
                         height: aiScreenFrame.height * zoom + 1,
                         zIndex: 0,
-                        borderRadius: '10px',
+                        borderRadius: '6px',
                         overflow: 'hidden',
                     }}
                 >
