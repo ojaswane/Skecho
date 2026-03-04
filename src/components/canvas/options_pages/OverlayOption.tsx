@@ -62,48 +62,6 @@ const FramesOverlay = ({ frame }: any) => {
     }, [canvas])
 
 
-    // check if there is any doodle on the canvas or not
-    useEffect(() => {
-        if (!canvas) return;
-
-        const checkCanvas = () => {
-            const objects = canvas.getObjects();
-
-            const drawings = objects.filter((obj: any) => {
-                // 1. Ignore anything explicitly marked as a Frame
-                if (obj.isFrame || obj.get?.('isFrame')) return false;
-
-                // 2. Ignore anything marked as a Ghost (using both data and custom props)
-                if (obj.data?.isGhost || obj.isGhost) return false;
-
-                // 3. Ignore ALL groups (since your ghost zone is a group)
-                if (obj.type === 'group') return false;
-
-                // 4. Ignore the internal parts of the ghost zone if they ungroup
-                if (obj.strokeDashArray || obj.type === 'text') {
-                    // If it's part of our UI, ignore it
-                    if (obj.fill === 'transparent' || obj.fill === '#000' || obj.fill === '#999') return false;
-                }
-
-                return true;
-            });
-
-            console.log("Filtered Drawings Count:", drawings.length);
-            setIsCanvasEmpty(drawings.length === 0);
-        };
-
-        // Listen for additions or removals
-        canvas.on('object:added', checkCanvas);
-        canvas.on('object:removed', checkCanvas);
-
-        checkCanvas();
-
-        return () => {
-            canvas.off('object:added', checkCanvas);
-            canvas.off('object:removed', checkCanvas);
-        };
-    }, [canvas]);
-
     /* ------------------ AI GENERATION ------------------ */
 
     type ScreenWithElements = Screen & {
@@ -394,45 +352,47 @@ const FramesOverlay = ({ frame }: any) => {
     useEffect(() => {
         if (!canvas || !frame) return;
 
-        // Use a more robust check: does any object on the canvas point to this frame as its AI zone?
+        // Prevent recursive creation; only sketch-like frames can spawn an AI zone frame.
+        const normalizedBadge = String(frame.badge || '').toLowerCase();
+        const isSourceSketchFrame = normalizedBadge === 'sketch' || normalizedBadge === 'idea';
+        if (!isSourceSketchFrame) return;
+
+        const aiFrameId = `${frame.id}_ai`;
         const hasAiZone = canvas.getObjects().some(
-            (obj: any) => obj.isFrame && obj.badge === 'AiZone' && obj.left > frame.left
+            (obj: any) => obj.get?.('isFrame') && obj.get?.('frameId') === aiFrameId
         );
 
         if (!hasAiZone) {
             createAiZoneFrame({ sketchFrame: frame, badge: 'AiZone' });
         }
-    }, [canvas, frame.id, frame.left]); // Depend on specific IDs/values, not the whole frame object
+    }, [canvas, frame.id, frame.badge]);
 
 
     useEffect(() => {
-        canvas?.on('selection:created', (e) => {
+        if (!canvas) return;
+
+        const handleSelection = (e: any) => {
             const sel = e.selected?.[0]
             if (sel && sel.type === 'activeSelection') {
                 sel.clipPath = undefined
             }
-        })
+        };
 
-        canvas?.on('selection:updated', (e) => {
-            const sel = e.selected?.[0]
-            if (sel && sel.type === 'activeSelection') {
-                sel.clipPath = undefined
-            }
-        })
+        canvas.on('selection:created', handleSelection)
+        canvas.on('selection:updated', handleSelection)
 
-
+        return () => {
+            canvas.off('selection:created', handleSelection)
+            canvas.off('selection:updated', handleSelection)
+        }
     }, [canvas])
 
-
-    // Move this INSIDE a useEffect that runs once when canvas is ready
     useEffect(() => {
         if (!canvas) return;
 
         const performCheck = () => {
             const objects = canvas.getObjects();
             const drawings = objects.filter((obj: any) => {
-                // Log only when debugging to avoid console spam
-                // console.log("Checking object:", obj.type); 
                 return !obj.isFrame && !obj.data?.isGhost;
             });
 
@@ -580,46 +540,33 @@ const FramesOverlay = ({ frame }: any) => {
         );
         if (!existing) addGhostZone();
 
-        const updateUI = () => forceUpdate((n) => n + 1);
-
         // This handles both Moving and Scaling in real-time
         const handleSync = (e: any) => {
             const target = e.target;
-
-            if (target.get?.('isFrame') && target.get?.('frameId') === frame.id) {
-
+            if (target.get?.('frameId') === frame.id) {
                 const ghosts = canvas.getObjects().filter(
                     (obj: any) => obj.data?.isGhost && obj.data?.belongsToFrame === frame.id
                 );
 
-                ghosts.forEach((ghost: any) => {
-                    const g = ghost as fabric.Group;
-                    const outer = g.item(0) as fabric.Rect;
-                    const sketch = g.item(3) as fabric.Rect;
-                    const ai = g.item(4) as fabric.Rect;
-
-                    const curW = target.width * target.scaleX; // Current width considering scaling
-                    const curH = target.height * target.scaleY; // Current height considering scaling
-                    const GAP = 80;
+                ghosts.forEach((g: any) => {
                     const PADDING = 60;
+                    const TOP_MARGIN = 70;
 
-                    // Update dimensions
-                    outer.set({
-                        width: (curW * 2) + GAP + (PADDING * 2),
-                        height: curH + (PADDING * 2) + 40
-                    });
-                    sketch.set({ width: curW, height: curH });
-                    ai.set({
-                        width: curW,
-                        height: curH,
-                        left: PADDING + curW + GAP
-                    });
-
-                    // Stick group to the frame
+                    // Sync position to the frame
                     g.set({
                         left: target.left - PADDING,
-                        top: target.top - (PADDING + 10)
+                        top: target.top - PADDING - TOP_MARGIN,
                     });
+
+                    // If the frame scaled, update the ghost size
+                    if (e.transform?.action === 'scale') {
+                        const curW = target.getScaledWidth();
+                        const curH = target.getScaledHeight();
+                        g.set({
+                            width: (curW * 2) + 100 + (PADDING * 2),
+                            height: curH + (PADDING * 2) + 40
+                        });
+                    }
                     g.setCoords();
                 });
             }
@@ -627,14 +574,9 @@ const FramesOverlay = ({ frame }: any) => {
 
         canvas.on('object:moving', handleSync);
         canvas.on('object:scaling', handleSync);
-        canvas.on('mouse:wheel', updateUI);
-        canvas.on('after:render', updateUI);
-
         return () => {
             canvas.off('object:moving', handleSync);
             canvas.off('object:scaling', handleSync);
-            canvas.off('mouse:wheel', updateUI);
-            canvas.off('after:render', updateUI);
         };
     }, [canvas, frame.id]);
 
