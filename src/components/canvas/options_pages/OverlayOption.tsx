@@ -339,11 +339,18 @@ const FramesOverlay = ({ frame }: any) => {
 
 
     // ================= New COrresponding Ai frame ======================
-    const createAiZoneFrame = ({ canvas, sketchFrame }: {
-        canvas: fabric.Canvas,
-        sketchFrame: ArtboardFrame
+    const createAiZoneFrame = ({ sketchFrame, badge }: {
+        sketchFrame: ArtboardFrame,
+        badge: 'Sketch' | 'AiZone',
     }) => {
-        const id = crypto.randomUUID();
+        if (!canvas) return null;
+
+        // FIX: Check against sketchFrame.id
+        const existing = canvas.getObjects().find(obj => (obj as any).frameId === sketchFrame.id + "_ai");
+
+        if (existing) return;
+
+        const id = sketchFrame.id + "_ai"; // Consistent ID mapping
         const GAP = 150;
 
         const aiFrameData: ArtboardFrame = {
@@ -354,7 +361,7 @@ const FramesOverlay = ({ frame }: any) => {
             height: sketchFrame.height,
             left: sketchFrame.left + sketchFrame.width + GAP,
             top: sketchFrame.top,
-            locked: true,
+            locked: false,
         };
 
         const rect = new fabric.Rect({
@@ -362,21 +369,40 @@ const FramesOverlay = ({ frame }: any) => {
             top: aiFrameData.top,
             width: aiFrameData.width,
             height: aiFrameData.height,
-            fill: '#f8fafc',
+            fill: '#ffffff',
             stroke: '#6366f1',
             strokeWidth: 2,
-            rx: 20,
-            ry: 20,
-            selectable: false
+            rx: 12,
+            ry: 12,
+            selectable: true,
         });
 
-        rect.set('isFrame', true);
-        rect.set('frameId', id);
+        rect.set({
+            isFrame: true,
+            frameId: id,
+            badge: 'AiZone'
+        } as any);
 
         canvas.add(rect);
         useCanvasStore.getState().addFrame(aiFrameData);
+        idMap.current['primary_ai_output'] = id;
+
+        return id;
     };
 
+    // for loading the Ai frame
+    useEffect(() => {
+        if (!canvas || !frame) return;
+
+        // Use a more robust check: does any object on the canvas point to this frame as its AI zone?
+        const hasAiZone = canvas.getObjects().some(
+            (obj: any) => obj.isFrame && obj.badge === 'AiZone' && obj.left > frame.left
+        );
+
+        if (!hasAiZone) {
+            createAiZoneFrame({ sketchFrame: frame, badge: 'AiZone' });
+        }
+    }, [canvas, frame.id, frame.left]); // Depend on specific IDs/values, not the whole frame object
 
 
     useEffect(() => {
@@ -396,6 +422,35 @@ const FramesOverlay = ({ frame }: any) => {
 
 
     }, [canvas])
+
+
+    // Move this INSIDE a useEffect that runs once when canvas is ready
+    useEffect(() => {
+        if (!canvas) return;
+
+        const performCheck = () => {
+            const objects = canvas.getObjects();
+            const drawings = objects.filter((obj: any) => {
+                // Log only when debugging to avoid console spam
+                // console.log("Checking object:", obj.type); 
+                return !obj.isFrame && !obj.data?.isGhost;
+            });
+
+            // ONLY update state if the value actually changed
+            setIsCanvasEmpty((prev) => {
+                const isEmpty = drawings.length === 0;
+                return prev === isEmpty ? prev : isEmpty;
+            });
+        };
+
+        canvas.on('object:added', performCheck);
+        canvas.on('object:removed', performCheck);
+
+        return () => {
+            canvas.off('object:added', performCheck);
+            canvas.off('object:removed', performCheck);
+        };
+    }, [canvas]);
 
     if (!canvas) return null
 
