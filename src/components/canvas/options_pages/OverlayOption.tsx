@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react'
 import * as fabric from 'fabric'
-import { Text } from 'fabric'
 import { Check, X } from 'lucide-react'
 import type { ArtboardFrame } from '../../../../lib/store/canvasStore'
 import { useCanvasStore } from '../../../../lib/store/canvasStore'
@@ -309,12 +308,11 @@ const FramesOverlay = ({ frame }: any) => {
     // ================= New COrresponding Ai frame ======================
 
     const DEFAULT_AI_Heading = {
-        text: "Ai Zone .",
-        fontSize: 65,
-        charSpacing: -70,
+        text: "Ai Zone",
+        fontSize: 40,
+        charSpacing: -100,
         fill: "#000",
         fontFamily: "arial",
-        font : "medium"
     }
 
     const DEFAULT_AI_Text = {
@@ -325,48 +323,7 @@ const FramesOverlay = ({ frame }: any) => {
         fontFamily: "arial"
     }
 
-    const addDefaultAiTextToFrame = (targetFrame: ArtboardFrame) => {
-        if (!canvas) return
-
-        const hasNonPlaceholderContent = canvas.getObjects().some((obj: any) => {
-            const sameFrame = obj.get?.('frameId') === targetFrame.id
-            if (!sameFrame) return false
-            if (obj.get?.('isFrame')) return false
-            if (obj.get?.('isPlaceholder')) return false
-            return true
-        })
-
-        if (hasNonPlaceholderContent) return
-
-        const existingPlaceholder = canvas.getObjects().find((obj: any) => {
-            return obj.get?.('frameId') === targetFrame.id && obj.get?.('isPlaceholder')
-        })
-
-        if (existingPlaceholder) return
-
-        const placeholder = new Text(DEFAULT_AI_Heading.text, {
-            left: targetFrame.left + targetFrame.width / 2,
-            top: targetFrame.top + targetFrame.height / 2,
-            originX: "center",
-            originY: "center",
-            fontSize: DEFAULT_AI_Heading.fontSize,
-            fill: DEFAULT_AI_Heading.fill,
-            selectable: false,
-            evented: false,
-            charSpacing: DEFAULT_AI_Heading.charSpacing,
-            fontFamily: DEFAULT_AI_Heading.fontFamily
-        })
-
-        placeholder.set({
-            frameId: targetFrame.id,
-            isPlaceholder: true
-        } as any)
-
-        canvas.add(placeholder)
-        canvas.bringObjectToFront(placeholder)
-        canvas.requestRenderAll()
-    }
-
+    // Creates the ai zone
     const createAiZoneFrame = ({ sketchFrame }: {
         sketchFrame: ArtboardFrame,
     }) => {
@@ -413,7 +370,6 @@ const FramesOverlay = ({ frame }: any) => {
 
         canvas.add(rect);
         useCanvasStore.getState().addFrame(aiFrameData);
-        addDefaultAiTextToFrame(aiFrameData);
         idMap.current['primary_ai_output'] = id;
 
         return id;
@@ -433,6 +389,17 @@ const FramesOverlay = ({ frame }: any) => {
         if (!hasAiZone) {
             createAiZoneFrame({ sketchFrame: frame });
         }
+    }, [canvas, frame.id, isSourceSketchFrame]);
+
+    useEffect(() => {
+        if (!canvas || !isSourceSketchFrame) return;
+        const aiFrameId = `${frame.id}_ai`;
+        const staleAiPlaceholders = canvas.getObjects().filter((obj: any) => {
+            return obj.get?.('frameId') === aiFrameId && obj.get?.('isPlaceholder');
+        });
+        if (!staleAiPlaceholders.length) return;
+        staleAiPlaceholders.forEach((obj) => canvas.remove(obj));
+        canvas.requestRenderAll();
     }, [canvas, frame.id, isSourceSketchFrame]);
 
     useEffect(() => {
@@ -767,16 +734,29 @@ const FramesOverlay = ({ frame }: any) => {
                     }}
                 >
                     <Grainient />
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                         <span
                             style={{
                                 fontFamily: DEFAULT_AI_Heading.fontFamily,
-                                fontSize: `${Math.max(18, DEFAULT_AI_Heading.fontSize * 0.42)}px`,
+                                fontSize: `${DEFAULT_AI_Heading.fontSize}px`,
                                 letterSpacing: `${DEFAULT_AI_Heading.charSpacing / 1000}em`,
                                 color: DEFAULT_AI_Heading.fill,
+                                fontWeight: 400,
+                                lineHeight: 1.1,
                             }}
                         >
                             {DEFAULT_AI_Heading.text}
+                        </span>
+                        <span
+                            style={{
+                                fontFamily: DEFAULT_AI_Text.fontFamily,
+                                fontSize: '24px',
+                                letterSpacing: `${DEFAULT_AI_Text.charSpacing / 1000}em`,
+                                color: DEFAULT_AI_Text.fill,
+                                lineHeight: 1.2,
+                            }}
+                        >
+                            {DEFAULT_AI_Text.text}
                         </span>
                     </div>
                 </div>
