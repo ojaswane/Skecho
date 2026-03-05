@@ -277,7 +277,10 @@ const FramesOverlay = ({ frame }: any) => {
             height: sourceFrame.height,
             left: rightMost + GAP,
             top: sourceFrame.top,
-            locked: false,
+            locked: badge === "AiZone",
+            status: "idle",
+            version: 0,
+            lastPatchedAt: Date.now(),
         };
 
         const frameRect = new fabric.Rect({
@@ -346,7 +349,10 @@ const FramesOverlay = ({ frame }: any) => {
             height: sketchFrame.height,
             left: sketchFrame.left + sketchFrame.width + GAP,
             top: sketchFrame.top,
-            locked: false,
+            locked: true,
+            status: "idle",
+            version: 0,
+            lastPatchedAt: Date.now(),
         };
 
         const rect = new fabric.Rect({
@@ -626,7 +632,8 @@ const FramesOverlay = ({ frame }: any) => {
             fabricFrame.animate(animOptions);
 
             useCanvasStore.getState().updateFrame(frameId, {
-                badge: 'AiZone'
+                badge: 'AiZone',
+                locked: true
             });
         }
     };

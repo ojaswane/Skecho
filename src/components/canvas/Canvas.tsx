@@ -101,6 +101,9 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
       left: canvas.getWidth() / 2 - width / 2,
       top: 80,
       locked: false,
+      status: "idle",
+      version: 0,
+      lastPatchedAt: Date.now(),
     }
 
     // Frame border

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from "express";
 import cors from "cors";
 import generateRoute from "./routes/generate.js";
+import realtimeRoute from "./routes/realtime.js";
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use("/generate", generateRoute);
+app.use("/realtime", realtimeRoute);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
