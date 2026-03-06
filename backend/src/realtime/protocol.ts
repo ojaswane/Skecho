@@ -23,7 +23,7 @@ export type AiElement = {
 }
 
 export type AiSection = {
-  id: string
+  id: string | string[]
   frameId: string
   name?: string
   style?: AiSectionStyle

@@ -2,7 +2,7 @@ import { randomUUID } from "crypto"
 import type { AiDocument, AiPatch } from "./protocol.js"
 
 type SessionState = {
-  sessionId: string
+  sessionId: string | string[]
   frameId: string
   createdAt: number
   updatedAt: number
@@ -141,7 +141,7 @@ export function applySessionPatch(sessionId: string, patch: AiPatch): SessionSta
   const isUserEditedElement = Boolean(patch.id && state.userEditedElements[patch.id])
   const isUserEditedSection = Boolean(
     (patch.sectionId && state.userEditedSections[patch.sectionId]) ||
-      (patch.id && state.userEditedSections[patch.id])
+    (patch.id && state.userEditedSections[patch.id])
   )
   if (isUserEditedElement || isUserEditedSection) {
     return state
