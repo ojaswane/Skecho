@@ -38,7 +38,8 @@ export function useRealtimeGeneration({
     }
   }, [])
 
-  // Boots a backend realtime session for the current frame.
+  // Boots a backend realtime session for the current frame. what usCallBack will d is  that it willremembr the fucntion itself  to prevent itself for rerendering fo no reason
+
   const startSession = useCallback(async () => {
     if (!enabled || !frameId) return null
     setState("connecting")
@@ -92,7 +93,7 @@ export function useRealtimeGeneration({
   )
 
   // Registers monotonic sequence on backend to preserve ordering.
-        const sendSeq = useCallback(
+  const sendSeq = useCallback(
     async (sid: string) => {
       const nextSeq = ++seqRef.current
       await fetch(`${realtimeBase}/session/${sid}/seq`, {
@@ -154,7 +155,7 @@ export function useRealtimeGeneration({
   const sendSnapshot = useCallback(
 
     async (snapshot: JsonLike) =>
-      
+
       withSession(async (sid) => {
 
         const seq = await sendSeq(sid)
