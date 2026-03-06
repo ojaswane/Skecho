@@ -1,7 +1,9 @@
+// Canonical frame lifecycle status used by realtime generation.
 export type RealtimeFrameStatus = "idle" | "streaming" | "error" | "ready"
 
 export type AiTheme = "minimal" | "bold" | "soft" | "wireframe"
 
+// Section-level style controls that can be patched independently.
 export type AiSectionStyle = {
   theme?: AiTheme
   radius?: number
@@ -10,6 +12,7 @@ export type AiSectionStyle = {
   colorScheme?: string
 }
 
+// A single renderable item inside a section.
 export type AiElement = {
   id: string
   sectionId: string
@@ -24,6 +27,7 @@ export type AiElement = {
   style?: Record<string, unknown>
 }
 
+// Logical grouping of elements that can be styled and edited as a unit.
 export type AiSection = {
   id: string
   frameId: string
@@ -32,6 +36,7 @@ export type AiSection = {
   elements: AiElement[]
 }
 
+// Source-of-truth AI document for one target frame.
 export type AiDocument = {
   frameId: string
   version: number
@@ -43,6 +48,7 @@ export type AiDocument = {
 export type AiPatchOp = "add" | "update" | "remove"
 export type AiPatchTarget = "document" | "section" | "element"
 
+// Incremental operation applied to a document/section/element.
 export type AiPatch = {
   op: AiPatchOp
   target: AiPatchTarget
@@ -58,6 +64,7 @@ export type UserEditTarget =
   | { type: "section"; id: string }
   | { type: "element"; id: string }
 
+// Messages client sends to backend over realtime transport.
 export type ClientRealtimeMessage =
   | {
       type: "session.start"
@@ -104,6 +111,7 @@ export type ClientRealtimeMessage =
       ts: number
     }
 
+// Messages backend sends back to client.
 export type ServerRealtimeMessage =
   | {
       type: "session.ack"

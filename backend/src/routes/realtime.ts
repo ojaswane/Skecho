@@ -11,6 +11,7 @@ import {
   upsertSessionDoc,
 } from "../realtime/sessionStore.js"
 
+// Phase 1 realtime HTTP control routes for session/document/patch state.
 const router = Router()
 
 /*

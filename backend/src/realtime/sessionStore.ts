@@ -1,8 +1,9 @@
 import { randomUUID } from "crypto"
 import type { AiDocument, AiPatch } from "./protocol.js"
 
+// In-memory state for one realtime generation session.
 type SessionState = {
-  sessionId: string | string[]
+  sessionId: string
   frameId: string
   createdAt: number
   updatedAt: number
@@ -13,6 +14,7 @@ type SessionState = {
   userEditedElements: Record<string, true>
 }
 
+// Temporary process-local session registry (Phase 1 scaffold).
 const sessions = new Map<string, SessionState>()
 
 const now = () => Date.now()
@@ -25,6 +27,7 @@ const emptyDoc = (frameId: string): AiDocument => ({
   updatedAt: now(),
 })
 
+// Applies patch operations to the current session document.
 function applyPatch(doc: AiDocument, patch: AiPatch): AiDocument {
   const next: AiDocument = {
     ...doc,
@@ -90,6 +93,7 @@ function applyPatch(doc: AiDocument, patch: AiPatch): AiDocument {
   return next
 }
 
+// Creates a new session with an empty document baseline.
 export function createSession(frameId: string, sessionId?: string): SessionState {
   const id = sessionId ?? randomUUID()
   const state: SessionState = {
@@ -107,10 +111,12 @@ export function createSession(frameId: string, sessionId?: string): SessionState
   return state
 }
 
+// Reads session state by id.
 export function getSession(sessionId: string): SessionState | null {
   return sessions.get(sessionId) ?? null
 }
 
+// Tracks latest accepted sequence number from client updates.
 export function updateSessionSeq(sessionId: string, seq: number): SessionState | null {
   const state = sessions.get(sessionId)
   if (!state) return null
@@ -119,6 +125,7 @@ export function updateSessionSeq(sessionId: string, seq: number): SessionState |
   return state
 }
 
+// Toggles lock state for a session/frame.
 export function setSessionLocked(sessionId: string, locked: boolean): SessionState | null {
   const state = sessions.get(sessionId)
   if (!state) return null
@@ -127,6 +134,7 @@ export function setSessionLocked(sessionId: string, locked: boolean): SessionSta
   return state
 }
 
+// Replaces full document state (upsert behavior).
 export function upsertSessionDoc(sessionId: string, doc: AiDocument): SessionState | null {
   const state = sessions.get(sessionId)
   if (!state) return null
@@ -135,6 +143,7 @@ export function upsertSessionDoc(sessionId: string, doc: AiDocument): SessionSta
   return state
 }
 
+// Applies incremental patch with user-wins conflict guard.
 export function applySessionPatch(sessionId: string, patch: AiPatch): SessionState | null {
   const state = sessions.get(sessionId)
   if (!state) return null
@@ -151,6 +160,7 @@ export function applySessionPatch(sessionId: string, patch: AiPatch): SessionSta
   return state
 }
 
+// Marks section/element as user-edited to prevent AI overwrites.
 export function markSessionUserEdited(
   sessionId: string,
   target: { type: "section" | "element"; id: string }

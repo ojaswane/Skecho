@@ -1,5 +1,7 @@
+// Canonical frame lifecycle status used by realtime generation.
 export type RealtimeFrameStatus = "idle" | "streaming" | "error" | "ready"
 
+// Section-level style controls that can be patched independently.
 export type AiSectionStyle = {
   theme?: "minimal" | "bold" | "soft" | "wireframe"
   radius?: number
@@ -8,6 +10,7 @@ export type AiSectionStyle = {
   colorScheme?: string
 }
 
+// A single renderable item inside a section.
 export type AiElement = {
   id: string
   sectionId: string
@@ -22,14 +25,16 @@ export type AiElement = {
   style?: Record<string, unknown>
 }
 
+// Logical grouping of elements that can be styled and edited as a unit.
 export type AiSection = {
-  id: string | string[]
+  id: string
   frameId: string
   name?: string
   style?: AiSectionStyle
   elements: AiElement[]
 }
 
+// Source-of-truth AI document for one target frame.
 export type AiDocument = {
   frameId: string
   version: number
@@ -38,6 +43,7 @@ export type AiDocument = {
   updatedAt: number
 }
 
+// Incremental operation applied to a document/section/element.
 export type AiPatch = {
   op: "add" | "update" | "remove"
   target: "document" | "section" | "element"
