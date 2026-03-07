@@ -19,6 +19,7 @@ import GenerateButton from '@/components/ui/generateButton'
 import renderFromAI from '@/lib/canvas/RenderAiPatterns'
 import { AIScreen } from '../../../../lib/type'
 import Grainient from '@/components/ui/Aizone/Grainient'
+import { useRealtimeGeneration } from '@/hooks/useRealtimeGeneration'
 
 type WireframeElement = {
     type: string
@@ -40,9 +41,23 @@ const FramesOverlay = ({ frame }: any) => {
     const pairedAiFrame = isSourceSketchFrame
         ? frames.find((f) => f.id === `${frame.id}_ai` || f.linkedFrameId === frame.id)
         : null;
+    const realtimeFrameId = pairedAiFrame?.id ?? `${frame.id}_ai`;
     const FRAME_GAP = 100;
     const SECTION_PADDING = 60;
     const SECTION_TOP_MARGIN = 70;
+    const realtimeDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const snapshotIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+    const hasPendingRealtimeUpdateRef = React.useRef(false);
+
+    // Step 2 (HTTP transport): session + send helpers wired before websocket migration.
+    const {
+        state: realtimeState,
+        sendDelta,
+        sendSnapshot,
+    } = useRealtimeGeneration({
+        frameId: realtimeFrameId,
+        enabled: Boolean(canvas) && isSourceSketchFrame,
+    });
 
 
     /* ------------------ UTILS ------------------ */
@@ -69,6 +84,125 @@ const FramesOverlay = ({ frame }: any) => {
             canvas.off('after:render', update)
         }
     }, [canvas])
+
+    // Reflect realtime transport health into AiZone frame status.
+    useEffect(() => {
+        if (!isSourceSketchFrame) return;
+        if (realtimeState === 'error') {
+            useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'error' });
+        }
+    }, [isSourceSketchFrame, realtimeFrameId, realtimeState]);
+
+    // Debounced sketch-delta sender (path/create/modify/remove) for SketchZone only.
+    useEffect(() => {
+        if (!canvas || !isSourceSketchFrame) return;
+
+        const isSketchContent = (obj: any) => {
+            if (!obj) return false;
+            if (obj.get?.('isFrame')) return false;
+            if (obj.get?.('isPlaceholder')) return false;
+            if (obj.get?.('data')?.isGhost) return false;
+            const frameId = obj.get?.('frameId');
+            if (frameId) return frameId === frame.id;
+            // Fallback for early object events before frameId tagging completes.
+            const center = obj.getCenterPoint?.();
+            if (!center) return false;
+            return (
+                center.x >= frame.left &&
+                center.x <= frame.left + frame.width &&
+                center.y >= frame.top &&
+                center.y <= frame.top + frame.height
+            );
+        };
+
+        const scheduleRealtimeDelta = (eventType: string) => {
+            hasPendingRealtimeUpdateRef.current = true;
+            if (realtimeDebounceRef.current) clearTimeout(realtimeDebounceRef.current);
+            
+            // debounce in every 400 ms
+            realtimeDebounceRef.current = setTimeout(async () => {
+                if (!canvas) return;
+                useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
+
+                const sketchObjectCount = canvas.getObjects().filter((obj: any) => isSketchContent(obj)).length;
+                const ok = await sendDelta({
+                    eventType,
+                    sourceFrameId: frame.id,
+                    targetFrameId: realtimeFrameId,
+                    sketchObjectCount,
+                    ts: Date.now(),
+                });
+
+                if (ok) {
+                    useCanvasStore.getState().updateFrame(realtimeFrameId, {
+                        status: 'ready',
+                        lastPatchedAt: Date.now(),
+                    });
+                    hasPendingRealtimeUpdateRef.current = false;
+                }
+            }, 400);
+        };
+
+        const onPathCreated = (e: any) => {
+            if (!isSketchContent(e?.path)) return;
+            scheduleRealtimeDelta('path:created');
+        };
+
+        const onObjectAdded = (e: any) => {
+            if (!isSketchContent(e?.target)) return;
+            scheduleRealtimeDelta('object:added');
+        };
+
+        const onObjectModified = (e: any) => {
+            if (!isSketchContent(e?.target)) return;
+            scheduleRealtimeDelta('object:modified');
+        };
+
+        const onObjectRemoved = (e: any) => {
+            if (!isSketchContent(e?.target)) return;
+            scheduleRealtimeDelta('object:removed');
+        };
+
+        // path creatied means you are sketching something
+        canvas.on('path:created', onPathCreated);
+        canvas.on('object:added', onObjectAdded);
+        canvas.on('object:modified', onObjectModified);
+        canvas.on('object:removed', onObjectRemoved);
+
+        return () => {
+            canvas.off('path:created', onPathCreated);
+            canvas.off('object:added', onObjectAdded);
+            canvas.off('object:modified', onObjectModified);
+            canvas.off('object:removed', onObjectRemoved);
+            if (realtimeDebounceRef.current) {
+                clearTimeout(realtimeDebounceRef.current);
+                realtimeDebounceRef.current = null;
+            }
+        };
+    }, [canvas, frame.id, isSourceSketchFrame, realtimeFrameId, sendDelta]);
+
+    // Periodic snapshot reconciliation to reduce drift after many deltas.
+    useEffect(() => {
+        if (!canvas || !isSourceSketchFrame) return;
+
+        snapshotIntervalRef.current = setInterval(async () => {
+            if (!hasPendingRealtimeUpdateRef.current) return;
+            const canvasData = extractCanvasData(canvas);
+            await sendSnapshot({
+                sourceFrameId: frame.id,
+                targetFrameId: realtimeFrameId,
+                canvasData,
+                ts: Date.now(),
+            });
+        }, 3000);
+
+        return () => {
+            if (snapshotIntervalRef.current) {
+                clearInterval(snapshotIntervalRef.current);
+                snapshotIntervalRef.current = null;
+            }
+        };
+    }, [canvas, frame.id, isSourceSketchFrame, realtimeFrameId, sendSnapshot]);
 
 
     /* ------------------ AI GENERATION ------------------ */
