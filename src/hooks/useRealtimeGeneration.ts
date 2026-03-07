@@ -25,13 +25,15 @@ export function useRealtimeGeneration({
   const [error, setError] = useState<string | null>(null)
 
   // Local sequence/version cursors to maintain ordered updates.
-  const seqRef = useRef(0)
-  const versionRef = useRef(0)
-  const mountedRef = useRef(true)
+  const seqRef = useRef(0) // this is for knowing the order of updation
+  const versionRef = useRef(0) // This helps to keep the track of latest patch version
+  const mountedRef = useRef(true) // component is alive or gone
 
   const realtimeBase = useMemo(() => `${baseUrl.replace(/\/$/, "")}/realtime`, [baseUrl]) // ts removes some extra slases or getting a better result
   // this realtimeBase is basically memorises only one time without rerendering anything unless there are some more changes
   // Only do that string cleaning and adding stuff if the baseUrl actually changes. => why use memo
+  
+
   
   useEffect(() => {
     mountedRef.current = true
