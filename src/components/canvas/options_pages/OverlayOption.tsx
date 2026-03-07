@@ -118,7 +118,7 @@ const FramesOverlay = ({ frame }: any) => {
         const scheduleRealtimeDelta = (eventType: string) => {
             hasPendingRealtimeUpdateRef.current = true;
             if (realtimeDebounceRef.current) clearTimeout(realtimeDebounceRef.current);
-            
+
             // debounce in every 400 ms
             realtimeDebounceRef.current = setTimeout(async () => {
                 if (!canvas) return;
