@@ -29,8 +29,10 @@ export function useRealtimeGeneration({
   const versionRef = useRef(0)
   const mountedRef = useRef(true)
 
-  const realtimeBase = useMemo(() => `${baseUrl.replace(/\/$/, "")}/realtime`, [baseUrl])
-
+  const realtimeBase = useMemo(() => `${baseUrl.replace(/\/$/, "")}/realtime`, [baseUrl]) // ts removes some extra slases or getting a better result
+  // this realtimeBase is basically memorises only one time without rerendering anything unless there are some more changes
+  // Only do that string cleaning and adding stuff if the baseUrl actually changes. => why use memo
+  
   useEffect(() => {
     mountedRef.current = true
     return () => {
