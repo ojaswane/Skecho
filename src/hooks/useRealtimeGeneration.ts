@@ -38,7 +38,7 @@ export function useRealtimeGeneration({
     }
   }, [])
 
-  // Boots a backend realtime session for the current frame. what usCallBack will d is  that it willremembr the fucntion itself  to prevent itself for rerendering fo no reason
+  // Boots a backend realtime session for the current frame. what usCallBack will dO is that it will REMEMBER the fucntion itself to prevent itself for rerendering fo no reason
 
   const startSession = useCallback(async () => {
     if (!enabled || !frameId) return null
