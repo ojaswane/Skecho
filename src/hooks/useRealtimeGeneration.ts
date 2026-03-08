@@ -12,6 +12,13 @@ type UseRealtimeGenerationParams = {
 }
 
 type JsonLike = Record<string, unknown>
+type RealtimePatchResponse = {
+  ok: boolean
+  version: number
+  updatedAt: number
+  generatedDoc?: Record<string, unknown> | null
+  generationError?: string
+}
 
 export function useRealtimeGeneration({
   frameId,
@@ -124,8 +131,9 @@ export function useRealtimeGeneration({
         })
 
         if (!res.ok) throw new Error(`patch failed (${res.status})`)
-        versionRef.current = Math.max(versionRef.current, patch.version)
-        return true
+        const data = (await res.json()) as RealtimePatchResponse
+        versionRef.current = Math.max(versionRef.current, data.version ?? patch.version)
+        return data
 
       }),
     [realtimeBase, withSession]
@@ -149,8 +157,9 @@ export function useRealtimeGeneration({
           } satisfies AiPatch),
         })
         if (!res.ok) throw new Error(`delta failed (${res.status})`)
-        versionRef.current += 1
-        return true
+        const data = (await res.json()) as RealtimePatchResponse
+        versionRef.current = Math.max(versionRef.current + 1, data.version ?? 0)
+        return data
       }),
     [frameId, realtimeBase, sendSeq, withSession]
   )

@@ -125,7 +125,7 @@ const FramesOverlay = ({ frame }: any) => {
                 useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
 
                 const sketchObjectCount = canvas.getObjects().filter((obj: any) => isSketchContent(obj)).length;
-                const ok = await sendDelta({
+                const response = await sendDelta({
                     eventType,
                     sourceFrameId: frame.id,
                     targetFrameId: realtimeFrameId,
@@ -133,10 +133,25 @@ const FramesOverlay = ({ frame }: any) => {
                     ts: Date.now(),
                 });
 
-                if (ok) {
+                if (response?.generatedDoc) {
+                    // Keep the latest generated document in Zustand as source-of-truth.
+                    useCanvasStore.getState().setAiDoc(
+                        realtimeFrameId,
+                        response.generatedDoc as any
+                    );
+
+                    // Render a first visible preview directly from generated document.
+                    const aiScreens = docToAIScreens(response.generatedDoc as any);
+                    if (aiScreens.length > 0) {
+                        renderFromAI(canvas, aiScreens);
+                    }
+                }
+
+                if (response?.ok) {
                     useCanvasStore.getState().updateFrame(realtimeFrameId, {
                         status: 'ready',
-                        lastPatchedAt: Date.now(),
+                        lastPatchedAt: response.updatedAt ?? Date.now(),
+                        version: response.version ?? 0,
                     });
                     hasPendingRealtimeUpdateRef.current = false;
                 }
@@ -265,6 +280,30 @@ const FramesOverlay = ({ frame }: any) => {
                 })),
                 type: (el as any).type ?? 'block'
             }))
+        }))
+    }
+
+    function docToAIScreens(doc: any): AIScreen[] {
+        if (!doc?.frameId || !Array.isArray(doc.sections)) return [];
+        return doc.sections.map((section: any) => ({
+            id: section.id ?? crypto.randomUUID(),
+            name: section.name ?? "AI Screen",
+            frameId: doc.frameId,
+            elements: (section.elements || []).map((el: any) => ({
+                id: el.id ?? crypto.randomUUID(),
+                role: el.role,
+                col: el.col ?? 1,
+                row: el.row ?? 1,
+                span: el.span ?? 1,
+                rowSpan: el.rowSpan ?? 1,
+                blocks: [
+                    {
+                        id: `${el.id ?? crypto.randomUUID()}_block`,
+                        kind: "body_text",
+                    },
+                ],
+                type: el.type ?? "block",
+            })),
         }))
     }
 

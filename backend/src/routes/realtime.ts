@@ -1,6 +1,7 @@
 import Router from "express"
 import type { Request, Response } from "express"
 import type { AiDocument, AiPatch } from "../realtime/protocol.js"
+import { generatePreviewScreens } from "../Ai/Preview_Ai.js"
 import {
   applySessionPatch,
   createSession,
@@ -134,7 +135,7 @@ router.post("/session/:sessionId/document", (req: Request, res: Response) => {
   to change small parts of the UI, improving performance during realtime updates.
 */
 
-router.post("/session/:sessionId/patch", (req: Request, res: Response) => {
+router.post("/session/:sessionId/patch", async (req: Request, res: Response) => {
   const sessionId = getSessionId(req)
 
   if (!sessionId) {
@@ -153,10 +154,57 @@ router.post("/session/:sessionId/patch", (req: Request, res: Response) => {
     return res.status(404).json({ error: "Session not found" })
   }
 
+  let generatedDoc: AiDocument | null = null
+
+  // Step 2 bridge: for high-frequency document updates, generate a lightweight preview doc.
+  if (patch.target === "document" && patch.op === "update") {
+    try {
+      const payload = (patch.payload ?? {}) as any
+      const screens = await generatePreviewScreens({
+        prompt: payload?.lastDelta?.prompt || payload?.prompt || "Generate SaaS wireframe from sketch",
+        imageBase64: payload?.imageBase64,
+        density: "airy",
+      })
+
+      generatedDoc = {
+        frameId: patch.frameId,
+        version: session.doc.version + 1,
+        status: "ready",
+        updatedAt: Date.now(),
+        sections: screens.map((screen: any) => ({
+          id: screen.id,
+          frameId: patch.frameId,
+          name: screen.name,
+          elements: (screen.frames || []).map((f: any) => ({
+            id: f.id,
+            sectionId: screen.id,
+            type: f.type || "card",
+            role: f.role,
+            col: f.col,
+            row: f.row,
+            span: f.span,
+            rowSpan: f.rowSpan,
+            text: f.text,
+          })),
+        })),
+      }
+
+      upsertSessionDoc(sessionId, generatedDoc)
+    } catch (e: any) {
+      return res.json({
+        ok: true,
+        version: session.doc.version,
+        updatedAt: session.updatedAt,
+        generationError: e?.message || "PREVIEW_GENERATION_FAILED",
+      })
+    }
+  }
+
   return res.json({
     ok: true,
-    version: session.doc.version,
-    updatedAt: session.updatedAt,
+    version: generatedDoc?.version ?? session.doc.version,
+    updatedAt: generatedDoc?.updatedAt ?? session.updatedAt,
+    generatedDoc,
   })
 })
 
