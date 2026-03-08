@@ -1,3 +1,4 @@
+// ts is how the way we are calling the Ai manually
 import Router from "express"
 import { generatePreviewScreens } from "../Ai/Preview_Ai.js"
 

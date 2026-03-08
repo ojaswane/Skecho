@@ -160,6 +160,8 @@ router.post("/session/:sessionId/patch", async (req: Request, res: Response) => 
   if (patch.target === "document" && patch.op === "update") {
     try {
       const payload = (patch.payload ?? {}) as any
+
+      // this is how in realtime we are calling the AI
       const screens = await generatePreviewScreens({
         prompt: payload?.lastDelta?.prompt || payload?.prompt || "Generate SaaS wireframe from sketch",
         imageBase64: payload?.imageBase64,
