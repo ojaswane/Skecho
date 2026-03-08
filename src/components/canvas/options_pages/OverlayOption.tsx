@@ -45,8 +45,8 @@ const FramesOverlay = ({ frame }: any) => {
     const FRAME_GAP = 100;
     const SECTION_PADDING = 60;
     const SECTION_TOP_MARGIN = 70;
-    const realtimeDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-    const snapshotIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+    const realtimeDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null); //  stores the debounce timer so we don’t send AI requests on every tiny sketch event. It waits briefly (400ms), then sends one combined update.
+    const snapshotIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null); //stores the repeating interval timer (every ~3s) used to send periodic full snapshots for sync/recovery.
     const hasPendingRealtimeUpdateRef = React.useRef(false);
 
     // Step 2 (HTTP transport): session + send helpers wired before websocket migration.
