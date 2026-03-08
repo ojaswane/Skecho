@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from "express";
 import cors from "cors";
-import generateRoute from "./routes/generate.js";
+import generateRoute from "./routes/PreviewGemini.js";
 import realtimeRoute from "./routes/realtime.js";
 
 const app = express();
