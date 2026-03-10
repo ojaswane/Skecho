@@ -67,77 +67,77 @@ export type UserEditTarget =
 // Messages client sends to backend over realtime transport.
 export type ClientRealtimeMessage =
   | {
-      type: "session.start"
-      sessionId: string
-      frameId: string
-      prompt?: string
-      ts: number
-    }
+    type: "session.start"
+    sessionId: string
+    frameId: string
+    prompt?: string
+    ts: number
+  }
   | {
-      type: "sketch.delta"
-      sessionId: string
-      frameId: string
-      seq: number
-      delta: Record<string, unknown>
-      ts: number
-    }
+    type: "sketch.delta"
+    sessionId: string
+    frameId: string
+    seq: number
+    delta: Record<string, unknown>
+    ts: number
+  }
   | {
-      type: "sketch.snapshot"
-      sessionId: string
-      frameId: string
-      snapshot: Record<string, unknown>
-      ts: number
-    }
+    type: "sketch.snapshot"
+    sessionId: string
+    frameId: string
+    snapshot: Record<string, unknown>
+    ts: number
+  }
   | {
-      type: "generation.cancel"
-      sessionId: string
-      frameId: string
-      reason?: string
-      ts: number
-    }
+    type: "generation.cancel"
+    sessionId: string
+    frameId: string
+    reason?: string
+    ts: number
+  }
   | {
-      type: "section.style.update"
-      sessionId: string
-      frameId: string
-      sectionId: string
-      style: AiSectionStyle
-      ts: number
-    }
+    type: "section.style.update"
+    sessionId: string
+    frameId: string
+    sectionId: string
+    style: AiSectionStyle
+    ts: number
+  }
   | {
-      type: "frame.lock.set"
-      sessionId: string
-      frameId: string
-      locked: boolean
-      ts: number
-    }
+    type: "frame.lock.set"
+    sessionId: string
+    frameId: string
+    locked: boolean
+    ts: number
+  }
 
 // Messages backend sends back to client.
 export type ServerRealtimeMessage =
   | {
-      type: "session.ack"
-      sessionId: string
-      frameId: string
-      connectedAt: number
-    }
+    type: "session.ack"
+    sessionId: string
+    frameId: string
+    connectedAt: number
+  }
   | {
-      type: "plan.patch"
-      patch: AiPatch
-    }
+    type: "plan.patch"
+    patch: AiPatch
+  }
   | {
-      type: "screen.patch"
-      patch: AiPatch
-    }
+    type: "screen.patch"
+    patch: AiPatch
+  }
   | {
-      type: "screen.status"
-      frameId: string
-      status: RealtimeFrameStatus
-      version: number
-      ts: number
-    }
+    type: "screen.status"
+    frameId: string
+    status: RealtimeFrameStatus
+    version: number
+    ts: number
+  }
   | {
-      type: "error"
-      code: string
-      message: string
-      frameId?: string
-      ts: number
-    }
+    type: "error"
+    code: string
+    message: string
+    frameId?: string
+    ts: number
+  }
