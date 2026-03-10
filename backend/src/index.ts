@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import generateRoute from "./routes/PreviewGemini.js";
 import realtimeRoute from "./routes/realtime.js";
+import realtimeAiRoute from "./routes/RealtimeAi.js";
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use("/generate", generateRoute);
 app.use("/realtime", realtimeRoute);
+app.use("/realtime-ai", realtimeAiRoute);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

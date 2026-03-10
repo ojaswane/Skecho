@@ -1,7 +1,7 @@
 import Router from "express"
 import type { Request, Response } from "express"
 import type { AiDocument, AiPatch } from "../realtime/protocol.js"
-import { generatePreviewScreens } from "../Ai/Preview_Ai.js"
+import { GenerateRealTimeAi } from "../Ai/RealTime_Ai.js"
 import {
   applySessionPatch,
   createSession,
@@ -156,13 +156,13 @@ router.post("/session/:sessionId/patch", async (req: Request, res: Response) => 
 
   let generatedDoc: AiDocument | null = null
 
-  // Step 2 bridge: for high-frequency document updates, generate a lightweight preview doc.
+  // Step 2 bridge: for high-frequency document updates, generate a realtime doc.
   if (patch.target === "document" && patch.op === "update") {
     try {
       const payload = (patch.payload ?? {}) as any
 
-      // this is how in realtime we are calling the AI
-      const screens = await generatePreviewScreens({
+      // this is how in realtime we are calling the AIff
+      const screens = await GenerateRealTimeAi({
         prompt: payload?.lastDelta?.prompt || payload?.prompt || "Generate SaaS wireframe from sketch",
         imageBase64: payload?.imageBase64,
         density: "airy",
