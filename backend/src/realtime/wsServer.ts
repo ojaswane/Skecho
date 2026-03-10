@@ -1,3 +1,8 @@
+// 0: connecting
+// 1: open
+// 2: closing
+// 3: closed
+
 import type { Server as HttpServer } from "http"
 import { WebSocketServer } from "ws"
 import { GenerateRealTimeAi } from "../Ai/RealTime_Ai.js"
@@ -11,12 +16,39 @@ import {
 import type { AiDocument } from "./protocol.js"
 
 type ClientMessage =
-  | { type: "session.start"; frameId: string; requestId?: string }
-  | { type: "sketch.delta"; frameId: string; payload?: any; requestId?: string }
-  | { type: "sketch.snapshot"; frameId: string; payload?: any; requestId?: string }
-  | { type: "generation.cancel"; frameId: string; requestId?: string }
-  | { type: "frame.lock.set"; frameId: string; locked: boolean; requestId?: string }
-  | { type: "section.style.update"; frameId: string; sectionId: string; style: any; requestId?: string }
+  | {
+    type: "session.start";
+    frameId: string;
+    requestId?: string
+  }
+  | {
+    type: "sketch.delta";
+    frameId: string; payload?: any;
+    requestId?: string
+  }
+  | {
+    type: "sketch.snapshot";
+    frameId: string;
+    payload?: any;
+    requestId?: string
+  }
+  | {
+    type: "generation.cancel";
+    frameId: string;
+    requestId?: string
+  }
+  | {
+    type: "frame.lock.set";
+    frameId: string; locked: boolean;
+    requestId?: string
+  }
+  | {
+    type: "section.style.update";
+    frameId: string;
+    sectionId: string;
+    style: any;
+    requestId?: string
+  }
 
 type ServerMessage =
   | { type: "session.ack"; sessionId: string; frameId: string; requestId?: string }
@@ -34,7 +66,7 @@ export function attachRealtimeWSServer(server: HttpServer) {
     const send = (msg: ServerMessage) => {
       ws.send(JSON.stringify(msg))
     }
-
+    // COnnection event , menas this triggers the connection of the ws
     ws.on("message", async (data) => {
       let msg: ClientMessage
       try {
