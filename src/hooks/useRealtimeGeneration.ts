@@ -9,6 +9,7 @@ type UseRealtimeGenerationParams = {
   frameId: string
   enabled?: boolean
   baseUrl?: string
+  wsUrl?: string
 }
 
 type JsonLike = Record<string, unknown>
@@ -24,6 +25,7 @@ export function useRealtimeGeneration({
   frameId,
   enabled = true,
   baseUrl = process.env.NEXT_PUBLIC_REALTIME_BASE_URL ?? "http://localhost:3001",
+  wsUrl = process.env.NEXT_PUBLIC_REALTIME_WS_URL ?? "ws://localhost:3001/ws",
 }: UseRealtimeGenerationParams) {
 
   // Session + hook-level status for UI feedback and retry flows.
@@ -49,6 +51,10 @@ export function useRealtimeGeneration({
     }
   }, [])
 
+  // WebSocket connection (preferred for realtime transport).
+  const socketRef = useRef<WebSocket | null>(null)
+  const pendingRef = useRef(new Map<string, (data: RealtimePatchResponse) => void>())
+
   // Boots a backend realtime session for the current frame. what usCallBack will dO is that it will REMEMBER the fucntion itself to prevent itself for rerendering fo no reason
 
   const startSession = useCallback(async () => {
@@ -56,26 +62,46 @@ export function useRealtimeGeneration({
     setState("connecting")
     setError(null)
     try {
+      if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+        const ws = new WebSocket(wsUrl)
+        socketRef.current = ws
+        await new Promise<void>((resolve, reject) => {
+          ws.onopen = () => resolve()
+          ws.onerror = () => reject(new Error("WebSocket connection failed"))
+        })
+        ws.onmessage = (event) => {
+          try {
+            const msg = JSON.parse(event.data)
+            if (msg?.type === "session.ack" && msg.sessionId) {
+              if (mountedRef.current) {
+                setSessionId(msg.sessionId)
+                setState("ready")
+              }
+            }
+            if (msg?.requestId && pendingRef.current.has(msg.requestId)) {
+              const resolve = pendingRef.current.get(msg.requestId)!
+              pendingRef.current.delete(msg.requestId)
+              resolve(msg as RealtimePatchResponse)
+            }
+          } catch {
+            // ignore parse errors
+          }
+        }
+      }
 
-      const res = await fetch(`${realtimeBase}/session/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ frameId }),
+      // Initiate session start over WS
+      const requestId = `${Date.now()}-${Math.random()}`
+      const sessionPromise = new Promise<RealtimePatchResponse>((resolve) => {
+        pendingRef.current.set(requestId, resolve)
       })
-
-      if (!res.ok) {
-        throw new Error(`session.start failed (${res.status})`)
-      }
-      const data = (await res.json()) as { sessionId?: string }
-
-      if (!data.sessionId) {
-        throw new Error("session.start returned no sessionId")
-      }
-
+      socketRef.current?.send(JSON.stringify({ type: "session.start", frameId, requestId }))
+      const ack = await sessionPromise
       if (!mountedRef.current) return null
-      setSessionId(data.sessionId)
+      if (ack && (ack as any).sessionId) {
+        setSessionId((ack as any).sessionId)
+      }
       setState("ready")
-      return data.sessionId
+      return (ack as any).sessionId ?? null
 
     } catch (e) {
       if (!mountedRef.current) return null
@@ -123,17 +149,16 @@ export function useRealtimeGeneration({
     async (patch: AiPatch) =>
 
       withSession(async (sid) => {
-
-        const res = await fetch(`${realtimeBase}/session/${sid}/patch`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(patch),
+        const requestId = `${Date.now()}-${Math.random()}`
+        const ws = socketRef.current
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          throw new Error("WebSocket not connected")
+        }
+        const payload = { ...patch, requestId }
+        ws.send(JSON.stringify({ type: "patch", ...payload }))
+        return await new Promise<RealtimePatchResponse>((resolve) => {
+          pendingRef.current.set(requestId, resolve)
         })
-
-        if (!res.ok) throw new Error(`patch failed (${res.status})`)
-        const data = (await res.json()) as RealtimePatchResponse
-        versionRef.current = Math.max(versionRef.current, data.version ?? patch.version)
-        return data
 
       }),
     [realtimeBase, withSession]
@@ -143,23 +168,22 @@ export function useRealtimeGeneration({
   const sendDelta = useCallback(
     async (delta: JsonLike) =>
       withSession(async (sid) => {
-        const seq = await sendSeq(sid)
-        const res = await fetch(`${realtimeBase}/session/${sid}/patch`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            op: "update",
-            target: "document",
+        const requestId = `${Date.now()}-${Math.random()}`
+        const ws = socketRef.current
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          throw new Error("WebSocket not connected")
+        }
+        ws.send(
+          JSON.stringify({
+            type: "sketch.delta",
             frameId,
-            payload: { lastDelta: delta, seq },
-            version: versionRef.current + 1,
-            ts: Date.now(),
-          } satisfies AiPatch),
+            payload: delta,
+            requestId,
+          })
+        )
+        return await new Promise<RealtimePatchResponse>((resolve) => {
+          pendingRef.current.set(requestId, resolve)
         })
-        if (!res.ok) throw new Error(`delta failed (${res.status})`)
-        const data = (await res.json()) as RealtimePatchResponse
-        versionRef.current = Math.max(versionRef.current + 1, data.version ?? 0)
-        return data
       }),
     [frameId, realtimeBase, sendSeq, withSession]
   )
@@ -170,25 +194,19 @@ export function useRealtimeGeneration({
     async (snapshot: JsonLike) =>
 
       withSession(async (sid) => {
-
-        const seq = await sendSeq(sid)
-        const res = await fetch(`${realtimeBase}/session/${sid}/document`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        const requestId = `${Date.now()}-${Math.random()}`
+        const ws = socketRef.current
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          throw new Error("WebSocket not connected")
+        }
+        ws.send(
+          JSON.stringify({
+            type: "sketch.snapshot",
             frameId,
-            version: versionRef.current + 1,
-            status: "streaming",
-            sections: [],
-            updatedAt: Date.now(),
-            snapshot,
-            seq,
-          }),
-        })
-
-        if (!res.ok) throw new Error(`snapshot failed (${res.status})`)
-        versionRef.current += 1
-
+            payload: snapshot,
+            requestId,
+          })
+        )
         return true
       }),
     [frameId, realtimeBase, sendSeq, withSession]
@@ -198,17 +216,18 @@ export function useRealtimeGeneration({
   const cancelGeneration = useCallback(
     async (reason?: string) =>
       withSession(async (sid) => {
-
-        const patch: AiPatch = {
-          op: "update",
-          target: "document",
-          frameId,
-          payload: { cancelled: true, reason: reason ?? "user", status: "idle" },
-          version: versionRef.current + 1,
-          ts: Date.now(),
+        const ws = socketRef.current
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          throw new Error("WebSocket not connected")
         }
-
-        return sendPatch(patch)
+        ws.send(
+          JSON.stringify({
+            type: "generation.cancel",
+            frameId,
+            payload: { reason: reason ?? "user" },
+          })
+        )
+        return true
 
       }),
     [frameId, sendPatch, withSession]
@@ -219,14 +238,17 @@ export function useRealtimeGeneration({
     async (locked: boolean) =>
 
       withSession(async (sid) => {
-
-        const res = await fetch(`${realtimeBase}/session/${sid}/lock`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ locked }),
-        })
-
-        if (!res.ok) throw new Error(`lock failed (${res.status})`)
+        const ws = socketRef.current
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          throw new Error("WebSocket not connected")
+        }
+        ws.send(
+          JSON.stringify({
+            type: "frame.lock.set",
+            frameId,
+            locked,
+          })
+        )
         return true
       }),
     [realtimeBase, withSession]
@@ -237,17 +259,19 @@ export function useRealtimeGeneration({
 
     async (sectionId: string, style: AiSectionStyle) =>
       withSession(async (_sid) => {
-
-        const patch: AiPatch = {
-          op: "update",
-          target: "section",
-          frameId,
-          id: sectionId,
-          payload: { style },
-          version: versionRef.current + 1,
-          ts: Date.now(),
+        const ws = socketRef.current
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          throw new Error("WebSocket not connected")
         }
-        return sendPatch(patch)
+        ws.send(
+          JSON.stringify({
+            type: "section.style.update",
+            frameId,
+            sectionId,
+            style,
+          })
+        )
+        return true
 
       }),
     [frameId, sendPatch, withSession]
