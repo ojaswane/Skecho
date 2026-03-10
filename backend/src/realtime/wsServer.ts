@@ -51,10 +51,28 @@ type ClientMessage =
   }
 
 type ServerMessage =
-  | { type: "session.ack"; sessionId: string; frameId: string; requestId?: string }
-  | { type: "screen.patch"; frameId: string; generatedDoc: AiDocument; requestId?: string }
-  | { type: "screen.status"; frameId: string; status: "idle" | "streaming" | "ready" | "error"; requestId?: string }
-  | { type: "error"; message: string; requestId?: string }
+  | {
+    type: "session.ack";
+    sessionId: string;
+    frameId: string;
+    requestId?: string
+  }
+  | {
+    type: "screen.patch";
+    frameId: string;
+    generatedDoc: AiDocument;
+    requestId?: string
+  }
+  | {
+    type: "screen.status";
+    frameId: string; status: "idle" | "streaming" | "ready" | "error";
+    requestId?: string
+  }
+  | {
+    type: "error";
+    message: string;
+    requestId?: string
+  }
 
 export function attachRealtimeWSServer(server: HttpServer) {
   const wss = new WebSocketServer({ server, path: "/ws" })
