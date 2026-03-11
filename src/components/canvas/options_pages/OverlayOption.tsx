@@ -204,7 +204,8 @@ const FramesOverlay = ({ frame }: any) => {
 
         snapshotIntervalRef.current = setInterval(async () => {
             if (!hasPendingRealtimeUpdateRef.current) return;
-            
+
+            // Ts is to ccheck when the designer is basically stopped for like mode than 2 mins then the server will not send the snap shot to the ai 
             if (Date.now() - lastSketchAtRef.current > 2 * 60 * 1000) {
                 hasPendingRealtimeUpdateRef.current = false;
                 useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'idle' });
