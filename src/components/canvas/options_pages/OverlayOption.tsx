@@ -45,15 +45,21 @@ const FramesOverlay = ({ frame }: any) => {
     const FRAME_GAP = 100;
     const SECTION_PADDING = 60;
     const SECTION_TOP_MARGIN = 70;
+    // Realtime control refs (kept outside render loop).
+    // Debounce/snapshot refs keep timers stable across renders.
+    // Debounce timer: batch rapid sketch events into one WS update.
     const realtimeDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null); //  stores the debounce timer so we don’t send AI requests on every tiny sketch event. It waits briefly (400ms), then sends one combined update.
+    // Periodic full snapshot sender for resync.
     const snapshotIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null); //stores the repeating interval timer (every ~3s) used to send periodic full snapshots for sync/recovery.
+    // True while we are waiting on AI output for the latest sketch.
     const hasPendingRealtimeUpdateRef = React.useRef(false);
+    // Last sketch timestamp; used to stop sending snapshots when idle.
     const lastSketchAtRef = React.useRef(0);
 
-    // Step 2 (HTTP transport): session + send helpers wired before websocket migration.
+    // WebSocket realtime hook: opens WS, sends session.start, and exposes sendDelta/sendSnapshot.
     const {
         state: realtimeState,
-        sendDelta,
+        sendDelta, // this is the websockets helper (like something changed message)
         sendSnapshot,
     } = useRealtimeGeneration({
         frameId: realtimeFrameId,
@@ -116,17 +122,20 @@ const FramesOverlay = ({ frame }: any) => {
             );
         };
 
+        // Debounce wrapper: waits briefly, then sends one WS delta for recent sketch activity.
         const scheduleRealtimeDelta = (eventType: string) => {
             hasPendingRealtimeUpdateRef.current = true;
             lastSketchAtRef.current = Date.now();
             if (realtimeDebounceRef.current) clearTimeout(realtimeDebounceRef.current);
 
             // debounce in every 400 ms
+            // Wait 400ms after last sketch event before sending to backend.
             realtimeDebounceRef.current = setTimeout(async () => {
                 if (!canvas) return;
                 useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
 
                 const sketchObjectCount = canvas.getObjects().filter((obj: any) => isSketchContent(obj)).length;
+                // Send a small change summary to backend over WS.
                 const response = await sendDelta({
                     eventType,
                     sourceFrameId: frame.id,
@@ -149,6 +158,7 @@ const FramesOverlay = ({ frame }: any) => {
                     }
                 }
 
+                // Mark AI output as ready once the patch arrives.
                 if (response?.ok) {
                     useCanvasStore.getState().updateFrame(realtimeFrameId, {
                         status: 'ready',
@@ -180,7 +190,7 @@ const FramesOverlay = ({ frame }: any) => {
             scheduleRealtimeDelta('object:removed');
         };
 
-        // path creatied means you are sketching something
+        // Fabric events trigger realtime deltas.
         canvas.on('path:created', onPathCreated);
         canvas.on('object:added', onObjectAdded);
         canvas.on('object:modified', onObjectModified);
@@ -202,15 +212,18 @@ const FramesOverlay = ({ frame }: any) => {
     useEffect(() => {
         if (!canvas || !isSourceSketchFrame) return;
 
+        // Snapshot timer: send full canvas state every ~3s while changes are pending.
         snapshotIntervalRef.current = setInterval(async () => {
             if (!hasPendingRealtimeUpdateRef.current) return;
 
             // Ts is to ccheck when the designer is basically stopped for like mode than 2 mins then the server will not send the snap shot to the ai 
+            // If user is idle for >2 minutes, stop sending snapshots and mark idle.
             if (Date.now() - lastSketchAtRef.current > 2 * 60 * 1000) {
                 hasPendingRealtimeUpdateRef.current = false;
                 useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'idle' });
                 return;
             }
+            // Send a full snapshot for resync (WS).
             const canvasData = extractCanvasData(canvas);
             await sendSnapshot({
                 sourceFrameId: frame.id,
@@ -322,6 +335,7 @@ const FramesOverlay = ({ frame }: any) => {
             console.error("Canvas not found")
             return
         }
+            // Send a full snapshot for resync (WS).
         const canvasData = extractCanvasData(canvas)
         console.log('button is clicked')
 
