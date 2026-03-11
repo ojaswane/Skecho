@@ -84,7 +84,7 @@ export function attachRealtimeWSServer(server: HttpServer) {
     const send = (msg: ServerMessage) => {
       ws.send(JSON.stringify(msg))
     }
-    // COnnection event , menas this triggers the connection of the ws
+    // Connection event , menas this triggers the connection of the ws
     ws.on("message", async (data) => {
       let msg: ClientMessage
       try {
