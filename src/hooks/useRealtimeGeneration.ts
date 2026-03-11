@@ -24,8 +24,8 @@ type RealtimePatchResponse = {
 export function useRealtimeGeneration({
   frameId,
   enabled = true,
-  baseUrl = process.env.NEXT_PUBLIC_REALTIME_BASE_URL ?? "http://localhost:3001",
-  wsUrl = process.env.NEXT_PUBLIC_REALTIME_WS_URL ?? "ws://localhost:3001/ws",
+  baseUrl = process.env.NEXT_PUBLIC_REALTIME_BASE_URL ?? "http://localhost:3000",
+  wsUrl = process.env.NEXT_PUBLIC_REALTIME_WS_URL ?? "ws://localhost:3000/ws",
 }: UseRealtimeGenerationParams) {
 
   // Session + hook-level status for UI feedback and retry flows.
