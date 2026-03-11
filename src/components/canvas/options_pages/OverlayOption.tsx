@@ -48,6 +48,7 @@ const FramesOverlay = ({ frame }: any) => {
     const realtimeDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null); //  stores the debounce timer so we don’t send AI requests on every tiny sketch event. It waits briefly (400ms), then sends one combined update.
     const snapshotIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null); //stores the repeating interval timer (every ~3s) used to send periodic full snapshots for sync/recovery.
     const hasPendingRealtimeUpdateRef = React.useRef(false);
+    const lastSketchAtRef = React.useRef(0);
 
     // Step 2 (HTTP transport): session + send helpers wired before websocket migration.
     const {
@@ -117,6 +118,7 @@ const FramesOverlay = ({ frame }: any) => {
 
         const scheduleRealtimeDelta = (eventType: string) => {
             hasPendingRealtimeUpdateRef.current = true;
+            lastSketchAtRef.current = Date.now();
             if (realtimeDebounceRef.current) clearTimeout(realtimeDebounceRef.current);
 
             // debounce in every 400 ms
@@ -202,6 +204,12 @@ const FramesOverlay = ({ frame }: any) => {
 
         snapshotIntervalRef.current = setInterval(async () => {
             if (!hasPendingRealtimeUpdateRef.current) return;
+            
+            if (Date.now() - lastSketchAtRef.current > 2 * 60 * 1000) {
+                hasPendingRealtimeUpdateRef.current = false;
+                useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'idle' });
+                return;
+            }
             const canvasData = extractCanvasData(canvas);
             await sendSnapshot({
                 sourceFrameId: frame.id,

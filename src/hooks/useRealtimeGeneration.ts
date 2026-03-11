@@ -42,7 +42,6 @@ export function useRealtimeGeneration({
   // this realtimeBase is basically memorises only one time without rerendering anything unless there are some more changes
   // Only do that string cleaning and adding stuff if the baseUrl actually changes. => why use memo
   
-
   
   useEffect(() => {
     mountedRef.current = true
@@ -77,11 +76,32 @@ export function useRealtimeGeneration({
                 setSessionId(msg.sessionId)
                 setState("ready")
               }
+              if (msg.requestId && pendingRef.current.has(msg.requestId)) {
+                const resolve = pendingRef.current.get(msg.requestId)!
+                pendingRef.current.delete(msg.requestId)
+                resolve(msg as RealtimePatchResponse)
+              }
             }
-            if (msg?.requestId && pendingRef.current.has(msg.requestId)) {
+            // Only resolve request promises on final patch or explicit error.
+            if (msg?.type === "screen.patch" && msg.requestId && pendingRef.current.has(msg.requestId)) {
               const resolve = pendingRef.current.get(msg.requestId)!
               pendingRef.current.delete(msg.requestId)
-              resolve(msg as RealtimePatchResponse)
+              resolve({
+                ok: true,
+                version: msg.generatedDoc?.version ?? 0,
+                updatedAt: msg.generatedDoc?.updatedAt ?? Date.now(),
+                generatedDoc: msg.generatedDoc ?? null,
+              })
+            }
+            if (msg?.type === "error" && msg.requestId && pendingRef.current.has(msg.requestId)) {
+              const resolve = pendingRef.current.get(msg.requestId)!
+              pendingRef.current.delete(msg.requestId)
+              resolve({
+                ok: false,
+                version: 0,
+                updatedAt: Date.now(),
+                generationError: msg.message || "WS_ERROR",
+              })
             }
           } catch {
             // ignore parse errors
@@ -91,11 +111,11 @@ export function useRealtimeGeneration({
 
       // Initiate session start over WS
       const requestId = `${Date.now()}-${Math.random()}`
-      const sessionPromise = new Promise<RealtimePatchResponse>((resolve) => {
-        pendingRef.current.set(requestId, resolve)
-      })
-      socketRef.current?.send(JSON.stringify({ type: "session.start", frameId, requestId }))
-      const ack = await sessionPromise
+        const sessionPromise = new Promise<any>((resolve) => {
+          pendingRef.current.set(requestId, resolve)
+        })
+        socketRef.current?.send(JSON.stringify({ type: "session.start", frameId, requestId }))
+        const ack = await sessionPromise
       if (!mountedRef.current) return null
       if (ack && (ack as any).sessionId) {
         setSessionId((ack as any).sessionId)
