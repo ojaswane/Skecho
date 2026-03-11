@@ -170,6 +170,7 @@ const FramesOverlay = ({ frame }: any) => {
             }, 400);
         };
 
+        
         const onPathCreated = (e: any) => {
             if (!isSketchContent(e?.path)) return;
             scheduleRealtimeDelta('path:created');
