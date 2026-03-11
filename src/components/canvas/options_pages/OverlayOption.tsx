@@ -135,7 +135,7 @@ const FramesOverlay = ({ frame }: any) => {
                 useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
 
                 const sketchObjectCount = canvas.getObjects().filter((obj: any) => isSketchContent(obj)).length;
-                // Send a small change summary to backend over WS.
+                // Send a small change summary to backend over WS. means it tells the Sever that there is some changes
                 const response = await sendDelta({
                     eventType,
                     sourceFrameId: frame.id,
