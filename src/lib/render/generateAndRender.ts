@@ -1,5 +1,6 @@
 import { resolvePresetToCanvas } from "../design-systems/resolver/resolverPresetToCanvas"
 import { minimalSaasPreset } from "../design-systems/presets/minimal-Saas"
+import { defaultSaasPreset } from "../design-systems/presets/default-Saas"
 
 export async function generateAndRender(canvas: fabric.Canvas, prompt: string) {
     const res = await fetch("/api/generate-wireframe", {
@@ -11,10 +12,11 @@ export async function generateAndRender(canvas: fabric.Canvas, prompt: string) {
     const { presetId, layout } = await res.json()
 
     const presetMap = {
+        default_saas: defaultSaasPreset,
         minimal_saas: minimalSaasPreset
     }
 
-    const preset = presetMap[presetId as keyof typeof presetMap]
+    const preset = presetMap[presetId as keyof typeof presetMap] ?? defaultSaasPreset
 
     canvas.clear()
 
