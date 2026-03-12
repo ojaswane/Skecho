@@ -1,5 +1,16 @@
 export const size = {
   cardMinWidth: 280,
+  cardMaxWidth: 520,
   inputHeight: 44,
+  inputHeightSm: 36,
   buttonHeight: 44,
+  buttonHeightSm: 36,
+  navHeight: 56,
+  tabBarHeight: 60,
+  avatarSm: 28,
+  avatarMd: 40,
+  avatarLg: 64,
+  iconSm: 16,
+  iconMd: 20,
+  iconLg: 24,
 }
