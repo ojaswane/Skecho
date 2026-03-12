@@ -131,6 +131,7 @@ const FramesOverlay = ({ frame }: any) => {
             // debounce in every 400 ms
             // Wait 400ms after last sketch event before sending to backend.
             realtimeDebounceRef.current = setTimeout(async () => {
+                
                 if (!canvas) return;
                 useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
 
