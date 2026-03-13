@@ -16,6 +16,27 @@ RULES:
 - Keep output strict JSON only
 - Prefer clean airy spacing
 - No explanations
+
+EXPECTED OUTPUT:
+{
+  "frameId": "FRAME_ID",
+  "style": "Minimal", // this is the default style guide
+  "density": "airy",
+  "sections": [
+    {
+      "id": "section_1",
+      "role": "hero",
+      "layout": { "col": 1, "row": 1, "span": 12, "rowSpan": 4 },
+      "elements": [
+        { "id": "el_1", "type": "title", "content": "Explore collections" },
+        { "id": "el_2", "type": "search" },
+        { "id": "el_3", "type": "card", "content": "Featured" },
+        { "id": "el_4", "type": "button", "content": "See all" }
+      ]
+    }
+  ]
+}
+
 `
 
 function applyLayout(design: any, density: DensityLevel = "normal") {
