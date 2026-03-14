@@ -20,11 +20,13 @@ import renderFromAI from '@/lib/canvas/RenderAiPatterns'
 import { AIScreen } from '../../../../lib/type'
 import Grainient from '@/components/ui/Aizone/Grainient'
 import { useRealtimeGeneration } from '@/hooks/useRealtimeGeneration'
-import { defaultSaasPreset } from '@/lib/design-systems/presets'
-import { darkCinematicPreset } from '@/lib/design-systems/presets'
-import { glassNeonPreset } from '@/lib/design-systems/presets'
-import { minimalSaasPreset } from '@/lib/design-systems/presets'
-import { softPastelPreset } from '@/lib/design-systems/presets'
+import {
+    defaultSaasPreset,
+    darkCinematicPreset,
+    glassNeonPreset,
+    minimalSaasPreset,
+    softPastelPreset
+} from '@/lib/design-systems/presets'
 
 type WireframeElement = {
     type: string
@@ -73,13 +75,13 @@ const FramesOverlay = ({ frame }: any) => {
     });
 
 
-    // preset map 
+    // preset map
     const presetMap = {
-        default: defaultSaasPreset,
-        minimal: minimalSaasPreset,
-        GlassNeon: glassNeonPreset,
-        DarkCinematic: darkCinematicPreset,
-        SoftPastel: softPastelPreset,
+        default_saas: defaultSaasPreset,
+        minimal_saas: minimalSaasPreset,
+        glass_neon: glassNeonPreset,
+        dark_cinematic: darkCinematicPreset,
+        soft_pastel: softPastelPreset,
     };
 
     /* ------------------ UTILS ------------------ */
@@ -241,7 +243,7 @@ const FramesOverlay = ({ frame }: any) => {
         snapshotIntervalRef.current = setInterval(async () => {
             if (!hasPendingRealtimeUpdateRef.current) return;
 
-            // Ts is to ccheck when the designer is basically stopped for like mode than 2 mins then the server will not send the snap shot to the ai 
+            // Ts is to ccheck when the designer is basically stopped for like mode than 2 mins then the server will not send the snap shot to the ai
             // If user is idle for >2 minutes, stop sending snapshots and mark idle.
             if (Date.now() - lastSketchAtRef.current > 2 * 60 * 1000) {
                 hasPendingRealtimeUpdateRef.current = false;
@@ -454,6 +456,10 @@ const FramesOverlay = ({ frame }: any) => {
                             );
                             const aiScreens = screenToAIScreen(rawAiData);
 
+                            const doc = response.generatedDoc;
+                            const styleKey = typeof doc?.style === "string" ? doc.style : "";
+                            const preset = presetMap[styleKey as keyof typeof presetMap] ?? defaultSaasPreset;
+                            
                             renderFromAI(canvas, aiScreens, preset);
                             canvas.requestRenderAll();
                         }

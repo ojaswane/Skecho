@@ -69,8 +69,13 @@ export default function renderFromAI(
 
       /* ---------- CARD ---------- */
       const card = new fabric.Rect({
+        left,
+        top,
+        width,
+        height,
         fill: preset.color.card,
         stroke: preset.color.border,
+        strokeWidth: 1,
         rx: preset.radius.lg,
         ry: preset.radius.lg,
         shadow: preset.shadow.md,
