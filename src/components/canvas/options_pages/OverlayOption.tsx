@@ -21,10 +21,12 @@ import { AIScreen } from '../../../../lib/type'
 import Grainient from '@/components/ui/Aizone/Grainient'
 import { useRealtimeGeneration } from '@/hooks/useRealtimeGeneration'
 
+
 type WireframeElement = {
     type: string
     [key: string]: any
 }
+
 
 const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
@@ -67,6 +69,15 @@ const FramesOverlay = ({ frame }: any) => {
     });
 
 
+    // preset map 
+    const presetMap = {
+        default_saas: defaultSaasPreset,
+        minimal_saas: minimalSaasPreset,
+        glass_neon: glassNeonPreset,
+        dark_cinematic: darkCinematicPreset,
+        soft_pastel: softPastelPreset,
+    };
+
     /* ------------------ UTILS ------------------ */
     function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
         const vpt = canvas.viewportTransform!
@@ -76,6 +87,9 @@ const FramesOverlay = ({ frame }: any) => {
         }
     }
 
+    /* ------------------ Web Sockets ------------------*/
+
+    // When the Web reloads , the servers and client side(frontend) are connected through web sockets
     useEffect(() => {
         if (!canvas) return
 
@@ -131,7 +145,7 @@ const FramesOverlay = ({ frame }: any) => {
             // debounce in every 400 ms
             // Wait 400ms after last sketch event before sending to backend.
             realtimeDebounceRef.current = setTimeout(async () => {
-                
+
                 if (!canvas) return;
                 useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
 
@@ -155,7 +169,7 @@ const FramesOverlay = ({ frame }: any) => {
                     // Render a first visible preview directly from generated document.
                     const aiScreens = docToAIScreens(response.generatedDoc as any);
                     if (aiScreens.length > 0) {
-                        renderFromAI(canvas, aiScreens , preset);
+                        renderFromAI(canvas, aiScreens, preset);
                     }
                 }
 
@@ -171,7 +185,7 @@ const FramesOverlay = ({ frame }: any) => {
             }, 400);
         };
 
-        
+
         const onPathCreated = (e: any) => {
             if (!isSketchContent(e?.path)) return;
             scheduleRealtimeDelta('path:created');
@@ -337,7 +351,7 @@ const FramesOverlay = ({ frame }: any) => {
             console.error("Canvas not found")
             return
         }
-            // Send a full snapshot for resync (WS).
+        // Send a full snapshot for resync (WS).
         const canvasData = extractCanvasData(canvas)
         console.log('button is clicked')
 
@@ -431,7 +445,7 @@ const FramesOverlay = ({ frame }: any) => {
                             );
                             const aiScreens = screenToAIScreen(rawAiData);
 
-                            renderFromAI(canvas, aiScreens , preset);
+                            renderFromAI(canvas, aiScreens, preset);
                             canvas.requestRenderAll();
                         }
                     } catch (e) {
