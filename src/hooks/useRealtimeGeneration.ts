@@ -41,8 +41,8 @@ export function useRealtimeGeneration({
   const realtimeBase = useMemo(() => `${baseUrl.replace(/\/$/, "")}/realtime`, [baseUrl]) // ts removes some extra slases or getting a better result
   // this realtimeBase is basically memorises only one time without rerendering anything unless there are some more changes
   // Only do that string cleaning and adding stuff if the baseUrl actually changes. => why use memo
-  
-  
+
+
   useEffect(() => {
     mountedRef.current = true
     return () => {
@@ -111,11 +111,11 @@ export function useRealtimeGeneration({
 
       // Initiate session start over WS
       const requestId = `${Date.now()}-${Math.random()}`
-        const sessionPromise = new Promise<any>((resolve) => {
-          pendingRef.current.set(requestId, resolve)
-        })
-        socketRef.current?.send(JSON.stringify({ type: "session.start", frameId, requestId }))
-        const ack = await sessionPromise
+      const sessionPromise = new Promise<any>((resolve) => {
+        pendingRef.current.set(requestId, resolve)
+      })
+      socketRef.current?.send(JSON.stringify({ type: "session.start", frameId, requestId }))
+      const ack = await sessionPromise
       if (!mountedRef.current) return null
       if (ack && (ack as any).sessionId) {
         setSessionId((ack as any).sessionId)

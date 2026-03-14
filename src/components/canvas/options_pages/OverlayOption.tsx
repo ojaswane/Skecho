@@ -169,13 +169,14 @@ const FramesOverlay = ({ frame }: any) => {
                         realtimeFrameId,
                         response.generatedDoc as any
                     );
-                    
+
 
                     // Render a first visible preview directly from generated document.
                     const aiScreens = docToAIScreens(response.generatedDoc as any);
                     const doc = response.generatedDoc;
-                    const preset = presetMap[doc?.style] ?? defaultSaasPreset;
-                    
+                    const styleKey = typeof doc?.style === "string" ? doc.style : "";
+                    const preset = presetMap[styleKey as keyof typeof presetMap] ?? defaultSaasPreset;
+
                     if (aiScreens.length > 0) {
                         renderFromAI(canvas, aiScreens, preset);
                     }
