@@ -155,7 +155,7 @@ const FramesOverlay = ({ frame }: any) => {
                     // Render a first visible preview directly from generated document.
                     const aiScreens = docToAIScreens(response.generatedDoc as any);
                     if (aiScreens.length > 0) {
-                        renderFromAI(canvas, aiScreens);
+                        renderFromAI(canvas, aiScreens , preset);
                     }
                 }
 
@@ -431,7 +431,7 @@ const FramesOverlay = ({ frame }: any) => {
                             );
                             const aiScreens = screenToAIScreen(rawAiData);
 
-                            renderFromAI(canvas, aiScreens);
+                            renderFromAI(canvas, aiScreens , preset);
                             canvas.requestRenderAll();
                         }
                     } catch (e) {

@@ -3,7 +3,10 @@
 import * as fabric from "fabric"
 import { layoutCard } from "../design-systems/cardLayout/CardLayout"
 import { renderSemanticBlock } from "@/lib/render/renderSemanticBlock"
-
+import { defaultSaasPreset } from "../design-systems/presets"
+import { glassNeonPreset } from "../design-systems/presets"
+import { softPastelPreset } from "../design-systems/presets"
+import { darkCinematicPreset } from "../design-systems/presets"
 
 type AIScreen = {
   id: string
@@ -38,7 +41,8 @@ const GRID = {
 
 export default function renderFromAI(
   canvas: fabric.Canvas,
-  screens: AIScreen[]
+  screens: AIScreen[],
+  preset : any
 ) {
   if (!screens.length) return
 
@@ -69,16 +73,11 @@ export default function renderFromAI(
 
       /* ---------- CARD ---------- */
       const card = new fabric.Rect({
-        left,
-        top,
-        width,
-        height,
-        rx: 12,
-        ry: 12,
-        fill: "#f9fafb",
-        stroke: "#e5e7eb",
-        strokeWidth: 1,
-        selectable: false
+        fill: preset.color.card,
+        stroke: preset.color.border,
+        rx: preset.radius.lg,
+        ry: preset.radius.lg,
+        shadow: preset.shadow.md,
       })
 
       card.set("clipPath", frame.clipPath)
