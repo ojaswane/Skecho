@@ -20,7 +20,11 @@ import renderFromAI from '@/lib/canvas/RenderAiPatterns'
 import { AIScreen } from '../../../../lib/type'
 import Grainient from '@/components/ui/Aizone/Grainient'
 import { useRealtimeGeneration } from '@/hooks/useRealtimeGeneration'
-
+import { defaultSaasPreset } from '@/lib/design-systems/presets'
+import { darkCinematicPreset } from '@/lib/design-systems/presets'
+import { glassNeonPreset } from '@/lib/design-systems/presets'
+import { minimalSaasPreset } from '@/lib/design-systems/presets'
+import { softPastelPreset } from '@/lib/design-systems/presets'
 
 type WireframeElement = {
     type: string
@@ -71,11 +75,11 @@ const FramesOverlay = ({ frame }: any) => {
 
     // preset map 
     const presetMap = {
-        default_saas: defaultSaasPreset,
-        minimal_saas: minimalSaasPreset,
-        glass_neon: glassNeonPreset,
-        dark_cinematic: darkCinematicPreset,
-        soft_pastel: softPastelPreset,
+        default: defaultSaasPreset,
+        minimal: minimalSaasPreset,
+        GlassNeon: glassNeonPreset,
+        DarkCinematic: darkCinematicPreset,
+        SoftPastel: softPastelPreset,
     };
 
     /* ------------------ UTILS ------------------ */
@@ -165,9 +169,13 @@ const FramesOverlay = ({ frame }: any) => {
                         realtimeFrameId,
                         response.generatedDoc as any
                     );
+                    
 
                     // Render a first visible preview directly from generated document.
                     const aiScreens = docToAIScreens(response.generatedDoc as any);
+                    const doc = response.generatedDoc;
+                    const preset = presetMap[doc?.style] ?? defaultSaasPreset;
+                    
                     if (aiScreens.length > 0) {
                         renderFromAI(canvas, aiScreens, preset);
                     }

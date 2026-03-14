@@ -3,10 +3,6 @@
 import * as fabric from "fabric"
 import { layoutCard } from "../design-systems/cardLayout/CardLayout"
 import { renderSemanticBlock } from "@/lib/render/renderSemanticBlock"
-import { defaultSaasPreset } from "../design-systems/presets"
-import { glassNeonPreset } from "../design-systems/presets"
-import { softPastelPreset } from "../design-systems/presets"
-import { darkCinematicPreset } from "../design-systems/presets"
 
 type AIScreen = {
   id: string
