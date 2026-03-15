@@ -456,7 +456,7 @@ const FramesOverlay = ({ frame }: any) => {
                             );
                             const aiScreens = screenToAIScreen(rawAiData);
 
-                            const doc = response.generatedDoc;
+                            const doc = payload.data;
                             const styleKey = typeof doc?.style === "string" ? doc.style : "";
                             const preset = presetMap[styleKey as keyof typeof presetMap] ?? defaultSaasPreset;
                             
