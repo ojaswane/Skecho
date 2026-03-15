@@ -1,8 +1,8 @@
-import { spacing } from "../../../tokens/spacing.js"
-import { radius } from "../../../tokens/radius.js"
-import { typography } from "../../../tokens/typography.js"
-import { color, shadow } from "../../../tokens/color.js"
-import { size } from "../../../tokens/size.js"
+import { spacing } from "../../../tokens/spacing"
+import { radius } from "../../../tokens/radius"
+import { typography } from "../../../tokens/typography"
+import { color, shadow } from "../../../tokens/color"
+import { size } from "../../../tokens/size"
 
 export const defaultSaasPreset = {
     id: "default_Design",
