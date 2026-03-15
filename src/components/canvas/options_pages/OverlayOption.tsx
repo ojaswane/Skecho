@@ -376,7 +376,6 @@ const FramesOverlay = ({ frame }: any) => {
                 multiplier: 0.05,
             })
 
-
             const ghostData = activeGhostZone ? {
                 x: activeGhostZone.left - frame.left,
                 y: activeGhostZone.top - frame.top,
