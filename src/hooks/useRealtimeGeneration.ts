@@ -88,11 +88,19 @@ export function useRealtimeGeneration({
           ws.onopen = () => resolve()
           ws.onerror = () => reject(new Error("WebSocket connection failed"))
         })
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[realtime] ws open", wsUrl)
+        }
         ws.onclose = () => {
           if (!mountedRef.current) return
           if (intentionalCloseRef.current) return
           setState("error")
           setError("WebSocket closed")
+        }
+        ws.onerror = () => {
+          if (process.env.NODE_ENV !== "production") {
+            console.log("[realtime] ws error", wsUrl)
+          }
         }
         ws.onmessage = (event) => {
           try {

@@ -178,6 +178,15 @@ const FramesOverlay = ({ frame }: any) => {
                 }
 
                 if (response?.generatedDoc) {
+                    console.log("[realtime-ai] got generatedDoc", {
+                        ok: response.ok,
+                        sections: Array.isArray((response.generatedDoc as any)?.sections)
+                            ? (response.generatedDoc as any).sections.length
+                            : 0,
+                        firstElements: Array.isArray((response.generatedDoc as any)?.sections?.[0]?.elements)
+                            ? (response.generatedDoc as any).sections[0].elements.length
+                            : 0,
+                    });
                     // Keep the latest generated document in Zustand as source-of-truth.
                     useCanvasStore.getState().setAiDoc(
                         realtimeFrameId,
@@ -192,7 +201,10 @@ const FramesOverlay = ({ frame }: any) => {
                     const preset = presetMap[styleKey as keyof typeof presetMap] ?? defaultSaasPreset;
 
                     if (aiScreens.length > 0) {
+                        console.log("[realtime-ai] rendering screens", aiScreens.length);
                         renderFromAI(canvas, aiScreens, preset);
+                    } else {
+                        console.warn("[realtime-ai] docToAIScreens produced 0 screens");
                     }
                 }
 

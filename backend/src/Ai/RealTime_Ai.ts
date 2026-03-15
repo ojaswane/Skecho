@@ -9,35 +9,46 @@ You will receive a user's prompt and optionally a rough sketch signal.
 
 TASK:
 1. Interpret the intent quickly.
-2. Return JSON with root key "screens".
-3. Each screen has "frames" with fields: role, col, row, span, rowSpan, type.
+2. Return strict JSON with root key "screens".
+3. Each screen MUST include a non-empty "frames" array.
+4. Each frame MUST include: id, role, span. (You may include col,row,rowSpan,type,text too.)
 
 RULES:
 - Keep output strict JSON only (no markdown, no commentary)
 - Prefer clean airy spacing
 - No explanations
+- Always return at least 1 screen
+- Always return at least 5 frames per screen
 
 EXPECTED OUTPUT:
 {
-  "frameId": "FRAME_ID",
-  "style": "Minimal", // this is the default style guide
-  "density": "airy",
-  "sections": [
+  "screens": [
     {
-      "id": "section_1",
-      "role": "hero",
-      "layout": { "col": 1, "row": 1, "span": 12, "rowSpan": 4 },
-      "elements": [
-        { "id": "el_1", "type": "title", "content": "Explore collections" },
-        { "id": "el_2", "type": "search" },
-        { "id": "el_3", "type": "card", "content": "Featured" },
-        { "id": "el_4", "type": "button", "content": "See all" }
+      "id": "screen-1",
+      "name": "Screen 1",
+      "frames": [
+        { "id": "hero", "role": "dominant", "span": 12, "type": "card" },
+        { "id": "a", "role": "supporting", "span": 6, "type": "card" },
+        { "id": "b", "role": "supporting", "span": 6, "type": "card" },
+        { "id": "c", "role": "supporting", "span": 4, "type": "card" },
+        { "id": "d", "role": "supporting", "span": 4, "type": "card" }
       ]
     }
   ]
 }
 
 `
+
+function fallbackFrames() {
+    return [
+        { id: "hero", role: "dominant", span: 12, type: "card" },
+        { id: "features-a", role: "supporting", span: 6, type: "card" },
+        { id: "features-b", role: "supporting", span: 6, type: "card" },
+        { id: "proof", role: "supporting", span: 4, type: "card" },
+        { id: "pricing", role: "supporting", span: 4, type: "card" },
+        { id: "cta", role: "supporting", span: 4, type: "card" },
+    ]
+}
 
 function applyLayout(design: any, density: DensityLevel = "normal") {
     const densityConfig = DENSITY_MAP[density]
@@ -146,6 +157,35 @@ function coerceScreens(parsed: any): any[] | null {
     if (Array.isArray(parsed.screens)) return parsed.screens
     if (Array.isArray(parsed.Screens)) return parsed.Screens
     if (Array.isArray(parsed.data?.screens)) return parsed.data.screens
+    // Common alternative shapes: a single object with `frames` or a doc-like object with `sections`.
+    if (Array.isArray(parsed.frames)) {
+        return [
+            {
+                id: parsed.id ?? "screen-1",
+                name: parsed.name ?? "Screen 1",
+                frames: parsed.frames,
+            },
+        ]
+    }
+    if (Array.isArray(parsed.sections)) {
+        const frames = parsed.sections.map((s: any, i: number) => ({
+            id: s.id ?? `section-${i + 1}`,
+            role: s.role ?? "supporting",
+            col: s.layout?.col ?? s.layout?.colStart,
+            row: s.layout?.row ?? s.layout?.rowStart,
+            span: s.layout?.span ?? s.layout?.colSpan ?? 12,
+            rowSpan: s.layout?.rowSpan ?? 1,
+            type: "card",
+            text: s.name ?? s.title,
+        }))
+        return [
+            {
+                id: parsed.id ?? "screen-1",
+                name: parsed.name ?? "Screen 1",
+                frames,
+            },
+        ]
+    }
     return null
 }
 
@@ -224,8 +264,18 @@ export async function GenerateRealTimeAi({
         throw new Error("AI_INVALID_FORMAT")
     }
 
-    const normalizedScreens = screens.map((screen: any) => {
-        const withLayout = applyLayout({ screens: [screen] }, density)
+    const normalizedScreens = screens.map((screen: any, i: number) => {
+        const safeScreen = {
+            id: screen?.id ?? `screen-${i + 1}`,
+            name: screen?.name ?? `Screen ${i + 1}`,
+            ...screen,
+            frames:
+                Array.isArray(screen?.frames) && screen.frames.length
+                    ? screen.frames
+                    : fallbackFrames(),
+        }
+
+        const withLayout = applyLayout({ screens: [safeScreen] }, density)
         return normalizeForCanvas(withLayout).screens[0]
     })
 
