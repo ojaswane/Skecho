@@ -53,6 +53,7 @@ const FramesOverlay = ({ frame }: any) => {
     const FRAME_GAP = 100;
     const SECTION_PADDING = 60;
     const SECTION_TOP_MARGIN = 70;
+    
     // Realtime control refs (kept outside render loop).
     // Debounce/snapshot refs keep timers stable across renders.
     // Debounce timer: batch rapid sketch events into one WS update.
@@ -376,6 +377,7 @@ const FramesOverlay = ({ frame }: any) => {
                 multiplier: 0.05,
             })
 
+
             const ghostData = activeGhostZone ? {
                 x: activeGhostZone.left - frame.left,
                 y: activeGhostZone.top - frame.top,
@@ -455,7 +457,7 @@ const FramesOverlay = ({ frame }: any) => {
                             );
                             const aiScreens = screenToAIScreen(rawAiData);
 
-                            const doc = payload?.data ?? payload;
+                            const doc = payload.data;
                             const styleKey = typeof doc?.style === "string" ? doc.style : "";
                             const preset = presetMap[styleKey as keyof typeof presetMap] ?? defaultSaasPreset;
                             

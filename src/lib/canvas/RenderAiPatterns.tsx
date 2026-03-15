@@ -97,7 +97,8 @@ export default function renderFromAI(
     }
 
 
-    canvas.bringObjectToFront(frame)
+    // Frames are background artboards (solid fill). Keep them behind generated UI.
+    canvas.sendObjectToBack(frame)
   }
   canvas.requestRenderAll()
 }
