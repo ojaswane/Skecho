@@ -13,7 +13,7 @@ TASK:
 3. Each screen has "frames" with fields: role, col, row, span, rowSpan, type.
 
 RULES:
-- Keep output strict JSON only
+- Keep output strict JSON only (no markdown, no commentary)
 - Prefer clean airy spacing
 - No explanations
 
@@ -95,18 +95,61 @@ function normalizeForCanvas(layout: any) {
     }
 }
 
-function parseGeminiJson(text: string) {
-    const match = text.match(/\{[\s\S]*\}/)
-    if (!match) return null
-    try {
-        const cleanJson = match[0].replace(/```json/g, "").replace(/```/g, "")
-        return JSON.parse(cleanJson)
-    } catch {
-        return null
+function parseGeminiJson(rawText: string) {
+    if (!rawText) return null
+
+    const trimmed = rawText.trim()
+
+    // 1) Try direct JSON first (responseMimeType often yields pure JSON).
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        try {
+            return JSON.parse(trimmed)
+        } catch {
+            // fall through
+        }
     }
+
+    // 2) Strip fenced blocks, then retry.
+    const unfenced = trimmed.replace(/```json/gi, "").replace(/```/g, "").trim()
+    if (unfenced.startsWith("{") || unfenced.startsWith("[")) {
+        try {
+            return JSON.parse(unfenced)
+        } catch {
+            // fall through
+        }
+    }
+
+    // 3) Last resort: extract a JSON object/array substring.
+    const objMatch = unfenced.match(/\{[\s\S]*\}/)
+    if (objMatch?.[0]) {
+        try {
+            return JSON.parse(objMatch[0])
+        } catch {
+            // fall through
+        }
+    }
+    const arrMatch = unfenced.match(/\[[\s\S]*\]/)
+    if (arrMatch?.[0]) {
+        try {
+            return JSON.parse(arrMatch[0])
+        } catch {
+            // fall through
+        }
+    }
+
+    return null
 }
 
-async function callGeminiFlash(payload: { prompt?: string; imageBase64?: string }) {
+function coerceScreens(parsed: any): any[] | null {
+    if (!parsed) return null
+    if (Array.isArray(parsed)) return parsed
+    if (Array.isArray(parsed.screens)) return parsed.screens
+    if (Array.isArray(parsed.Screens)) return parsed.Screens
+    if (Array.isArray(parsed.data?.screens)) return parsed.data.screens
+    return null
+}
+
+async function callGeminiFlash(payload: { prompt?: string; imageBase64?: string; strict?: boolean }) {
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) throw new Error("GEMINI_API_KEY is missing in environment variables.")
 
@@ -116,12 +159,16 @@ async function callGeminiFlash(payload: { prompt?: string; imageBase64?: string 
         systemInstruction: SYSTEM_PROMPT,
         generationConfig: {
             responseMimeType: "application/json",
-            temperature: 0.2,
+            temperature: payload.strict ? 0 : 0.2,
         },
     })
 
     const userParts: any[] = []
-    if (payload.prompt) userParts.push({ text: payload.prompt })
+    const basePrompt = payload.prompt?.trim() || "Design this SaaS page"
+    const strictSuffix = payload.strict
+        ? "\nReturn ONLY valid JSON with root key \"screens\". No markdown, no commentary."
+        : ""
+    userParts.push({ text: `${basePrompt}${strictSuffix}` })
     if (payload.imageBase64) {
         const rawData = payload.imageBase64.split(",")[1] || payload.imageBase64
         userParts.push({
@@ -153,17 +200,31 @@ export async function GenerateRealTimeAi({
     imageBase64?: string
     density?: DensityLevel
 }) {
-    const raw = await callGeminiFlash({
+    const raw1 = await callGeminiFlash({
         prompt: prompt || "Design this SaaS page",
         imageBase64,
     })
 
-    const parsed = parseGeminiJson(raw)
-    if (!parsed?.screens) {
+    let parsed = parseGeminiJson(raw1)
+    let screens = coerceScreens(parsed)
+
+    // One retry with a stricter prompt + temperature=0 if the first response isn't usable.
+    if (!screens?.length) {
+        const raw2 = await callGeminiFlash({
+            prompt: prompt || "Design this SaaS page",
+            imageBase64,
+            strict: true,
+        })
+        parsed = parseGeminiJson(raw2)
+        screens = coerceScreens(parsed)
+    }
+
+    if (!screens?.length) {
+        console.log("[ai] AI_INVALID_FORMAT snippet:", String(raw1 || "").slice(0, 400))
         throw new Error("AI_INVALID_FORMAT")
     }
 
-    const normalizedScreens = parsed.screens.map((screen: any) => {
+    const normalizedScreens = screens.map((screen: any) => {
         const withLayout = applyLayout({ screens: [screen] }, density)
         return normalizeForCanvas(withLayout).screens[0]
     })
