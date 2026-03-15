@@ -1,8 +1,8 @@
-import { minimalSaasPreset } from "./minimal-Saas.js";
-import { defaultSaasPreset } from "./default-Saas.js";
-import { glassNeonPreset } from "./glass-neon.js";
-import { darkCinematicPreset } from "./dark-cinematic.js";
-import { softPastelPreset } from "./soft-pastel.js";
+import { minimalSaasPreset } from "./minimal-Saas";
+import { defaultSaasPreset } from "./default-Saas";
+import { glassNeonPreset } from "./glass-neon";
+import { darkCinematicPreset } from "./dark-cinematic";
+import { softPastelPreset } from "./soft-pastel";
 
 const document = {
     id: "doc_01",
