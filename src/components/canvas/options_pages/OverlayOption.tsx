@@ -166,6 +166,17 @@ const FramesOverlay = ({ frame }: any) => {
                     ts: Date.now(),
                 });
 
+                if (!response) {
+                    useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'error' });
+                    return;
+                }
+
+                if (response.generationError) {
+                    console.error("[realtime-ai] generationError:", response.generationError);
+                    useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'error' });
+                    return;
+                }
+
                 if (response?.generatedDoc) {
                     // Keep the latest generated document in Zustand as source-of-truth.
                     useCanvasStore.getState().setAiDoc(
@@ -193,6 +204,8 @@ const FramesOverlay = ({ frame }: any) => {
                         version: response.version ?? 0,
                     });
                     hasPendingRealtimeUpdateRef.current = false;
+                } else {
+                    useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'error' });
                 }
             }, 400);
         };

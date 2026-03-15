@@ -52,7 +52,26 @@ export function useRealtimeGeneration({
 
   // WebSocket connection (preferred for realtime transport).
   const socketRef = useRef<WebSocket | null>(null)
-  const pendingRef = useRef(new Map<string, (data: RealtimePatchResponse) => void>())
+  const pendingRef = useRef(new Map<string, (data: any) => void>())
+  const intentionalCloseRef = useRef(false)
+
+  const waitForReply = useCallback(<T,>(requestId: string, timeoutMs = 15000) => {
+    return new Promise<T>((resolve) => {
+      pendingRef.current.set(requestId, resolve as any)
+      const t = setTimeout(() => {
+        if (pendingRef.current.has(requestId)) {
+          pendingRef.current.delete(requestId)
+          resolve(({ ok: false, generationError: "TIMEOUT" } as unknown) as T)
+        }
+      }, timeoutMs)
+      // Ensure we don't keep timers alive after resolution.
+      const original = resolve
+      pendingRef.current.set(requestId, (data: any) => {
+        clearTimeout(t)
+        original(data as T)
+      })
+    })
+  }, [])
 
   // Boots a backend realtime session for the current frame. what usCallBack will dO is that it will REMEMBER the fucntion itself to prevent itself for rerendering fo no reason
 
@@ -62,12 +81,19 @@ export function useRealtimeGeneration({
     setError(null)
     try {
       if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+        intentionalCloseRef.current = false
         const ws = new WebSocket(wsUrl)
         socketRef.current = ws
         await new Promise<void>((resolve, reject) => {
           ws.onopen = () => resolve()
           ws.onerror = () => reject(new Error("WebSocket connection failed"))
         })
+        ws.onclose = () => {
+          if (!mountedRef.current) return
+          if (intentionalCloseRef.current) return
+          setState("error")
+          setError("WebSocket closed")
+        }
         ws.onmessage = (event) => {
           try {
             const msg = JSON.parse(event.data)
@@ -111,17 +137,20 @@ export function useRealtimeGeneration({
 
       // Initiate session start over WS
       const requestId = `${Date.now()}-${Math.random()}`
-      const sessionPromise = new Promise<any>((resolve) => {
-        pendingRef.current.set(requestId, resolve)
-      })
+      const sessionPromise = waitForReply<any>(requestId, 8000)
       socketRef.current?.send(JSON.stringify({ type: "session.start", frameId, requestId }))
       const ack = await sessionPromise
       if (!mountedRef.current) return null
-      if (ack && (ack as any).sessionId) {
-        setSessionId((ack as any).sessionId)
+      if (ack?.type === "session.ack" && ack.sessionId) {
+        setSessionId(ack.sessionId)
+      }
+      if (!(ack?.type === "session.ack" && ack.sessionId)) {
+        setState("error")
+        setError(ack?.generationError || "Session start failed")
+        return null
       }
       setState("ready")
-      return (ack as any).sessionId ?? null
+      return ack.sessionId ?? null
 
     } catch (e) {
       if (!mountedRef.current) return null
@@ -129,7 +158,19 @@ export function useRealtimeGeneration({
       setError(e instanceof Error ? e.message : "Unknown realtime start error")
       return null
     }
-  }, [enabled, frameId, realtimeBase])
+  }, [enabled, frameId, wsUrl, waitForReply])
+
+  useEffect(() => {
+    return () => {
+      // Close WS on unmount to avoid stale connections/pending promises.
+      intentionalCloseRef.current = true
+      try {
+        socketRef.current?.close()
+      } catch { }
+      socketRef.current = null
+      pendingRef.current.clear()
+    }
+  }, [])
 
   // Ensures a session exists before performing API actions.
   const withSession = useCallback(
@@ -176,12 +217,10 @@ export function useRealtimeGeneration({
         }
         const payload = { ...patch, requestId }
         ws.send(JSON.stringify({ type: "patch", ...payload }))
-        return await new Promise<RealtimePatchResponse>((resolve) => {
-          pendingRef.current.set(requestId, resolve)
-        })
+        return await waitForReply<RealtimePatchResponse>(requestId)
 
       }),
-    [realtimeBase, withSession]
+    [waitForReply, withSession]
   )
 
   // Lightweight delta update used for high-frequency sketch changes.
@@ -201,11 +240,9 @@ export function useRealtimeGeneration({
             requestId,
           })
         )
-        return await new Promise<RealtimePatchResponse>((resolve) => {
-          pendingRef.current.set(requestId, resolve)
-        })
+        return await waitForReply<RealtimePatchResponse>(requestId)
       }),
-    [frameId, realtimeBase, sendSeq, withSession]
+    [frameId, waitForReply, withSession]
   )
 
   // Full snapshot sync fallback used for periodic reconciliation.
