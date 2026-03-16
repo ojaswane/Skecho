@@ -55,6 +55,107 @@ export function useRealtimeGeneration({
   const pendingRef = useRef(new Map<string, (data: any) => void>())
   const intentionalCloseRef = useRef(false)
 
+  const attachWsHandlers = useCallback(
+    (ws: WebSocket) => {
+      const anyWs = ws as any
+      if (anyWs.__realtimeHandlersAttached) return
+      anyWs.__realtimeHandlersAttached = true
+
+      ws.onclose = () => {
+        if (!mountedRef.current) return
+        if (intentionalCloseRef.current) return
+        setState("error")
+        setError("WebSocket closed")
+      }
+
+      ws.onerror = () => {
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[realtime] ws error", wsUrl)
+        }
+      }
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse((event as any).data)
+          if (msg?.type === "session.ack" && msg.sessionId) {
+            if (mountedRef.current) {
+              setSessionId(msg.sessionId)
+              setState("ready")
+            }
+            if (msg.requestId && pendingRef.current.has(msg.requestId)) {
+              const resolve = pendingRef.current.get(msg.requestId)!
+              pendingRef.current.delete(msg.requestId)
+              resolve(msg as RealtimePatchResponse)
+            }
+          }
+          // Only resolve request promises on final patch or explicit error.
+          if (msg?.type === "screen.patch" && msg.requestId && pendingRef.current.has(msg.requestId)) {
+            const resolve = pendingRef.current.get(msg.requestId)!
+            pendingRef.current.delete(msg.requestId)
+            resolve({
+              ok: true,
+              version: msg.generatedDoc?.version ?? 0,
+              updatedAt: msg.generatedDoc?.updatedAt ?? Date.now(),
+              generatedDoc: msg.generatedDoc ?? null,
+            })
+          }
+          if (msg?.type === "error" && msg.requestId && pendingRef.current.has(msg.requestId)) {
+            const resolve = pendingRef.current.get(msg.requestId)!
+            pendingRef.current.delete(msg.requestId)
+            resolve({
+              ok: false,
+              version: 0,
+              updatedAt: Date.now(),
+              generationError: msg.message || "WS_ERROR",
+            })
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+    },
+    [wsUrl]
+  )
+
+  const ensureSocketOpen = useCallback(async () => {
+    const existing = socketRef.current
+    if (existing) {
+      if (existing.readyState === WebSocket.OPEN) {
+        attachWsHandlers(existing)
+        return existing
+      }
+      if (existing.readyState === WebSocket.CONNECTING) {
+        // Important: don't create a second socket while one is still connecting.
+        await new Promise<void>((resolve, reject) => {
+          const onOpen = () => resolve()
+          const onError = () => reject(new Error("WebSocket connection failed"))
+          const onClose = () => reject(new Error("WebSocket closed before open"))
+          existing.addEventListener("open", onOpen, { once: true })
+          existing.addEventListener("error", onError, { once: true } as any)
+          existing.addEventListener("close", onClose, { once: true })
+        })
+        attachWsHandlers(existing)
+        return existing
+      }
+    }
+
+    intentionalCloseRef.current = false
+    const ws = new WebSocket(wsUrl)
+    socketRef.current = ws
+
+    await new Promise<void>((resolve, reject) => {
+      ws.onopen = () => resolve()
+      ws.onerror = () => reject(new Error("WebSocket connection failed"))
+    })
+
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[realtime] ws open", wsUrl)
+    }
+
+    attachWsHandlers(ws)
+    return ws
+  }, [attachWsHandlers, wsUrl])
+
   const waitForReply = useCallback(<T,>(requestId: string, timeoutMs = 15000) => {
     return new Promise<T>((resolve) => {
       pendingRef.current.set(requestId, resolve as any)
@@ -80,73 +181,12 @@ export function useRealtimeGeneration({
     setState("connecting")
     setError(null)
     try {
-      if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-        intentionalCloseRef.current = false
-        const ws = new WebSocket(wsUrl)
-        socketRef.current = ws
-        await new Promise<void>((resolve, reject) => {
-          ws.onopen = () => resolve()
-          ws.onerror = () => reject(new Error("WebSocket connection failed"))
-        })
-        if (process.env.NODE_ENV !== "production") {
-          console.log("[realtime] ws open", wsUrl)
-        }
-        ws.onclose = () => {
-          if (!mountedRef.current) return
-          if (intentionalCloseRef.current) return
-          setState("error")
-          setError("WebSocket closed")
-        }
-        ws.onerror = () => {
-          if (process.env.NODE_ENV !== "production") {
-            console.log("[realtime] ws error", wsUrl)
-          }
-        }
-        ws.onmessage = (event) => {
-          try {
-            const msg = JSON.parse(event.data)
-            if (msg?.type === "session.ack" && msg.sessionId) {
-              if (mountedRef.current) {
-                setSessionId(msg.sessionId)
-                setState("ready")
-              }
-              if (msg.requestId && pendingRef.current.has(msg.requestId)) {
-                const resolve = pendingRef.current.get(msg.requestId)!
-                pendingRef.current.delete(msg.requestId)
-                resolve(msg as RealtimePatchResponse)
-              }
-            }
-            // Only resolve request promises on final patch or explicit error.
-            if (msg?.type === "screen.patch" && msg.requestId && pendingRef.current.has(msg.requestId)) {
-              const resolve = pendingRef.current.get(msg.requestId)!
-              pendingRef.current.delete(msg.requestId)
-              resolve({
-                ok: true,
-                version: msg.generatedDoc?.version ?? 0,
-                updatedAt: msg.generatedDoc?.updatedAt ?? Date.now(),
-                generatedDoc: msg.generatedDoc ?? null,
-              })
-            }
-            if (msg?.type === "error" && msg.requestId && pendingRef.current.has(msg.requestId)) {
-              const resolve = pendingRef.current.get(msg.requestId)!
-              pendingRef.current.delete(msg.requestId)
-              resolve({
-                ok: false,
-                version: 0,
-                updatedAt: Date.now(),
-                generationError: msg.message || "WS_ERROR",
-              })
-            }
-          } catch {
-            // ignore parse errors
-          }
-        }
-      }
+      const ws = await ensureSocketOpen()
 
       // Initiate session start over WS
       const requestId = `${Date.now()}-${Math.random()}`
       const sessionPromise = waitForReply<any>(requestId, 8000)
-      socketRef.current?.send(JSON.stringify({ type: "session.start", frameId, requestId }))
+      ws.send(JSON.stringify({ type: "session.start", frameId, requestId }))
       const ack = await sessionPromise
       if (!mountedRef.current) return null
       if (ack?.type === "session.ack" && ack.sessionId) {
@@ -166,7 +206,7 @@ export function useRealtimeGeneration({
       setError(e instanceof Error ? e.message : "Unknown realtime start error")
       return null
     }
-  }, [enabled, frameId, wsUrl, waitForReply])
+  }, [enabled, frameId, ensureSocketOpen, waitForReply])
 
   useEffect(() => {
     return () => {

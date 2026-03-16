@@ -88,11 +88,13 @@ export default function renderFromAI(
       const laidOutBlocks = layoutCard(el.blocks, width)
 
       laidOutBlocks.forEach((block) => {
-        renderSemanticBlock(canvas, {
+        const obj = renderSemanticBlock({
           ...block,
           left: left + block.left,
           top: top + block.top
         })
+        obj.set("clipPath", frame.clipPath)
+        canvas.add(obj)
       })
     }
 

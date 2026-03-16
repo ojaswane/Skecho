@@ -62,14 +62,14 @@ const LOGO_SPRING = {
   type: "spring",
   stiffness: 300,
   damping: 30,
-};
+} as const;
 
 const INITIAL_STATE = {
   y: 0,
   width: 50,
   height: 50,
   borderRadius: 40,
-};
+} as const;
 
 const ANIMATED_STATE = {
   y: -60,
@@ -84,4 +84,4 @@ const ANIMATED_STATE = {
       delay: 0,
     },
   },
-};
+} as const;

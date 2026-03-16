@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/dev.mjs",
+    "dev": "next dev --turbopack",
     "dev:next": "next dev --turbopack",
     "dev:backend": "npm run dev --prefix backend",
+    "dev:all": "node scripts/dev.mjs",
     "build": "next build --turbopack",
     "start": "next start"
   },

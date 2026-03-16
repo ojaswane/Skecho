@@ -95,7 +95,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
     const frame: Frame = {
       id,
       device: 'desktop',
-      badge: 'idea',
+      badge: 'Idea',
       width,
       height,
       left: canvas.getWidth() / 2 - width / 2,

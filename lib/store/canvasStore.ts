@@ -10,7 +10,7 @@ import type {
 } from "../realtime/protocol"
 
 export type FrameType = "desktop" | "tablet" | "mobile"
-export type FrameBadge = "Sketch" | "AiZone"
+export type FrameBadge = "Sketch" | "Idea" | "AiZone"
 
 export type SemanticBlock = {
     id: string

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import * as fabric from "fabric"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { useCanvasStore } from "../../../lib/store/canvasStore"
 
@@ -42,18 +43,17 @@ export function Combobox() {
             return
         }
 
-        const textObj = obj as fabric.Text
+        const textObj = obj as unknown as fabric.Textbox | fabric.IText | fabric.Text
 
         loadGoogleFont(font)
 
         // wait till you are ready
         await document.fonts.ready
 
-        const fontsetted = textObj.set({ fontFamily: font });
-        console.log(`Font setted as ${fontsetted}`)
+        textObj.set({ fontFamily: font })
         canvas?.renderAll()
 
-        useCanvasStore.getState().setSelectedObject(textObj)
+        useCanvasStore.getState().setSelectedObject(textObj as unknown as fabric.Object)
     }
 
 

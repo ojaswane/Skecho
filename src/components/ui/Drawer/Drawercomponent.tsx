@@ -66,7 +66,7 @@ export default function NewProjectDrawer() {
 
     setLoading(true)
     try {
-      const created: Project = await addProject({
+      const created = await addProject({
         user_id: user.id,
         name: projectName.trim() || "Untitled Project",
         description,

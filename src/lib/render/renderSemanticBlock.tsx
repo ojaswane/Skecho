@@ -1,7 +1,7 @@
 import * as fabric from "fabric"
 import type { LaidOutBlock } from "../../../lib/store/canvasStore"
 
-export function renderSemanticBlock(canvas: fabric.Canvas, block: any) {
+export function renderSemanticBlock(block: any): fabric.Object {
     const { left, top, width, height, semantic } = block;
 
     const STYLES = {
@@ -43,15 +43,18 @@ export function renderSemanticBlock(canvas: fabric.Canvas, block: any) {
 
         case "content_image":
             // professional placeholder 
-            object = new fabric.Rect({
-                left, top, width, height,
+            const imageRect = new fabric.Rect({
+                left: 0,
+                top: 0,
+                width,
+                height,
                 fill: STYLES.background,
                 stroke: STYLES.border,
                 rx: STYLES.radius
             });
-            const line1 = new fabric.Line([left, top, left + width, top + height], { stroke: STYLES.border });
-            const line2 = new fabric.Line([left + width, top, left, top + height], { stroke: STYLES.border });
-            canvas.add(line1, line2);
+            const line1 = new fabric.Line([0, 0, width, height], { stroke: STYLES.border });
+            const line2 = new fabric.Line([width, 0, 0, height], { stroke: STYLES.border });
+            object = new fabric.Group([imageRect, line1, line2], { left, top });
             break;
 
         default:
@@ -62,5 +65,5 @@ export function renderSemanticBlock(canvas: fabric.Canvas, block: any) {
             });
     }
 
-    canvas.add(object);
+    return object;
 }

@@ -8,7 +8,7 @@ This repo has **two** dev servers:
 - Next.js frontend (default: `http://localhost:3000`)
 - Express + WebSocket realtime AI backend (from `backend/.env`, default: `http://localhost:4000`)
 
-Run both with:
+Start the frontend with:
 
 ```bash
 npm run dev
@@ -16,11 +16,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-If you want to run them separately:
+Start the backend separately in another terminal:
 
 ```bash
 npm run dev:backend
-npm run dev:next
+```
+
+Optional: start both together:
+
+```bash
+npm run dev:all
 ```
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
