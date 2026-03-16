@@ -157,12 +157,25 @@ const FramesOverlay = ({ frame }: any) => {
                 useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
 
                 const sketchObjectCount = canvas.getObjects().filter((obj: any) => isSketchContent(obj)).length;
+                // Send a compact raster snapshot so the backend/AI can "see" the sketch.
+                // Keep it small/low-quality to avoid flooding the WS.
+                const imageBase64 =
+                    sketchObjectCount > 0
+                        ? canvas.toDataURL({
+                            format: "jpeg",
+                            quality: 0.2,
+                            multiplier: 0.2,
+                        })
+                        : null;
                 // Send a small change summary to backend over WS. means it tells the Sever that there is some changes
                 const response = await sendDelta({
                     eventType,
                     sourceFrameId: frame.id,
                     targetFrameId: realtimeFrameId,
                     sketchObjectCount,
+                    // Include prompt + image snapshot so AI has actual signal.
+                    prompt: userPrompt?.trim() || "Generate a clean SaaS landing page wireframe",
+                    imageBase64,
                     ts: Date.now(),
                 });
 
