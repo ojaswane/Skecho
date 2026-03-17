@@ -38,4 +38,5 @@ export type LaidOutBlock = {
     width: number
     height: number
     rule: SemanticVisualRule
+    semantic: SemanticBlock["kind"]
 }

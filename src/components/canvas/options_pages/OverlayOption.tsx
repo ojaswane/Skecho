@@ -215,6 +215,10 @@ const FramesOverlay = ({ frame }: any) => {
 
                     if (aiScreens.length > 0) {
                         console.log("[realtime-ai] rendering screens", aiScreens.length);
+                        const stale = canvas.getObjects().filter((o: any) =>
+                            o.get?.("isAiGenerated") && o.get?.("frameId") === realtimeFrameId
+                        );
+                        stale.forEach((o) => canvas.remove(o));
                         renderFromAI(canvas, aiScreens, preset);
                     } else {
                         console.warn("[realtime-ai] docToAIScreens produced 0 screens");
@@ -384,12 +388,18 @@ const FramesOverlay = ({ frame }: any) => {
                 row: el.row ?? 1,
                 span: el.span ?? 1,
                 rowSpan: el.rowSpan ?? 1,
-                blocks: [
-                    {
-                        id: `${el.id ?? crypto.randomUUID()}_block`,
-                        kind: "body_text",
-                    },
-                ],
+                blocks:
+                    el.role === "dominant"
+                        ? [
+                            { id: `${el.id ?? crypto.randomUUID()}_t`, kind: "title_text" },
+                            { id: `${el.id ?? crypto.randomUUID()}_b`, kind: "body_text" },
+                            { id: `${el.id ?? crypto.randomUUID()}_a`, kind: "primary_action" },
+                            { id: `${el.id ?? crypto.randomUUID()}_i`, kind: "content_image" },
+                        ]
+                        : [
+                            { id: `${el.id ?? crypto.randomUUID()}_t`, kind: "title_text" },
+                            { id: `${el.id ?? crypto.randomUUID()}_b`, kind: "body_text" },
+                        ],
                 type: el.type ?? "block",
             })),
         }))

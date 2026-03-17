@@ -37,7 +37,8 @@ export function layoutCard(
             top: cursorY,
             width,
             height,
-            rule
+            rule,
+            semantic: block.kind,
         });
 
         // SMART SPACING

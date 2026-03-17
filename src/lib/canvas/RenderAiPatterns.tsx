@@ -67,6 +67,9 @@ export default function renderFromAI(
       const height =
         el.rowSpan * GRID.rowHeight + (el.rowSpan - 1) * GRID.gap
 
+      // Skip anything that would overflow the frame (quick MVP guardrail).
+      if (top + height > frame.top + frame.height - GRID.padding) continue
+
       /* ---------- CARD ---------- */
       const card = new fabric.Rect({
         left,
@@ -81,6 +84,8 @@ export default function renderFromAI(
         shadow: preset.shadow.md,
       })
 
+      card.set("isAiGenerated", true)
+      card.set("frameId", screen.frameId)
       card.set("clipPath", frame.clipPath)
       canvas.add(card)
 
@@ -94,6 +99,8 @@ export default function renderFromAI(
           top: top + block.top
         })
         obj.set("clipPath", frame.clipPath)
+        obj.set("isAiGenerated", true)
+        obj.set("frameId", screen.frameId)
         canvas.add(obj)
       })
     }
