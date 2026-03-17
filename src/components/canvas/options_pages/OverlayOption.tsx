@@ -389,6 +389,7 @@ const FramesOverlay = ({ frame }: any) => {
                 span: el.span ?? 1,
                 rowSpan: el.rowSpan ?? 1,
                 blocks:
+                
                     el.role === "dominant"
                         ? [
                             { id: `${el.id ?? crypto.randomUUID()}_t`, kind: "title_text" },
