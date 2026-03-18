@@ -158,9 +158,8 @@ const FramesOverlay = ({ frame }: any) => {
             realtimeDebounceRef.current = setTimeout(async () => {
 
                 if (!canvas) return;
-                const sketchObjects = canvas.getObjects().filter((obj: any) => isSketchContent(obj));
-                const sketchObjectCount = sketchObjects.length;
-
+                const sketchObjects = canvas.getObjects().filter((obj: any) => isSketchContent(obj)); //got the state of the objecs
+                const sketchObjectCount = sketchObjects.length; //if objects are there then just count the len
 
                 if (sketchObjectCount < 2) {
                     useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'idle' });
@@ -168,6 +167,7 @@ const FramesOverlay = ({ frame }: any) => {
                     return;
                 }
 
+                // after 2 objects are added then we will start streaming the AI
                 useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
 
                 const counts = sketchObjects.reduce(
