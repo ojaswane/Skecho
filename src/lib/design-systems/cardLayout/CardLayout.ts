@@ -1,3 +1,4 @@
+// Its like , Where should Each pieces go inside the card
 import SemanticVisualMap from "../sematicMap/SemanticMaps"
 import type { SemanticBlock, LaidOutBlock } from "../../../../backend/lib/types.js"
 
