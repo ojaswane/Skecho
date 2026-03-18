@@ -1,5 +1,6 @@
 // Canonical frame lifecycle status used by realtime generation.
 export type RealtimeFrameStatus = "idle" | "streaming" | "error" | "ready"
+// TODO: flag a status int the frontend if the status is error
 
 export type AiTheme = "minimal" | "bold" | "soft" | "wireframe"
 

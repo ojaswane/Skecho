@@ -71,10 +71,11 @@ export type ArtboardFrame = {
     left: number
     top: number
     locked: boolean
-    status?: "ghost" | "generating" | "ready" | RealtimeFrameStatus
+    status?: RealtimeFrameStatus
     version?: number
     lastPatchedAt?: number
 }
+
 export type Frame = ArtboardFrame
 
 export type ElementType =
@@ -335,7 +336,7 @@ export const useCanvasStore = create<CanvasState>((set) => ({
         })),
 
     markUserEdited: (frameId, target) =>
-        set((state : any) => {
+        set((state: any) => {
             const current = state.userEditedByFrameId[frameId] ?? {
                 sections: {},
                 elements: {},

@@ -27,6 +27,7 @@ import {
     minimalSaasPreset,
     softPastelPreset
 } from '@/lib/design-systems/presets'
+import { TIMEOUT } from 'dns'
 
 type WireframeElement = {
     type: string
@@ -53,7 +54,7 @@ const FramesOverlay = ({ frame }: any) => {
     const FRAME_GAP = 100;
     const SECTION_PADDING = 60;
     const SECTION_TOP_MARGIN = 70;
-    
+
     // Realtime control refs (kept outside render loop).
     // Debounce/snapshot refs keep timers stable across renders.
     // Debounce timer: batch rapid sketch events into one WS update.
@@ -125,11 +126,14 @@ const FramesOverlay = ({ frame }: any) => {
     useEffect(() => {
         if (!canvas || !isSourceSketchFrame) return;
 
+        // The basic work for this piece of code is to just say that is the frame is empty or nah
         const isSketchContent = (obj: any) => {
             if (!obj) return false;
-            if (obj.get?.('isFrame')) return false;
-            if (obj.get?.('isPlaceholder')) return false;
-            if (obj.get?.('data')?.isGhost) return false;
+            if (obj.get?.('isFrame')
+                || obj.get?.('data')?.isGhost
+                || obj.get?.('placeholder')
+            ) return false;
+
             const frameId = obj.get?.('frameId');
             if (frameId) return frameId === frame.id;
             // Fallback for early object events before frameId tagging completes.
@@ -154,19 +158,48 @@ const FramesOverlay = ({ frame }: any) => {
             realtimeDebounceRef.current = setTimeout(async () => {
 
                 if (!canvas) return;
+                const sketchObjects = canvas.getObjects().filter((obj: any) => isSketchContent(obj));
+                const sketchObjectCount = sketchObjects.length;
+
+
+                if (sketchObjectCount < 2) {
+                    useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'idle' });
+                    hasPendingRealtimeUpdateRef.current = false;
+                    return;
+                }
+
                 useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
 
-                const sketchObjectCount = canvas.getObjects().filter((obj: any) => isSketchContent(obj)).length;
+                const counts = sketchObjects.reduce(
+                    (acc: any, obj: any) => {
+                        const t = String(obj?.type || "").toLowerCase();
+                        acc.total += 1;
+                        if (t === "path") acc.paths += 1;
+                        else if (t === "rect") acc.rects += 1;
+                        else if (t === "circle") acc.circles += 1;
+                        else if (t.includes("text")) acc.texts += 1;
+                        else if (t === "image") acc.images += 1;
+                        else acc.other += 1;
+                        return acc;
+                    },
+                    { total: 0, paths: 0, rects: 0, circles: 0, texts: 0, images: 0, other: 0 }
+                );
+
+                const sketchSummary = {
+                    counts,
+                    hint:
+                        counts.rects >= 3 ? "grid" :
+                            counts.rects >= 1 ? "sections" :
+                                counts.paths >= 5 ? "dense" : "light",
+                };
+
                 // Send a compact raster snapshot so the backend/AI can "see" the sketch.
                 // Keep it small/low-quality to avoid flooding the WS.
-                const imageBase64 =
-                    sketchObjectCount > 0
-                        ? canvas.toDataURL({
-                            format: "jpeg",
-                            quality: 0.2,
-                            multiplier: 0.2,
-                        })
-                        : null;
+                const imageBase64 = canvas.toDataURL({
+                    format: "jpeg",
+                    quality: 0.2,
+                    multiplier: 0.2,
+                });
                 // Send a small change summary to backend over WS. means it tells the Sever that there is some changes
                 const response = await sendDelta({
                     eventType,
@@ -176,6 +209,7 @@ const FramesOverlay = ({ frame }: any) => {
                     // Include prompt + image snapshot so AI has actual signal.
                     prompt: userPrompt?.trim() || "Generate a clean SaaS landing page wireframe",
                     imageBase64,
+                    sketchSummary,
                     ts: Date.now(),
                 });
 
@@ -509,7 +543,7 @@ const FramesOverlay = ({ frame }: any) => {
                             const doc = payload.data;
                             const styleKey = typeof doc?.style === "string" ? doc.style : "";
                             const preset = presetMap[styleKey as keyof typeof presetMap] ?? defaultSaasPreset;
-                            
+
                             renderFromAI(canvas, aiScreens, preset);
                             canvas.requestRenderAll();
                         }
