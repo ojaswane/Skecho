@@ -19,7 +19,6 @@ export type SemanticVisualRule = {
 }
 
 
-
 export type SemanticBlock = {
     id: string
     kind:

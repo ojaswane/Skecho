@@ -15,7 +15,7 @@ export function layoutCard(
         const rule = SemanticVisualMap[block.kind];
         if (!rule) continue;
 
-        //  DYNAMIC WIDTH CALCULATION
+        // DYNAMIC WIDTH CALCULATION
         let width = rule.widthPercent
             ? rule.widthPercent * usableWidth
             : rule.size ?? usableWidth;
@@ -47,7 +47,7 @@ export function layoutCard(
             cursorY += height + (rule.marginBottom ?? 12);
         } else {
             // Logic for the next block in the loop to start further right
-            // Note: For a true row system, you'd manage a cursorX, 
+            // Note: For a true row system, you'd manage a cursorX
             // but for an MVP, shifting the Y is the priority fix.
             cursorY += height + (rule.marginBottom ?? 12);
         }

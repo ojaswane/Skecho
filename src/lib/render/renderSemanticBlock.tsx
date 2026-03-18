@@ -1,14 +1,13 @@
 import * as fabric from "fabric"
-import type { LaidOutBlock } from "../../../lib/store/canvasStore"
 
 export function renderSemanticBlock(block: any): fabric.Object {
     const { left, top, width, height, semantic } = block;
 
     const STYLES = {
         background: "#F4F4F5", // Slate 100
-        border: "#E4E4E7",     // Slate 200
-        text: "#71717A",       // Slate 500
-        accent: "#6366F1",     // Indigo 500
+        border: "#E4E4E7",// Slate 200
+        text: "#71717A",// Slate 500
+        accent: "#6366F1",// Indigo 500
         radius: 10
     };
 
@@ -42,7 +41,7 @@ export function renderSemanticBlock(block: any): fabric.Object {
             break;
 
         case "content_image":
-            // professional placeholder 
+            // professional placeholder
             const imageRect = new fabric.Rect({
                 left: 0,
                 top: 0,
