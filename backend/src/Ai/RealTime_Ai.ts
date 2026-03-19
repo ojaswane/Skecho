@@ -2,6 +2,18 @@ import DENSITY_MAP from "../constants/densityMap/density_map.js"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
 type DensityLevel = "airy" | "normal" | "compact"
+type SketchSummary = {
+    counts?: {
+        total?: number
+        paths?: number
+        rects?: number
+        circles?: number
+        texts?: number
+        images?: number
+        other?: number
+    }
+    hint?: string
+}
 
 const SYSTEM_PROMPT = `
 You are a SENIOR PRODUCT DESIGNER specialized in SaaS aesthetics.
@@ -36,17 +48,99 @@ EXPECTED OUTPUT:
     }
   ]
 }
-
 `
 
 function fallbackFrames() {
     return [
-        { id: "hero", role: "dominant", span: 12, type: "card" },
-        { id: "features-a", role: "supporting", span: 6, type: "card" },
-        { id: "features-b", role: "supporting", span: 6, type: "card" },
-        { id: "proof", role: "supporting", span: 4, type: "card" },
-        { id: "pricing", role: "supporting", span: 4, type: "card" },
-        { id: "cta", role: "supporting", span: 4, type: "card" },
+        {
+            id: "hero",
+            role: "dominant",
+            span: 12,
+            type: "card"
+        },
+        {
+            id: "features-a",
+            role: "supporting",
+            span: 6,
+            type: "card"
+        },
+        {
+            id: "features-b",
+            role: "supporting",
+            span: 6,
+            type: "card"
+        },
+        {
+            id: "proof",
+            role: "supporting",
+            span: 4,
+            type: "card"
+        },
+        {
+            id: "pricing",
+            role: "supporting",
+            span: 4,
+            type: "card"
+        },
+
+        {
+            id: "cta",
+            role: "supporting",
+            span: 4,
+            type: "card"
+        },
+    ]
+}
+
+function heroOnlyFrames() {
+    return [
+        {
+            id: "hero",
+            role: "dominant",
+            span: 12,
+            type: "card"
+        },
+        {
+            id: "hero-media",
+            role: "supporting",
+            span: 12,
+            type: "card"
+        },
+    ]
+}
+
+function featureGridFrames() {
+    return [
+        {
+            id: "hero",
+            role: "dominant",
+            span: 12,
+            type: "card"
+        },
+        {
+            id: "feature-1",
+            role: "supporting",
+            span: 4,
+            type: "card"
+        },
+        {
+            id: "feature-2",
+            role: "supporting",
+            span: 4,
+            type: "card"
+        },
+        {
+            id: "feature-3",
+            role: "supporting",
+            span: 4,
+            type: "card"
+        },
+        {
+            id: "cta",
+            role: "supporting",
+            span: 12,
+            type: "card"
+        },
     ]
 }
 
@@ -209,11 +303,20 @@ async function callGeminiFlash(payload: { prompt?: string; imageBase64?: string;
         ? "\nReturn ONLY valid JSON with root key \"screens\". No markdown, no commentary."
         : ""
     userParts.push({ text: `${basePrompt}${strictSuffix}` })
+
+
+    // This piece of code is to conver the image into the mimeType
     if (payload.imageBase64) {
-        const rawData = payload.imageBase64.split(",")[1] || payload.imageBase64
+        const [prefix, rest] = payload.imageBase64.split(",", 2)
+        const rawData = rest || payload.imageBase64
+        const mimeType =
+            prefix?.includes("image/jpeg") ? "image/jpeg" :
+                prefix?.includes("image/jpg") ? "image/jpeg" :
+                    prefix?.includes("image/webp") ? "image/webp" :
+                        "image/png"
         userParts.push({
             inlineData: {
-                mimeType: "image/png",
+                mimeType,
                 data: rawData,
             },
         })
@@ -235,13 +338,39 @@ export async function GenerateRealTimeAi({
     prompt,
     imageBase64,
     density = "airy",
+    sketchSummary,
 }: {
     prompt?: string
     imageBase64?: string
     density?: DensityLevel
+    sketchSummary?: SketchSummary
 }) {
+    const total = sketchSummary?.counts?.total ?? 0
+    const rects = sketchSummary?.counts?.rects ?? 0
+    const hint = String(sketchSummary?.hint ?? "").toLowerCase()
+
+    // Template shortcut: for tiny sketches, return a small, stable layout instead of a full page.
+    // This makes "one line" or "few strokes" feel intentional and avoids random big layouts.
+    if (sketchSummary && total > 0 && total < 5) {
+        const screen = { id: "screen-1", name: "Screen 1", frames: heroOnlyFrames() }
+        const withLayout = applyLayout({ screens: [screen] }, density)
+        return [normalizeForCanvas(withLayout).screens[0]]
+    }
+
+    // If the user sketched multiple boxes (rects), prefer a grid-ish landing section template.
+    if (sketchSummary && (rects >= 3 || hint === "grid")) {
+        const screen = { id: "screen-1", name: "Screen 1", frames: featureGridFrames() }
+        const withLayout = applyLayout({ screens: [screen] }, density)
+        return [normalizeForCanvas(withLayout).screens[0]]
+    }
+
+    const basePrompt = prompt || "Design this SaaS page"
+    const summarySuffix = sketchSummary
+        ? `\nSketch summary (use to decide layout size): total=${total}, rects=${rects}, hint=${hint || "none"}.`
+        : ""
+
     const raw1 = await callGeminiFlash({
-        prompt: prompt || "Design this SaaS page",
+        prompt: `${basePrompt}${summarySuffix}`,
         imageBase64,
     })
 
@@ -251,7 +380,7 @@ export async function GenerateRealTimeAi({
     // One retry with a stricter prompt + temperature=0 if the first response isn't usable.
     if (!screens?.length) {
         const raw2 = await callGeminiFlash({
-            prompt: prompt || "Design this SaaS page",
+            prompt: `${basePrompt}${summarySuffix}`,
             imageBase64,
             strict: true,
         })

@@ -78,6 +78,7 @@ type ServerMessage =
 export function attachRealtimeWSServer(server: HttpServer) {
   const wss = new WebSocketServer({ server, path: "/ws" })
 
+  // connection triggered
   wss.on("connection", (ws) => {
     console.log("[ws] client connected")
     let sessionId: string | null = null
@@ -136,6 +137,7 @@ export function attachRealtimeWSServer(server: HttpServer) {
             prompt: msg.payload?.prompt || "Generate SaaS wireframe from sketch",
             imageBase64: msg.payload?.imageBase64,
             density: "airy",
+            sketchSummary: msg.payload?.sketchSummary,
           })
           console.log("[ws] flash result screens", screens.length)
 
