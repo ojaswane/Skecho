@@ -169,14 +169,15 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     const midItems = items.filter((it) => String(it.zone).toLowerCase() === "mid")
 
     const heroCandidate = topItems.sort((a, b) => (b.area ?? 0) - (a.area ?? 0))[0]
-    const hasHero = Boolean(heroCandidate && heroCandidate.area >= bboxArea * 0.25)
+    const hasHero = Boolean(heroCandidate && heroCandidate.area >= bboxArea * 0.25) // if the top section takes 25% of total sketch then it is hero 
+
 
     const midSorted = midItems.sort((a, b) => (b.area ?? 0) - (a.area ?? 0))
-    const top3 = midSorted.slice(0, 3)
-    const has3Cards = top3.length === 3 && top3[2].area >= bboxArea * 0.05
+    const top3 = midSorted.slice(0, 3) 
+    const has_3_Cards = top3.length === 3 && top3[2].area >= bboxArea * 0.05
 
     // Pattern: big top box + 3 mid boxes => hero + 3 feature cards + CTA.
-    if (hasHero && has3Cards) return featureGridFrames()
+    if (hasHero && has_3_Cards) return featureGridFrames()
 
     // Pattern: only a big top box => hero-only.
     if (hasHero) return heroOnlyFrames()
