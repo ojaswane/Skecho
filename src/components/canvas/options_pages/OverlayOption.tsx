@@ -1173,20 +1173,6 @@ const FramesOverlay = ({ frame }: any) => {
                             <input type="file" multiple hidden />
                             </label> */}
 
-                            {/* This is for testing perpose */}
-                            {isSourceSketchFrame && (
-                                <GenerateButton onClick={GenerateTypeSketch} >
-                                    {loader ? (
-                                        <span className="">
-                                            Generating...
-                                        </span>
-                                    ) : (
-                                        <span className="">
-                                            Generate Wireframe
-                                        </span>
-                                    )}
-                                </GenerateButton>
-                            )}
                         </div>
                     </div>
                 </div>
