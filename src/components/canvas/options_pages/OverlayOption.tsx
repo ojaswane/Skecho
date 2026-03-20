@@ -129,10 +129,9 @@ const FramesOverlay = ({ frame }: any) => {
         // The basic work for this piece of code is to just say that is the frame is empty or nah
         const isSketchContent = (obj: any) => {
             if (!obj) return false;
-            if (obj.get?.('isFrame')
-                || obj.get?.('data')?.isGhost
-                || obj.get?.('placeholder')
-            ) return false;
+            if (obj.get?.('isFrame')) return false;
+            if (obj.get?.('isPlaceholder')) return false;
+            if (obj.get?.('data')?.isGhost) return false;
 
             const frameId = obj.get?.('frameId');
             if (frameId) return frameId === frame.id;
@@ -161,7 +160,7 @@ const FramesOverlay = ({ frame }: any) => {
                 const sketchObjects = canvas.getObjects().filter((obj: any) => isSketchContent(obj)); //got the state of the objecs
                 const sketchObjectCount = sketchObjects.length; //if objects are there then just count the len
 
-                if (sketchObjectCount < 2) {
+                if (sketchObjectCount < 3) {
                     useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'idle' });
                     hasPendingRealtimeUpdateRef.current = false;
                     return;
@@ -185,8 +184,43 @@ const FramesOverlay = ({ frame }: any) => {
                     { total: 0, paths: 0, rects: 0, circles: 0, texts: 0, images: 0, other: 0 }
                 );
 
+                const items = sketchObjects.map((o: any) => {
+                    const r = o.getBoundingRect?.(true) ?? { left: 0, top: 0, width: 0, height: 0 } // This is the absolute coords of canvas
+                    const x = r.left - frame.left
+                    const y = r.top - frame.top
+                    const w = r.width
+                    const h = r.height
+                    const centerY = y + h / 2
+                    const zone =
+                        centerY < frame.height * 0.33 ? "top" :
+                            centerY < frame.height * 0.66 ? "mid" :
+                                "bottom"
+                    return { type: o.type, x, y, w, h, area: w * h, zone }
+                })
+
+                const zones = items.reduce(
+                    (acc: any, it: any) => {
+                        acc[it.zone] = (acc[it.zone] ?? 0) + 1
+                        return acc
+                    },
+                    { top: 0, mid: 0, bottom: 0 }
+                )
+
+                const bbox = items.reduce(
+                    (acc: any, it: any) => {
+                        acc.minX = Math.min(acc.minX, it.x)
+                        acc.minY = Math.min(acc.minY, it.y)
+                        acc.maxX = Math.max(acc.maxX, it.x + it.w)
+                        acc.maxY = Math.max(acc.maxY, it.y + it.h)
+                        return acc
+                    },
+                    { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
+                )
+
                 const sketchSummary = {
                     counts,
+                    zones,
+                    bbox: Number.isFinite(bbox.minX) ? bbox : null,
                     hint:
                         counts.rects >= 3 ? "grid" :
                             counts.rects >= 1 ? "sections" :
