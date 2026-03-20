@@ -154,6 +154,8 @@ function featureGridFrames() {
         },
     ]
 }
+
+// it looks the feedback / summary from frontend and decides which layout template to use
 function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     const items = sketchSummary?.items ?? []
     const bbox = sketchSummary?.bbox
