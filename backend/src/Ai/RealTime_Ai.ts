@@ -155,6 +155,58 @@ function featureGridFrames() {
     ]
 }
 
+function navHeroFeatureGridFrames() {
+    return [
+        // Keep nav compact by forcing a smaller rowSpan.
+        {
+            id: "nav",
+            role: "supporting",
+            span: 12,
+            rowSpan: 1,
+            type: "card"
+        },
+        {
+            id: "hero",
+            role: "dominant",
+            span: 12,
+            type: "card"
+        },
+        {
+            id: "feature-1",
+            role: "supporting",
+            span: 4,
+            type: "card"
+        },
+        {
+            id: "feature-2",
+            role: "supporting",
+            span: 4,
+            type: "card"
+        },
+
+        {
+            id: "feature-3",
+            role: "supporting",
+            span: 4,
+            type: "card"
+        },
+        {
+            id: "cta",
+            role: "supporting",
+            span: 12,
+            type: "card"
+        },
+    ]
+}
+
+function navHeroFrames() {
+    return [
+        { id: "nav", role: "supporting", span: 12, rowSpan: 1, type: "card" },
+        { id: "hero", role: "dominant", span: 12, type: "card" },
+        { id: "hero-media", role: "supporting", span: 12, type: "card" },
+    ]
+}
+
 // it looks the feedback / summary from frontend and decides which layout template to use
 function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     const items = sketchSummary?.items ?? []
@@ -169,19 +221,33 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     const midItems = items.filter((it) => String(it.zone).toLowerCase() === "mid")
 
     const heroCandidate = topItems.sort((a, b) => (b.area ?? 0) - (a.area ?? 0))[0]
-    const hasHero = Boolean(heroCandidate && heroCandidate.area >= bboxArea * 0.25) // if the top section takes 25% of total sketch then it is hero 
+    const hasHero = Boolean(heroCandidate && heroCandidate.area >= bboxArea * 0.25) // if the top section takes 25% of total sketch then it is hero
 
+    // Navbar heuristics:
+    // either user draws a long thin bar at the top, or
+    // they draw multiple small items in the top zone (logo + links).
+    const thinBar = topItems.find((it) => {
+        const wRatio = it.w / bboxW
+        const hRatio = it.h / bboxH
+        return wRatio >= 0.7 && hRatio <= 0.18 && it.area <= bboxArea * 0.2
+    })
+    const hasNav = Boolean(thinBar || topItems.length >= 4)
 
     const midSorted = midItems.sort((a, b) => (b.area ?? 0) - (a.area ?? 0))
-    const top3 = midSorted.slice(0, 3) 
+    const top3 = midSorted.slice(0, 3)
     const has_3_Cards = top3.length === 3 && top3[2].area >= bboxArea * 0.05
+
+    // Pattern: navbar + hero + 3 mid boxes => nav + hero + 3 feature cards + CTA.
+    if (hasNav && hasHero && has_3_Cards) return navHeroFeatureGridFrames()
 
     // Pattern: big top box + 3 mid boxes => hero + 3 feature cards + CTA.
     if (hasHero && has_3_Cards) return featureGridFrames()
 
+    // Pattern: navbar + hero => nav + hero (+ media).
+    if (hasNav && hasHero) return navHeroFrames()
+
     // Pattern: only a big top box => hero-only.
     if (hasHero) return heroOnlyFrames()
-
     return null
 }
 
@@ -200,9 +266,11 @@ function applyLayout(design: any, density: DensityLevel = "normal") {
                     const span = frame.span || (isDominant ? 12 : 6)
                     const col =
                         frame.col || (span === 12 ? 1 : Math.floor((12 - span) / 2) + 1)
-                    const rowSpan = isDominant
-                        ? densityConfig.dominantRowSpan
-                        : densityConfig.supportingRowSpan
+                    const rowSpan =
+                        frame.rowSpan ??
+                        (isDominant
+                            ? densityConfig.dominantRowSpan
+                            : densityConfig.supportingRowSpan)
 
                     const placed = {
                         ...frame,
@@ -210,7 +278,7 @@ function applyLayout(design: any, density: DensityLevel = "normal") {
                         span: Math.min(span, TOTAL_COLUMNS),
                         row: currentRow,
                         rowSpan,
-                        type: "card",
+                        type: frame.type ?? "card",
                     }
 
                     if (span > 8) currentRow += rowSpan + densityConfig.rowGap
