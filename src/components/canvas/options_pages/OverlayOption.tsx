@@ -221,6 +221,8 @@ const FramesOverlay = ({ frame }: any) => {
                     counts,
                     zones,
                     bbox: Number.isFinite(bbox.minX) ? bbox : null,
+                    // Keep this small; it's just for backend layout intent detection.
+                    items: items.slice(0, 50),
                     hint:
                         counts.rects >= 3 ? "grid" :
                             counts.rects >= 1 ? "sections" :

@@ -12,6 +12,17 @@ type SketchSummary = {
         images?: number
         other?: number
     }
+    items?: Array<{
+        type?: string
+        x: number
+        y: number
+        w: number
+        h: number
+        area: number
+        zone: "top" | "mid" | "bottom" | string
+    }>
+    bbox?: { minX: number; minY: number; maxX: number; maxY: number } | null
+    zones?: { top?: number; mid?: number; bottom?: number }
     hint?: string
 }
 
@@ -142,6 +153,33 @@ function featureGridFrames() {
             type: "card"
         },
     ]
+}
+function framesFromSketchSummary(sketchSummary?: SketchSummary) {
+    const items = sketchSummary?.items ?? []
+    const bbox = sketchSummary?.bbox
+    if (!items.length || !bbox) return null
+
+    const bboxW = Math.max(1, bbox.maxX - bbox.minX)
+    const bboxH = Math.max(1, bbox.maxY - bbox.minY)
+    const bboxArea = bboxW * bboxH
+
+    const topItems = items.filter((it) => String(it.zone).toLowerCase() === "top")
+    const midItems = items.filter((it) => String(it.zone).toLowerCase() === "mid")
+
+    const heroCandidate = topItems.sort((a, b) => (b.area ?? 0) - (a.area ?? 0))[0]
+    const hasHero = Boolean(heroCandidate && heroCandidate.area >= bboxArea * 0.25)
+
+    const midSorted = midItems.sort((a, b) => (b.area ?? 0) - (a.area ?? 0))
+    const top3 = midSorted.slice(0, 3)
+    const has3Cards = top3.length === 3 && top3[2].area >= bboxArea * 0.05
+
+    // Pattern: big top box + 3 mid boxes => hero + 3 feature cards + CTA.
+    if (hasHero && has3Cards) return featureGridFrames()
+
+    // Pattern: only a big top box => hero-only.
+    if (hasHero) return heroOnlyFrames()
+
+    return null
 }
 
 function applyLayout(design: any, density: DensityLevel = "normal") {
@@ -347,6 +385,18 @@ export async function GenerateRealTimeAi({
     const total = sketchSummary?.counts?.total ?? 0
     const rects = sketchSummary?.counts?.rects ?? 0
     const hint = String(sketchSummary?.hint ?? "").toLowerCase()
+
+    // Best signal: use bbox/zones/items to pick a deterministic layout (fast + stable).
+    const templateFrames = framesFromSketchSummary(sketchSummary)
+    if (templateFrames) {
+        const screen = {
+            id: "screen-1",
+            name: "Screen 1",
+            frames: templateFrames
+        }
+        const withLayout = applyLayout({ screens: [screen] }, density)
+        return [normalizeForCanvas(withLayout).screens[0]]
+    }
 
     // Template shortcut: for tiny sketches, return a small, stable layout instead of a full page.
     // This makes "one line" or "few strokes" feel intentional and avoids random big layouts.
