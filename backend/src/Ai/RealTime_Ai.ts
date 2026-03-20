@@ -312,8 +312,7 @@ async function callGeminiFlash(payload: { prompt?: string; imageBase64?: string;
         const mimeType =
             prefix?.includes("image/jpeg") ? "image/jpeg" :
                 prefix?.includes("image/jpg") ? "image/jpeg" :
-                    prefix?.includes("image/webp") ? "image/webp" :
-                        "image/png"
+                    prefix?.includes("image/webp") ? "image/webp" : "image/png"
         userParts.push({
             inlineData: {
                 mimeType,
