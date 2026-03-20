@@ -1164,16 +1164,6 @@ const FramesOverlay = ({ frame }: any) => {
                             }
 
                         </div>
-
-                        {/* RIGHT */}
-                        <div className="flex gap-2">
-                            {/* <label className="px-3 py-1.5 flex items-center gap-2 rounded-md bg-white/20 cursor-pointer">
-                            <ImagePlus className="w-4 h-4" />
-                            Inspiration
-                            <input type="file" multiple hidden />
-                            </label> */}
-
-                        </div>
                     </div>
                 </div>
 
