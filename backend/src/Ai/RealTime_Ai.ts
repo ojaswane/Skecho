@@ -201,9 +201,44 @@ function navHeroFeatureGridFrames() {
 
 function navHeroFrames() {
     return [
-        { id: "nav", role: "supporting", span: 12, rowSpan: 1, type: "card" },
-        { id: "hero", role: "dominant", span: 12, type: "card" },
-        { id: "hero-media", role: "supporting", span: 12, type: "card" },
+        {
+            id: "nav",
+            role: "supporting",
+            span: 12,
+            rowSpan: 1,
+            type: "card"
+        },
+        {
+            id: "hero",
+            role: "dominant",
+            span: 12,
+            type: "card"
+        },
+        {
+            id: "hero-media",
+            role: "supporting",
+            span: 12,
+            type: "card"
+        },
+    ]
+}
+
+// this is for minimal nav section
+function navHeroOnlyFrames() {
+    return [
+        {
+            id: "nav",
+            role: "supporting",
+            span: 12,
+            rowSpan: 1,
+            type: "card"
+        },
+        {
+            id: "hero",
+            role: "dominant",
+            span: 12,
+            type: "card"
+        },
     ]
 }
 
@@ -220,18 +255,28 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     const topItems = items.filter((it) => String(it.zone).toLowerCase() === "top")
     const midItems = items.filter((it) => String(it.zone).toLowerCase() === "mid")
 
-    const heroCandidate = topItems.sort((a, b) => (b.area ?? 0) - (a.area ?? 0))[0]
-    const hasHero = Boolean(heroCandidate && heroCandidate.area >= bboxArea * 0.25) // if the top section takes 25% of total sketch then it is hero
-
     // Navbar heuristics:
     // either user draws a long thin bar at the top, or
     // they draw multiple small items in the top zone (logo + links).
-    const thinBar = topItems.find((it) => {
+    const isTopNavBarLike = (it: any) => {
         const wRatio = it.w / bboxW
         const hRatio = it.h / bboxH
         return wRatio >= 0.7 && hRatio <= 0.18 && it.area <= bboxArea * 0.2
-    })
+    }
+    const thinBar = topItems.find(isTopNavBarLike)
     const hasNav = Boolean(thinBar || topItems.length >= 4)
+
+    // Hero :
+    // Prefer the biggest *non-nav-like* item in top/mid as the hero candidate.
+    // This fixes sketches like: "thin top bar + one huge mid box" (common on landing pages).
+    const heroCandidate = items
+        .filter((it) => !(String(it.zone).toLowerCase() === "top" && isTopNavBarLike(it)))
+        .filter((it) => {
+            const z = String(it.zone).toLowerCase()
+            return z === "top" || z === "mid"
+        })
+        .sort((a, b) => (b.area ?? 0) - (a.area ?? 0))[0]
+    const hasHero = Boolean(heroCandidate && heroCandidate.area >= bboxArea * 0.25)
 
     const midSorted = midItems.sort((a, b) => (b.area ?? 0) - (a.area ?? 0))
     const top3 = midSorted.slice(0, 3)
@@ -243,8 +288,12 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     // Pattern: big top box + 3 mid boxes => hero + 3 feature cards + CTA.
     if (hasHero && has_3_Cards) return featureGridFrames()
 
-    // Pattern: navbar + hero => nav + hero (+ media).
-    if (hasNav && hasHero) return navHeroFrames()
+    // Pattern: navbar + hero => nav + hero (optionally + media).
+    // If the sketch is very minimal (e.g., bar + big box), keep it minimal too.
+    if (hasNav && hasHero) {
+        if (items.length <= 3) return navHeroOnlyFrames()
+        return navHeroFrames()
+    }
 
     // Pattern: only a big top box => hero-only.
     if (hasHero) return heroOnlyFrames()
