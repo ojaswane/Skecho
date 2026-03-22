@@ -460,18 +460,39 @@ const FramesOverlay = ({ frame }: any) => {
                 rowSpan: el.rowSpan ?? 1,
                 blocks: (() => {
                     const baseId = String(el.id ?? crypto.randomUUID());
+                    const semantic = String((el as any).semantic ?? "").toLowerCase();
                     const idLower = baseId.toLowerCase();
 
                     // If backend gives us an explicit element id like "nav", "hero-media", "cta",
                     // prefer semantic blocks that match that intent (not just role).
-                    if (idLower.includes("nav")) {
+                    if (semantic === "nav" || idLower.includes("nav")) {
                         return [{ id: `${baseId}_n`, kind: "title_text" }];
                     }
-                    if (idLower.includes("media") || idLower.includes("image")) {
+                    
+                    if (semantic === "media" || idLower.includes("media") || idLower.includes("image")) {
                         return [{ id: `${baseId}_i`, kind: "content_image" }];
                     }
-                    if (idLower.includes("cta")) {
+                    
+                    if (semantic === "cta" || idLower.includes("cta")) {
                         return [{ id: `${baseId}_a`, kind: "primary_action" }];
+                    }
+
+
+                    if (semantic === "hero_text") {
+                        return [
+                            {
+                                id: `${baseId}_t`,
+                                kind: "title_text"
+                            },
+                            {
+                                id: `${baseId}_b`,
+                                kind: "body_text"
+                            },
+                            {
+                                id: `${baseId}_a`,
+                                kind: "primary_action"
+                            },
+                        ];
                     }
 
                     if (el.role === "dominant") {

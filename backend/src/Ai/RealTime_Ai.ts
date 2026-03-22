@@ -249,27 +249,76 @@ function navHeroMediaCtaFrames() {
             role: "supporting",
             span: 12,
             rowSpan: 1,
-            type: "card"
+            type: "card",
+            semantic: "nav",
         },
         {
-            id: "hero",
+            id: "hero-text",
             role: "dominant",
-            span: 12,
-            type: "card"
+            // 2-column hero: text on the left
+            col: 1,
+            row: 2,
+            span: 6,
+            rowSpan: 4,
+            type: "card",
+            semantic: "hero_text",
         },
         {
             id: "hero-media",
             role: "supporting",
-            span: 12,
-            type: "card"
+            // 2-column hero: media on the right
+            col: 7,
+            row: 2,
+            span: 6,
+            rowSpan: 4,
+            type: "card",
+            semantic: "media",
         },
         {
             id: "cta",
             role: "supporting",
+            // CTA under hero text (left column)
+            col: 1,
+            row: 6,
             span: 3,
-            col: 10,
             rowSpan: 1,
-            type: "card"
+            type: "card",
+            semantic: "cta",
+        },
+    ]
+}
+
+function navHeroTwoColFrames() {
+    return [
+        {
+            id: "nav",
+            role: "supporting",
+            col: 1,
+            row: 1,
+            span: 12,
+            rowSpan: 1,
+            type: "card",
+            semantic: "nav",
+        },
+        {
+            id: "hero-text",
+            role: "dominant",
+            col: 1,
+            row: 2,
+            span: 6,
+                rowSpan: 4,
+                type: "card",
+                semantic: "hero_text",
+        },
+        {
+            id: "hero-media",
+            role: "supporting",
+            col: 7,
+            row: 2,
+            span: 6,
+            rowSpan: 4,
+            type: "card",
+            semantic: "media",
         },
     ]
 }
@@ -396,7 +445,7 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     // This matches: top nav bar, then a hero text band, then a big image box.
     if (hasNav && hasHero && hasMedia) {
         if (floatingCta) return navHeroMediaCtaFrames()
-        return navHeroFrames()
+        return navHeroTwoColFrames()
     }
 
     // Pattern: navbar + hero => nav + hero (optionally + media).
@@ -422,6 +471,18 @@ function applyLayout(design: any, density: DensityLevel = "normal") {
             return {
                 ...screen,
                 frames: (screen.frames || []).map((frame: any) => {
+                    // If a template already placed the frame, don't re-flow it.
+                    if (frame.row != null && frame.col != null) {
+                        return {
+                            ...frame,
+                            col: Math.floor(frame.col),
+                            span: Math.min(frame.span ?? TOTAL_COLUMNS, TOTAL_COLUMNS),
+                            row: Math.floor(frame.row),
+                            rowSpan: frame.rowSpan ?? 1,
+                            type: frame.type ?? "card",
+                        }
+                    }
+
                     const isDominant = frame.role === "dominant"
                     const span = frame.span || (isDominant ? 12 : 6)
                     const col =

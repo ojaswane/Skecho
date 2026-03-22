@@ -15,6 +15,9 @@ export type AiElement = {
   id: string
   sectionId: string
   type: "card" | "text" | "button" | "input" | "image" | "block"
+  // Optional semantic hint used by the frontend renderer.
+  // This avoids guessing semantics from element ids or roles.
+  semantic?: "nav" | "hero_text" | "media" | "cta" | "card" | "unknown"
   role?: string
   col?: number
   row?: number
