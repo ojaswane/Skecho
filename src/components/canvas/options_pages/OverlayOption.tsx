@@ -466,15 +466,24 @@ const FramesOverlay = ({ frame }: any) => {
                     // If backend gives us an explicit element id like "nav", "hero-media", "cta",
                     // prefer semantic blocks that match that intent (not just role).
                     if (semantic === "nav" || idLower.includes("nav")) {
-                        return [{ id: `${baseId}_n`, kind: "title_text" }];
+                        return [{
+                            id: `${baseId}_n`,
+                            kind: "title_text"
+                        }];
                     }
-                    
+
                     if (semantic === "media" || idLower.includes("media") || idLower.includes("image")) {
-                        return [{ id: `${baseId}_i`, kind: "content_image" }];
+                        return [{
+                            id: `${baseId}_i`,
+                            kind: "content_image"
+                        }];
                     }
-                    
+
                     if (semantic === "cta" || idLower.includes("cta")) {
-                        return [{ id: `${baseId}_a`, kind: "primary_action" }];
+                        return [{
+                            id: `${baseId}_a`,
+                            kind: "primary_action"
+                        }];
                     }
 
 
@@ -497,10 +506,22 @@ const FramesOverlay = ({ frame }: any) => {
 
                     if (el.role === "dominant") {
                         return [
-                            { id: `${baseId}_t`, kind: "title_text" },
-                            { id: `${baseId}_b`, kind: "body_text" },
-                            { id: `${baseId}_a`, kind: "primary_action" },
-                            { id: `${baseId}_i`, kind: "content_image" },
+                            {
+                                id: `${baseId}_t`,
+                                kind: "title_text"
+                            },
+                            {
+                                id: `${baseId}_b`,
+                                kind: "body_text"
+                            },
+                            {
+                                id: `${baseId}_a`,
+                                kind: "primary_action"
+                            },
+                            {
+                                id: `${baseId}_i`,
+                                kind: "content_image"
+                            },
                         ];
                     }
 
