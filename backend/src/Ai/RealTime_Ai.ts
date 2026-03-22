@@ -301,13 +301,44 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     const relX = (it: any) => (it.x - bbox.minX) / bboxW
     const relY = (it: any) => (it.y - bbox.minY) / bboxH
 
-    const bottomItems = items.filter((it) => String(it.zone).toLowerCase() === "bottom")
-    const floatingCta = bottomItems.find((it) => {
-        const areaOk = (it.area ?? 0) <= bboxArea * 0.06
-        const rightish = relX(it) >= 0.6
-        const bottomish = relY(it) >= 0.6
-        return areaOk && rightish && bottomish
-    })
+    // CTA heuristics (loose on purpose):
+    // users can place CTAs anywhere, but a "floating CTA" is usually a small item
+    // in the lower half of the composition. We DON'T require bottom zone only.
+    const floatingCta = items
+        .filter((it) => !(String(it.zone).toLowerCase() === "top" && isTopNavBarLike(it)))
+        .filter((it) => (it.area ?? 0) <= bboxArea * 0.05)
+        .filter((it) => relY(it) >= 0.5)
+        .sort((a, b) => (a.area ?? 0) - (b.area ?? 0))[0]
+
+    // Hero-text bar heuristics: wide-ish, relatively short, above the main media.
+    const isHeroTextLike = (it: any) => {
+        const wRatio = it.w / bboxW
+        const hRatio = it.h / bboxH
+        const area = it.area ?? 0
+        const y = relY(it)
+        return (
+            wRatio >= 0.55 &&
+            hRatio <= 0.35 &&
+            y <= 0.55 &&
+            area >= bboxArea * 0.05 &&
+            area <= bboxArea * 0.4
+        )
+    }
+    const heroTextCandidate = items
+        .filter((it) => !(String(it.zone).toLowerCase() === "top" && isTopNavBarLike(it)))
+        .filter(isHeroTextLike)
+        .sort((a, b) => (b.area ?? 0) - (a.area ?? 0))[0]
+
+    // Media heuristics: big block (often image/video) that takes lots of area.
+    const isMediaLike = (it: any) => {
+        const area = it.area ?? 0
+        const hRatio = it.h / bboxH
+        return area >= bboxArea * 0.3 && hRatio >= 0.25
+    }
+    const mediaCandidate = items
+        .filter((it) => !(String(it.zone).toLowerCase() === "top" && isTopNavBarLike(it)))
+        .filter(isMediaLike)
+        .sort((a, b) => (b.area ?? 0) - (a.area ?? 0))[0]
 
     // Hero :
     // Prefer the biggest *non-nav-like* item in top/mid as the hero candidate.
@@ -319,11 +350,23 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
             return z === "top" || z === "mid"
         })
         .sort((a, b) => (b.area ?? 0) - (a.area ?? 0))[0]
-    const hasHero = Boolean(heroCandidate && heroCandidate.area >= bboxArea * 0.25)
+    // If we have a hero-text candidate, accept it as "hero" even if it isn't massive.
+    // Otherwise fall back to the big hero candidate threshold.
+    const hasHero = Boolean(heroTextCandidate || (heroCandidate && heroCandidate.area >= bboxArea * 0.25))
+    const hasMedia = Boolean(mediaCandidate)
 
     const midSorted = midItems.sort((a, b) => (b.area ?? 0) - (a.area ?? 0))
     const top3 = midSorted.slice(0, 3)
     const has_3_Cards = top3.length === 3 && top3[2].area >= bboxArea * 0.05
+
+    console.log("[layout] sketchSummary", {
+        items: items.length,
+        hasNav,
+        hasHero,
+        hasMedia,
+        has3Cards: has_3_Cards,
+        hasFloatingCta: Boolean(floatingCta),
+    })
 
     // Pattern: navbar + hero + 3 mid boxes => nav + hero + 3 feature cards + CTA.
     if (hasNav && hasHero && has_3_Cards) return navHeroFeatureGridFrames()
@@ -331,10 +374,16 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     // Pattern: big top box + 3 mid boxes => hero + 3 feature cards + CTA.
     if (hasHero && has_3_Cards) return featureGridFrames()
 
+    // Pattern: navbar + hero + media (+ optional floating CTA).
+    // This matches: top nav bar, then a hero text band, then a big image box.
+    if (hasNav && hasHero && hasMedia) {
+        if (floatingCta) return navHeroMediaCtaFrames()
+        return navHeroFrames()
+    }
+
     // Pattern: navbar + hero => nav + hero (optionally + media).
     // If the sketch is very minimal (e.g., bar + big box), keep it minimal too.
     if (hasNav && hasHero) {
-        if (floatingCta) return navHeroMediaCtaFrames()
         if (items.length <= 3) return navHeroOnlyFrames()
         return navHeroFrames()
     }
