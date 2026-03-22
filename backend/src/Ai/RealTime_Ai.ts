@@ -288,12 +288,18 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     const midItems = items.filter((it) => String(it.zone).toLowerCase() === "mid")
 
     // Navbar heuristics:
-    // either user draws a long thin bar at the top, or
-    // they draw multiple small items in the top zone (logo + links).
+    // either user draws a long thin bar at the top to get te appropriate results
     const isTopNavBarLike = (it: any) => {
         const wRatio = it.w / bboxW
         const hRatio = it.h / bboxH
-        return wRatio >= 0.7 && hRatio <= 0.18 && it.area <= bboxArea * 0.2
+        const aspect = it.w / Math.max(1, it.h)
+        const y = (it.y - bbox.minY) / bboxH
+        const wideEnough = wRatio >= 0.5
+        const thinEnough = hRatio <= 0.22
+        const nearTop = y <= 0.25
+        const barLike = aspect >= 4
+        const notHuge = (it.area ?? 0) <= bboxArea * 0.25
+        return wideEnough && thinEnough && nearTop && barLike && notHuge
     }
     const thinBar = topItems.find(isTopNavBarLike)
     const hasNav = Boolean(thinBar || topItems.length >= 4)
@@ -367,6 +373,18 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
         has3Cards: has_3_Cards,
         hasFloatingCta: Boolean(floatingCta),
     })
+    if (!hasNav) {
+        const topDebug = topItems.map((it) => ({
+            w: it.w,
+            h: it.h,
+            area: it.area,
+            wRatio: Number((it.w / bboxW).toFixed(2)),
+            hRatio: Number((it.h / bboxH).toFixed(2)),
+            aspect: Number((it.w / Math.max(1, it.h)).toFixed(2)),
+            y: Number((((it.y - bbox.minY) / bboxH) || 0).toFixed(2)),
+        }))
+        console.log("[layout] nav-miss topItems", topDebug)
+    }
 
     // Pattern: navbar + hero + 3 mid boxes => nav + hero + 3 feature cards + CTA.
     if (hasNav && hasHero && has_3_Cards) return navHeroFeatureGridFrames()
