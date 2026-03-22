@@ -458,19 +458,36 @@ const FramesOverlay = ({ frame }: any) => {
                 row: el.row ?? 1,
                 span: el.span ?? 1,
                 rowSpan: el.rowSpan ?? 1,
-                blocks:
+                blocks: (() => {
+                    const baseId = String(el.id ?? crypto.randomUUID());
+                    const idLower = baseId.toLowerCase();
 
-                    el.role === "dominant"
-                        ? [
-                            { id: `${el.id ?? crypto.randomUUID()}_t`, kind: "title_text" },
-                            { id: `${el.id ?? crypto.randomUUID()}_b`, kind: "body_text" },
-                            { id: `${el.id ?? crypto.randomUUID()}_a`, kind: "primary_action" },
-                            { id: `${el.id ?? crypto.randomUUID()}_i`, kind: "content_image" },
-                        ]
-                        : [
-                            { id: `${el.id ?? crypto.randomUUID()}_t`, kind: "title_text" },
-                            { id: `${el.id ?? crypto.randomUUID()}_b`, kind: "body_text" },
-                        ],
+                    // If backend gives us an explicit element id like "nav", "hero-media", "cta",
+                    // prefer semantic blocks that match that intent (not just role).
+                    if (idLower.includes("nav")) {
+                        return [{ id: `${baseId}_n`, kind: "title_text" }];
+                    }
+                    if (idLower.includes("media") || idLower.includes("image")) {
+                        return [{ id: `${baseId}_i`, kind: "content_image" }];
+                    }
+                    if (idLower.includes("cta")) {
+                        return [{ id: `${baseId}_a`, kind: "primary_action" }];
+                    }
+
+                    if (el.role === "dominant") {
+                        return [
+                            { id: `${baseId}_t`, kind: "title_text" },
+                            { id: `${baseId}_b`, kind: "body_text" },
+                            { id: `${baseId}_a`, kind: "primary_action" },
+                            { id: `${baseId}_i`, kind: "content_image" },
+                        ];
+                    }
+
+                    return [
+                        { id: `${baseId}_t`, kind: "title_text" },
+                        { id: `${baseId}_b`, kind: "body_text" },
+                    ];
+                })(),
                 type: el.type ?? "block",
             })),
         }))

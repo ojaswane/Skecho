@@ -242,6 +242,38 @@ function navHeroOnlyFrames() {
     ]
 }
 
+function navHeroMediaCtaFrames() {
+    return [
+        {
+            id: "nav",
+            role: "supporting",
+            span: 12,
+            rowSpan: 1,
+            type: "card"
+        },
+        {
+            id: "hero",
+            role: "dominant",
+            span: 12,
+            type: "card"
+        },
+        {
+            id: "hero-media",
+            role: "supporting",
+            span: 12,
+            type: "card"
+        },
+        {
+            id: "cta",
+            role: "supporting",
+            span: 3,
+            col: 10,
+            rowSpan: 1,
+            type: "card"
+        },
+    ]
+}
+
 // it looks the feedback / summary from frontend and decides which layout template to use
 function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     const items = sketchSummary?.items ?? []
@@ -265,6 +297,17 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     }
     const thinBar = topItems.find(isTopNavBarLike)
     const hasNav = Boolean(thinBar || topItems.length >= 4)
+
+    const relX = (it: any) => (it.x - bbox.minX) / bboxW
+    const relY = (it: any) => (it.y - bbox.minY) / bboxH
+
+    const bottomItems = items.filter((it) => String(it.zone).toLowerCase() === "bottom")
+    const floatingCta = bottomItems.find((it) => {
+        const areaOk = (it.area ?? 0) <= bboxArea * 0.06
+        const rightish = relX(it) >= 0.6
+        const bottomish = relY(it) >= 0.6
+        return areaOk && rightish && bottomish
+    })
 
     // Hero :
     // Prefer the biggest *non-nav-like* item in top/mid as the hero candidate.
@@ -291,6 +334,7 @@ function framesFromSketchSummary(sketchSummary?: SketchSummary) {
     // Pattern: navbar + hero => nav + hero (optionally + media).
     // If the sketch is very minimal (e.g., bar + big box), keep it minimal too.
     if (hasNav && hasHero) {
+        if (floatingCta) return navHeroMediaCtaFrames()
         if (items.length <= 3) return navHeroOnlyFrames()
         return navHeroFrames()
     }
