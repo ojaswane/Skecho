@@ -655,8 +655,6 @@ const FramesOverlay = ({ frame }: any) => {
         }
     }
 
-
-
     function createNewFrame({
         canvas,
         sourceFrame,

@@ -1,14 +1,14 @@
 import * as fabric from "fabric"
 
 export function renderSemanticBlock(block: any): fabric.Object {
-    const { left, top, width, height, semantic } = block;
+    const { left, top, width, height, semantic, theme } = block;
 
     const STYLES = {
-        background: "#F4F4F5", // Slate 100
-        border: "#E4E4E7",// Slate 200
-        text: "#71717A",// Slate 500
-        accent: "#6366F1",// Indigo 500
-        radius: 10
+        background: theme?.background ?? "#F4F4F5", // Slate 100
+        border: theme?.border ?? "#E4E4E7",// Slate 200
+        text: theme?.text ?? "#71717A",// Slate 500
+        accent: theme?.accent ?? "#4F46E5",// Indigo 600-ish
+        radius: theme?.radius ?? 16
     };
 
     let object: fabric.Object;
@@ -25,17 +25,18 @@ export function renderSemanticBlock(block: any): fabric.Object {
             break;
 
         case "primary_action":
-            // button pill
+            // Apple-ish pill button
             const btnRect = new fabric.Rect({
-                width, height: 44,
-                rx: 6, ry: 6,
+                width: Math.min(width, 240),
+                height: 44,
+                rx: 22, ry: 22,
                 fill: STYLES.accent,
             });
             const btnText = new fabric.Text("Get Started", {
                 fontSize: 14,
                 fill: "#FFFFFF",
                 originX: "center", originY: "center",
-                left: width / 2, top: 22
+                left: btnRect.width! / 2, top: 22
             });
             object = new fabric.Group([btnRect, btnText], { left, top });
             break;
@@ -49,7 +50,8 @@ export function renderSemanticBlock(block: any): fabric.Object {
                 height,
                 fill: STYLES.background,
                 stroke: STYLES.border,
-                rx: STYLES.radius
+                rx: STYLES.radius,
+                ry: STYLES.radius,
             });
             const line1 = new fabric.Line([0, 0, width, height], { stroke: STYLES.border });
             const line2 = new fabric.Line([width, 0, 0, height], { stroke: STYLES.border });
@@ -60,7 +62,10 @@ export function renderSemanticBlock(block: any): fabric.Object {
             object = new fabric.Rect({
                 left, top, width, height,
                 fill: STYLES.background,
-                rx: 4
+                stroke: STYLES.border,
+                strokeWidth: 1,
+                rx: STYLES.radius,
+                ry: STYLES.radius,
             });
     }
 

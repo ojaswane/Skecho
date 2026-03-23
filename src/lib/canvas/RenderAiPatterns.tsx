@@ -41,6 +41,14 @@ export default function renderFromAI(
   preset : any
 ) {
   if (!screens.length) return
+  const cardRadius = preset?.radius?.xl ?? preset?.radius?.lg ?? 16
+  const blockTheme = {
+    background: preset?.color?.neutral100 ?? "#F4F4F5",
+    border: preset?.color?.border ?? "#E4E4E7",
+    text: preset?.color?.textMuted ?? "#71717A",
+    accent: preset?.color?.primary ?? "#4F46E5",
+    radius: cardRadius,
+  }
 
   for (const screen of screens) {
     const frame = canvas.getObjects().find(
@@ -79,8 +87,8 @@ export default function renderFromAI(
         fill: preset.color.card,
         stroke: preset.color.border,
         strokeWidth: 1,
-        rx: preset.radius.lg,
-        ry: preset.radius.lg,
+        rx: cardRadius,
+        ry: cardRadius,
         shadow: preset.shadow.md,
       })
 
@@ -96,7 +104,8 @@ export default function renderFromAI(
         const obj = renderSemanticBlock({
           ...block,
           left: left + block.left,
-          top: top + block.top
+          top: top + block.top,
+          theme: blockTheme,
         })
         obj.set("clipPath", frame.clipPath)
         obj.set("isAiGenerated", true)
