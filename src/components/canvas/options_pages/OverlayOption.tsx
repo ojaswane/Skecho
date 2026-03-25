@@ -1002,6 +1002,7 @@ const FramesOverlay = ({ frame }: any) => {
             }
         };
 
+        
         canvas.on('object:moving', handleSync);
         canvas.on('object:scaling', handleSync);
         return () => {
