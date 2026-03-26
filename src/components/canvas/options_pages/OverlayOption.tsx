@@ -201,20 +201,15 @@ const FramesOverlay = ({ frame }: any) => {
                     }
                 );
 
-                /**
-                 * -----------------------------
-                 * SKETCH → "TRUTH BOXES" (MVP)
-                 * -----------------------------
-                 * The user draws messy paths. We don't want to send every raw stroke to the backend
-                 * because a single rectangle might be 3–6 strokes.
-                 *
-                 * So we do this:
-                 *- Convert every Fabric object → candidate bounding box (frame-relative)
-                 *= Filter out tiny noise / very thin lines
-                 *= Merge boxes that overlap / are close into one bigger "region"
-                 *= Send those merged regions as sketchSummary.items (stable signal)
-                 *= Also send normalized blocks as sketchGraph.blocks (0..1 coords)
-                 */
+                //The user draws messy paths. We don't want to send every raw stroke to the backend
+                //because a single rectangle might be 3–6 strokes.
+                // So we do this:
+                //Convert every Fabric object → candidate bounding box (frame-relative)
+                //Filter out tiny noise / very thin lines
+                //Merge boxes that overlap / are close into one bigger "region"
+                //Send those merged regions as sketchSummary.items (stable signal)
+                //Also send normalized blocks as sketchGraph.blocks (0..1 coords)
+                
 
                 const frameArea = Math.max(1, frame.width * frame.height);
                 // Ignore tiny scribbles (0.5% of the frame area is a decent starting point for MVP).
@@ -330,10 +325,10 @@ const FramesOverlay = ({ frame }: any) => {
                     { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
                 )
 
-                /**
-                 * sketchGraph.blocks is the same info as items, but normalized (0..1)
-                 * so the backend can be resolution-independent later.
-                 */
+
+                //sketchGraph.blocks is the same info as items, but normalized (0..1)
+                // so the backend can be resolution-independent later.
+
                 const sketchGraph = {
                     version: 1,
                     mergePadPx: MERGE_PAD_PX,
