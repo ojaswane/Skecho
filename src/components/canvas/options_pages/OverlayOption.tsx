@@ -34,6 +34,15 @@ type WireframeElement = {
     [key: string]: any
 }
 
+type CandidateBox = {
+    srcType?: string;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    area: number;
+};
+
 
 const FramesOverlay = ({ frame }: any) => {
     const canvas = useCanvasStore((s) => s.canvas)
@@ -181,22 +190,126 @@ const FramesOverlay = ({ frame }: any) => {
                         else acc.other += 1;
                         return acc;
                     },
-                    { total: 0, paths: 0, rects: 0, circles: 0, texts: 0, images: 0, other: 0 }
+                    {
+                        total: 0,
+                        paths: 0,
+                        rects: 0,
+                        circles: 0,
+                        texts: 0,
+                        images: 0,
+                        other: 0
+                    }
                 );
 
-                const items = sketchObjects.map((o: any) => {
-                    const r = o.getBoundingRect?.(true) ?? { left: 0, top: 0, width: 0, height: 0 } // This is the absolute coords of canvas
-                    const x = r.left - frame.left
-                    const y = r.top - frame.top
-                    const w = r.width
-                    const h = r.height
-                    const centerY = y + h / 2
-                    const zone =
-                        centerY < frame.height * 0.33 ? "top" :
-                            centerY < frame.height * 0.66 ? "mid" :
-                                "bottom"
-                    return { type: o.type, x, y, w, h, area: w * h, zone }
+                /**
+                 * -----------------------------
+                 * SKETCH → "TRUTH BOXES" (MVP)
+                 * -----------------------------
+                 * The user draws messy paths. We don't want to send every raw stroke to the backend
+                 * because a single rectangle might be 3–6 strokes.
+                 *
+                 * So we do this:
+                 *- Convert every Fabric object → candidate bounding box (frame-relative)
+                 *= Filter out tiny noise / very thin lines
+                 *= Merge boxes that overlap / are close into one bigger "region"
+                 *= Send those merged regions as sketchSummary.items (stable signal)
+                 *= Also send normalized blocks as sketchGraph.blocks (0..1 coords)
+                 */
+
+                const frameArea = Math.max(1, frame.width * frame.height);
+                // Ignore tiny scribbles (0.5% of the frame area is a decent starting point for MVP).
+                const MIN_BOX_AREA = frameArea * 0.005;
+                // Ignore super-thin lines (usually just a single stroke, not a UI block).
+                const MIN_THICKNESS = Math.min(frame.width, frame.height) * 0.02;
+                // How close two strokes must be to be considered part of the same "box/region".
+                const MERGE_PAD_PX = Math.max(10, Math.min(frame.width, frame.height) * 0.02);
+
+                const overlaps = (a: CandidateBox, b: CandidateBox, pad: number) => {
+                    const ax1 = a.x - pad;
+                    const ay1 = a.y - pad;
+                    const ax2 = a.x + a.w + pad;
+                    const ay2 = a.y + a.h + pad;
+                    const bx1 = b.x - pad;
+                    const by1 = b.y - pad;
+                    const bx2 = b.x + b.w + pad;
+                    const by2 = b.y + b.h + pad;
+                    return ax1 <= bx2 && ax2 >= bx1 && ay1 <= by2 && ay2 >= by1;
+                };
+
+                // 1. Fabric objects → candidate boxes (frame-relative coordinates).
+                const candidates: CandidateBox[] = sketchObjects.map((o: any) => {
+                    const r = o.getBoundingRect?.(true) ?? { left: 0, top: 0, width: 0, height: 0 };
+                    const x = r.left - frame.left;
+                    const y = r.top - frame.top;
+                    const w = r.width;
+                    const h = r.height;
+                    return { srcType: o.type, x, y, w, h, area: w * h };
                 })
+
+                    // 2) Filter noise / tiny strokes. before sendnig it to AI
+                    .filter((b) => b.w > 0 && b.h > 0)
+                    .filter((b) => b.area >= MIN_BOX_AREA)
+                    .filter((b) => Math.min(b.w, b.h) >= MIN_THICKNESS);
+
+
+                // 3) Merge candidates that overlap -> close into groups.
+                const groups: CandidateBox[][] = [];
+                for (const box of candidates) {
+                    const No_of_Groups: number[] = [];
+                    for (let i = 0; i < groups.length; i += 1) {
+                        // If this box overlaps ANY box in the group (with padding), treat it as same region.
+                        if (groups[i].some((g) => overlaps(g, box, MERGE_PAD_PX))) {
+                            No_of_Groups.push(i);
+                        }
+                    }
+
+                    if (No_of_Groups.length === 0) {
+                        // groups.push([box]);
+                        continue;
+                    }
+
+                    // Add to the first group, and merge any other groups into it.
+                    // merging all groups into one group
+                    const primary = No_of_Groups[0];
+                    groups[primary].push(box);
+                    for (let i = No_of_Groups.length - 1; i >= 1; i--) {
+                        const idx = No_of_Groups[i];
+                        groups[primary].push(...groups[idx]);
+                        groups.splice(idx, 1);
+                    }
+                }
+
+                // Group → merged "truth" region boxes.
+                const mergedBoxes = groups.map((g) => {
+                    const minX = Math.min(...g.map((b) => b.x));
+                    const minY = Math.min(...g.map((b) => b.y));
+                    const maxX = Math.max(...g.map((b) => b.x + b.w));
+                    const maxY = Math.max(...g.map((b) => b.y + b.h));
+                    const w = maxX - minX;
+                    const h = maxY - minY;
+                    const area = w * h;
+                    // Pick the most common srcType in the group (purely informational).
+                    const srcType = g.map((b) => String(b.srcType || "unknown")).sort()[0];
+                    return { type: srcType, x: minX, y: minY, w, h, area };
+                });
+
+                // Helper to convert a box into a simple "top/mid/bottom" zone.
+                const toZone = (y: number, h: number) => {
+                    const centerY = y + h / 2;
+                    return centerY < frame.height * 0.33 ? "top" : centerY < frame.height * 0.66 ? "mid" : "bottom";
+                };
+
+                //These are the items we send to backend for layout inference.
+                // IMPORTANT: now items represent merged regions, not raw strokes.
+                const items = mergedBoxes.map((b) => ({
+                    type: b.type,
+                    x: b.x,
+                    y: b.y,
+                    w: b.w,
+                    h: b.h,
+                    area: b.area,
+                    zone: toZone(b.y, b.h),
+                }));
 
                 const zones = items.reduce(
                     (acc: any, it: any) => {
@@ -217,12 +330,50 @@ const FramesOverlay = ({ frame }: any) => {
                     { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
                 )
 
+                /**
+                 * sketchGraph.blocks is the same info as items, but normalized (0..1)
+                 * so the backend can be resolution-independent later.
+                 */
+                const sketchGraph = {
+                    version: 1,
+                    mergePadPx: MERGE_PAD_PX,
+                    // This basically tries to understand the sketch
+                    blocks: items.slice(0, 50).map((it: any, idx: number) => {
+                        const aspect = it.w / Math.max(1, it.h);
+                        const circleLike = Math.abs(it.w - it.h) / Math.max(it.w, it.h) <= 0.2;
+                        const lineLike = Math.min(it.w, it.h) <= MIN_THICKNESS * 1.1;
+                        const rectLike = !lineLike && aspect >= 0.2 && aspect <= 5 && it.area >= frameArea * 0.01;
+
+                        // A tiny "confidence" so later we can choose whether to trust this block.
+                        let confidenceRect = 0.3;
+                        if (rectLike) confidenceRect += 0.5;
+                        if (it.area >= frameArea * 0.05) confidenceRect += 0.2;
+                        confidenceRect = Math.max(0, Math.min(1, confidenceRect));
+
+                        const shapeType = lineLike ? "line" : circleLike ? "circle" : rectLike ? "rect" : "unknown";
+
+                        return {
+                            id: `b-${idx}`,
+                            x: it.x / frame.width,
+                            y: it.y / frame.height,
+                            w: it.w / frame.width,
+                            h: it.h / frame.height,
+                            shapeType,
+                            confidenceRect,
+                            zone: it.zone,
+                        };
+                    }),
+                };
+
                 const sketchSummary = {
                     counts,
                     zones,
                     bbox: Number.isFinite(bbox.minX) ? bbox : null,
                     // Keep this small; it's just for backend layout intent detection.
+                    // These are MERGED regions (less noisy than raw strokes).
                     items: items.slice(0, 50),
+                    // Extra "truth" structure for the next phase (sketch → as-is JSON).
+                    sketchGraph,
                     hint:
                         counts.rects >= 3 ? "grid" :
                             counts.rects >= 1 ? "sections" :
@@ -1002,7 +1153,7 @@ const FramesOverlay = ({ frame }: any) => {
             }
         };
 
-        
+
         canvas.on('object:moving', handleSync);
         canvas.on('object:scaling', handleSync);
         return () => {
