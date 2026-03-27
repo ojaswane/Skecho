@@ -360,7 +360,8 @@ const FramesOverlay = ({ frame }: any) => {
                     }
 
                     if (No_of_Groups.length === 0) {
-                        // groups.push([box]);
+                        // No overlap with existing groups -> start a new region group.
+                        groups.push([box]);
                         continue;
                     }
 
