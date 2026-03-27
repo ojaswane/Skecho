@@ -54,6 +54,9 @@ const FramesOverlay = ({ frame }: any) => {
     const [isDrawingZone, setIsDrawingZone] = useState(false);
     const [activeGhostZone, setActiveGhostZone] = useState<fabric.Rect | null>(null);
     const [isCanvasEmpty, setIsCanvasEmpty] = useState(true);
+    // Debug toggle: shows the "invisible boxes" (detected sketchGraph blocks) on the SketchZone canvas.
+    const [showSketchDebug, setShowSketchDebug] = useState(false);
+    const lastSketchDebugBlocksRef = React.useRef<any[]>([]);
     const normalizedBadge = String(frame.badge || '').toLowerCase();
     const isSourceSketchFrame = normalizedBadge === 'sketch' || normalizedBadge === 'idea';
     const pairedAiFrame = isSourceSketchFrame
@@ -103,6 +106,93 @@ const FramesOverlay = ({ frame }: any) => {
             y: y * vpt[3] + vpt[5],
         }
     }
+
+    
+    // DEBUG: "INVISIBLE BOXES"
+    // Draws thin outlines + labels for sketchGraph.blocks[] so you can visually confirm
+    // what the algorithm thinks the user sketched.
+    // - Only used on SketchZone.
+    // - Objects are tagged isDebugOverlay=true and can be cleared safely.
+
+    const clearSketchDebugOverlay = React.useCallback(() => {
+        if (!canvas) return;
+        const overlays = canvas.getObjects().filter((o: any) => {
+            return o.get?.("isDebugOverlay") && o.get?.("frameId") === frame.id;
+        });
+        overlays.forEach((o: any) => canvas.remove(o));
+    }, [canvas, frame.id]);
+
+    const drawSketchDebugOverlay = React.useCallback((blocks: any[]) => {
+        if (!canvas) return;
+        clearSketchDebugOverlay();
+        if (!showSketchDebug) return;
+        if (!Array.isArray(blocks) || blocks.length === 0) return;
+
+        const stroke = "rgba(34, 197, 94, 0.9)"; // green
+        const fill = "rgba(0,0,0,0)";
+
+        blocks.forEach((b: any) => {
+            // blocks are normalized (0..1) relative to the frame
+            const pxX = frame.left + b.x * frame.width;
+            const pxY = frame.top + b.y * frame.height;
+            const pxW = Math.max(1, b.w * frame.width);
+            const pxH = Math.max(1, b.h * frame.height);
+
+            const rect = new fabric.Rect({
+                left: 0,
+                top: 0,
+                width: pxW,
+                height: pxH,
+                fill,
+                stroke,
+                strokeWidth: 2,
+                rx: 8,
+                ry: 8,
+                selectable: false,
+                evented: false,
+            });
+
+            const label = new fabric.Text(
+                `${b.id ?? ""} ${b.shapeType ?? ""} ${typeof b.confidenceRect === "number" ? b.confidenceRect.toFixed(2) : ""}`.trim(),
+                {
+                    left: 6,
+                    top: 6,
+                    fontSize: 12,
+                    fontFamily: "Inter, Arial",
+                    fill: "#ffffff",
+                    backgroundColor: "rgba(0,0,0,0.55)",
+                    selectable: false,
+                    evented: false,
+                } as any
+            );
+
+            const group = new fabric.Group([rect, label], {
+                left: pxX,
+                top: pxY,
+                selectable: false,
+                evented: false,
+            } as any);
+
+            group.set("isDebugOverlay", true);
+            group.set("frameId", frame.id);
+            group.set("clipPath", (canvas.getObjects().find((o: any) => o.get?.("isFrame") && o.get?.("frameId") === frame.id) as any)?.clipPath);
+            canvas.add(group);
+        });
+
+        canvas.requestRenderAll();
+    }, [canvas, clearSketchDebugOverlay, frame.height, frame.id, frame.left, frame.top, frame.width, showSketchDebug]);
+
+    // If debug is toggled off, immediately remove overlays.
+    useEffect(() => {
+        if (!canvas) return;
+        if (!showSketchDebug) {
+            clearSketchDebugOverlay();
+            canvas.requestRenderAll();
+        } else {
+            // If the user enables debug after drawing, show the most recent blocks immediately.
+            drawSketchDebugOverlay(lastSketchDebugBlocksRef.current);
+        }
+    }, [canvas, clearSketchDebugOverlay, drawSketchDebugOverlay, showSketchDebug]);
 
     /* ------------------ Web Sockets ------------------*/
 
@@ -200,7 +290,7 @@ const FramesOverlay = ({ frame }: any) => {
                         images: 0,
                         other: 0
                     }
-                    
+
                 );
 
                 //The user draws messy paths. We don't want to send every raw stroke to the backend
@@ -211,7 +301,7 @@ const FramesOverlay = ({ frame }: any) => {
                 //Merge boxes that overlap / are close into one bigger "region"
                 //Send those merged regions as sketchSummary.items (stable signal)
                 //Also send normalized blocks as sketchGraph.blocks (0..1 coords)
-                
+
 
                 const frameArea = Math.max(1, frame.width * frame.height);
                 // Ignore tiny scribbles (0.5% of the frame area is a decent starting point for MVP).
@@ -276,7 +366,7 @@ const FramesOverlay = ({ frame }: any) => {
                     }
                 }
 
-                // Group → merged "truth" region boxes.
+                // Group → merged truth region boxes.
                 const mergedBoxes = groups.map((g) => {
                     const minX = Math.min(...g.map((b) => b.x));
                     const minY = Math.min(...g.map((b) => b.y));
@@ -290,7 +380,7 @@ const FramesOverlay = ({ frame }: any) => {
                     return { type: srcType, x: minX, y: minY, w, h, area };
                 });
 
-                // Helper to convert a box into a simple "top/mid/bottom" zone.
+                // Helper to convert a box into a simple top/mid/bottom zone.
                 const toZone = (y: number, h: number) => {
                     const centerY = y + h / 2;
                     return centerY < frame.height * 0.33 ? "top" : centerY < frame.height * 0.66 ? "mid" : "bottom";
@@ -327,10 +417,8 @@ const FramesOverlay = ({ frame }: any) => {
                     { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
                 )
 
-
                 //sketchGraph.blocks is the same info as items, but normalized (0..1)
                 // so the backend can be resolution-independent later.
-
                 const sketchGraph = {
                     version: 1,
                     mergePadPx: MERGE_PAD_PX,
@@ -376,6 +464,10 @@ const FramesOverlay = ({ frame }: any) => {
                             counts.rects >= 1 ? "sections" :
                                 counts.paths >= 5 ? "dense" : "light",
                 };
+
+                // DEBUG: draw the detected boxes on the SketchZone so we can tune thresholds quickly.
+                lastSketchDebugBlocksRef.current = sketchGraph.blocks;
+                drawSketchDebugOverlay(sketchGraph.blocks);
 
                 // Send a compact raster snapshot so the backend/AI can "see" the sketch.
                 // Keep it small/low-quality to avoid flooding the WS.
@@ -1351,6 +1443,19 @@ const FramesOverlay = ({ frame }: any) => {
                             </Select>
 
                             {renderBadge()}
+
+                            {isSourceSketchFrame && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowSketchDebug((v) => !v)}
+                                    className={`px-3 py-1 rounded-full text-xs font-medium border ${showSketchDebug
+                                        ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200"
+                                        : "bg-white/10 border-white/15 text-white/80 hover:text-white"
+                                        }`}
+                                >
+                                    {showSketchDebug ? "Hide Boxes" : "Show Boxes"}
+                                </button>
+                            )}
 
                             {
                                 frame.role === 'suggestion' && (
