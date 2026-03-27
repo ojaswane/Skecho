@@ -180,16 +180,17 @@ const FramesOverlay = ({ frame }: any) => {
 
                 const counts = sketchObjects.reduce(
                     (acc: any, obj: any) => {
-                        const t = String(obj?.type || "").toLowerCase();
+                        const type = String(obj?.type || "").toLowerCase();
                         acc.total += 1;
-                        if (t === "path") acc.paths += 1;
-                        else if (t === "rect") acc.rects += 1;
-                        else if (t === "circle") acc.circles += 1;
-                        else if (t.includes("text")) acc.texts += 1;
-                        else if (t === "image") acc.images += 1;
+                        if (type === "path") acc.paths += 1;
+                        else if (type === "rect") acc.rects += 1;
+                        else if (type === "circle") acc.circles += 1;
+                        else if (type.includes("text")) acc.texts += 1;
+                        else if (type === "image") acc.images += 1;
                         else acc.other += 1;
                         return acc;
                     },
+
                     {
                         total: 0,
                         paths: 0,
@@ -199,6 +200,7 @@ const FramesOverlay = ({ frame }: any) => {
                         images: 0,
                         other: 0
                     }
+                    
                 );
 
                 //The user draws messy paths. We don't want to send every raw stroke to the backend
