@@ -145,10 +145,10 @@ const FramesOverlay = ({ frame }: any) => {
                 height: pxH,
                 fill,
                 stroke,
-                strokeWidth: 10,
+                strokeWidth: 2,
                 rx: 8,
                 ry: 8,
-                selectable: true,
+                selectable: false,
                 evented: false,
             });
 
@@ -161,7 +161,7 @@ const FramesOverlay = ({ frame }: any) => {
                     fontFamily: "Inter, Arial",
                     fill: "#ffffff",
                     backgroundColor: "rgba(0,0,0,0.55)",
-                    selectable: true,
+                    selectable: false,
                     evented: false,
                 } as any
             );
@@ -169,14 +169,14 @@ const FramesOverlay = ({ frame }: any) => {
             const group = new fabric.Group([rect, label], {
                 left: pxX,
                 top: pxY,
-                selectable: true,
+                selectable: false,
                 evented: false,
             } as any);
 
             group.set("isDebugOverlay", true);
             group.set("frameId", frame.id);
-            group.set("clipPath", (canvas.getObjects().find((o: any) => o.get?.("isFrame") && o.get?.("frameId") === frame.id) as any)?.clipPath);
             canvas.add(group);
+            canvas.bringObjectToFront(group);
         });
 
         canvas.requestRenderAll();
@@ -258,15 +258,6 @@ const FramesOverlay = ({ frame }: any) => {
                 if (!canvas) return;
                 const sketchObjects = canvas.getObjects().filter((obj: any) => isSketchContent(obj)); //got the state Of the sketch
                 const sketchObjectCount = sketchObjects.length; //if objects are there then just count the len
-
-                if (sketchObjectCount < 3) {
-                    useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'idle' });
-                    hasPendingRealtimeUpdateRef.current = false;
-                    return;
-                }
-
-                // after 2 objects are added then we will start streaming the AI
-                useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
 
                 const counts = sketchObjects.reduce(
                     (acc: any, obj: any) => {
@@ -469,6 +460,16 @@ const FramesOverlay = ({ frame }: any) => {
                 lastSketchDebugBlocksRef.current = sketchGraph.blocks;
                 drawSketchDebugOverlay(sketchGraph.blocks);
 
+                // Not enough sketch content yet → don't call backend, but still show debug overlays.
+                if (sketchObjectCount < 3) {
+                    useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'idle' });
+                    hasPendingRealtimeUpdateRef.current = false;
+                    return;
+                }
+
+                // after 2 objects are added then we will start streaming the AI
+                useCanvasStore.getState().updateFrame(realtimeFrameId, { status: 'streaming' });
+
                 // Send a compact raster snapshot so the backend/AI can "see" the sketch.
                 // Keep it small/low-quality to avoid flooding the WS.
                 const imageBase64 = canvas.toDataURL({
@@ -586,7 +587,7 @@ const FramesOverlay = ({ frame }: any) => {
                 realtimeDebounceRef.current = null;
             }
         };
-    }, [canvas, frame.id, isSourceSketchFrame, realtimeFrameId, sendDelta]);
+    }, [canvas, frame.id, isSourceSketchFrame, realtimeFrameId, sendDelta, drawSketchDebugOverlay]);
 
     // Periodic snapshot reconciliation to reduce drift after many deltas.
     useEffect(() => {
