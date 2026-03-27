@@ -126,7 +126,25 @@ const FramesOverlay = ({ frame }: any) => {
         if (!canvas) return;
         clearSketchDebugOverlay();
         if (!showSketchDebug) return;
-        if (!Array.isArray(blocks) || blocks.length === 0) return;
+        if (!Array.isArray(blocks) || blocks.length === 0) {
+            // If nothing was detected, still show *something* so we know the debug overlay is active.
+            const msg = new fabric.Text("No debug blocks (tune thresholds)", {
+                left: frame.left + 12,
+                top: frame.top + 12,
+                fontSize: 14,
+                fontFamily: "Inter, Arial",
+                fill: "rgba(255,255,255,0.9)",
+                backgroundColor: "rgba(220, 38, 38, 0.55)", // red
+                selectable: false,
+                evented: false,
+            } as any);
+            msg.set("isDebugOverlay", true);
+            msg.set("frameId", frame.id);
+            canvas.add(msg);
+            canvas.bringObjectToFront(msg);
+            canvas.requestRenderAll();
+            return;
+        }
 
         const stroke = "rgba(34, 197, 94, 0.9)"; // green
         const fill = "rgba(0,0,0,0)";
