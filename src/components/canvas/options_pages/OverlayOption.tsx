@@ -166,7 +166,7 @@ const FramesOverlay = ({ frame }: any) => {
             realtimeDebounceRef.current = setTimeout(async () => {
 
                 if (!canvas) return;
-                const sketchObjects = canvas.getObjects().filter((obj: any) => isSketchContent(obj)); //got the state of the objecs
+                const sketchObjects = canvas.getObjects().filter((obj: any) => isSketchContent(obj)); //got the state Of the sketch
                 const sketchObjectCount = sketchObjects.length; //if objects are there then just count the len
 
                 if (sketchObjectCount < 3) {
