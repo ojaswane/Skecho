@@ -145,10 +145,10 @@ const FramesOverlay = ({ frame }: any) => {
                 height: pxH,
                 fill,
                 stroke,
-                strokeWidth: 2,
+                strokeWidth: 10,
                 rx: 8,
                 ry: 8,
-                selectable: false,
+                selectable: true,
                 evented: false,
             });
 
@@ -161,7 +161,7 @@ const FramesOverlay = ({ frame }: any) => {
                     fontFamily: "Inter, Arial",
                     fill: "#ffffff",
                     backgroundColor: "rgba(0,0,0,0.55)",
-                    selectable: false,
+                    selectable: true,
                     evented: false,
                 } as any
             );
@@ -169,7 +169,7 @@ const FramesOverlay = ({ frame }: any) => {
             const group = new fabric.Group([rect, label], {
                 left: pxX,
                 top: pxY,
-                selectable: false,
+                selectable: true,
                 evented: false,
             } as any);
 
