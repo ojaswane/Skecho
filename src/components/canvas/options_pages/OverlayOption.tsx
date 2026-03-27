@@ -314,9 +314,9 @@ const FramesOverlay = ({ frame }: any) => {
 
                 const frameArea = Math.max(1, frame.width * frame.height);
                 // Ignore tiny scribbles (0.5% of the frame area is a decent starting point for MVP).
-                const MIN_BOX_AREA = frameArea * 0.005;
+                const MIN_BOX_AREA = frameArea * 0.001;
                 // Ignore super-thin lines (usually just a single stroke, not a UI block).
-                const MIN_THICKNESS = Math.min(frame.width, frame.height) * 0.02;
+                const MIN_THICKNESS = Math.min(frame.width, frame.height) * 0.008;
                 // How close two strokes must be to be considered part of the same "box/region".
                 const MERGE_PAD_PX = Math.max(10, Math.min(frame.width, frame.height) * 0.02);
 
