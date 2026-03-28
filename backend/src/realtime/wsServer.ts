@@ -138,6 +138,7 @@ export function attachRealtimeWSServer(server: HttpServer) {
             imageBase64: msg.payload?.imageBase64,
             density: "airy",
             sketchSummary: msg.payload?.sketchSummary,
+            layoutMode: msg.payload?.layoutMode,
           })
           console.log("[ws] flash result screens", screens.length)
 
@@ -150,16 +151,16 @@ export function attachRealtimeWSServer(server: HttpServer) {
               id: screen.id,
               frameId,
               name: screen.name,
-               elements: (screen.frames || []).map((f: any) => ({
-                 id: f.id,
-                 sectionId: screen.id,
-                 type: f.type || "card",
-                 semantic: f.semantic,
-                 role: f.role,
-                 col: f.col,
-                 row: f.row,
-                 span: f.span,
-                 rowSpan: f.rowSpan,
+              elements: (screen.frames || []).map((f: any) => ({
+                id: f.id,
+                sectionId: screen.id,
+                type: f.type || "card",
+                semantic: f.semantic,
+                role: f.role,
+                col: f.col,
+                row: f.row,
+                span: f.span,
+                rowSpan: f.rowSpan,
                 text: f.text,
               })),
             })),

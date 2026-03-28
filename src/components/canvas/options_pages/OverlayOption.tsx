@@ -502,6 +502,8 @@ const FramesOverlay = ({ frame }: any) => {
                     sourceFrameId: frame.id,
                     targetFrameId: realtimeFrameId,
                     sketchObjectCount,
+                    // Tells backend to preserve sketch geometry (do not rearrange layout).
+                    layoutMode: "strict",
                     // Include prompt + image snapshot so AI has actual signal.
                     prompt: userPrompt?.trim() || "Generate a clean SaaS landing page wireframe",
                     imageBase64,

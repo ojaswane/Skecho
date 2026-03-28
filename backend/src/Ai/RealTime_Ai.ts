@@ -2,6 +2,19 @@ import DENSITY_MAP from "../constants/densityMap/density_map.js"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
 type DensityLevel = "airy" | "normal" | "compact"
+type LayoutMode = "strict" | "balanced" | "loose"
+
+type SketchGraphBlock = {
+    id?: string
+    x: number
+    y: number
+    w: number
+    h: number
+    shapeType?: "rect" | "circle" | "line" | "unknown" | string
+    confidenceRect?: number
+    zone?: "top" | "mid" | "bottom" | string
+}
+
 type SketchSummary = {
     counts?: {
         total?: number
@@ -21,6 +34,10 @@ type SketchSummary = {
         area: number
         zone: "top" | "mid" | "bottom" | string
     }>
+    sketchGraph?: {
+        version?: number
+        blocks?: SketchGraphBlock[]
+    }
     bbox?: { minX: number; minY: number; maxX: number; maxY: number } | null
     zones?: { top?: number; mid?: number; bottom?: number }
     hint?: string
@@ -321,6 +338,104 @@ function navHeroTwoColFrames() {
             semantic: "media",
         },
     ]
+}
+
+function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n))
+}
+
+
+// MODE: Convert sketchGraph.blocks (normalized 0..1) to frames that match the sketch geometry.
+// No "template guessing"
+// Only snaps to a 12-col grid
+// Rows are inferred by clustering blocks by y-position
+
+function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"]) {
+    const blocks = sketchGraph?.blocks ?? []
+    if (!Array.isArray(blocks) || blocks.length === 0) return null
+
+    const usable = blocks
+        .filter((b) => b && typeof b.x === "number" && typeof b.y === "number")
+        // In strict mode we still ignore pure "line" blocks as layout containers.
+        .filter((b) => String(b.shapeType || "").toLowerCase() !== "line")
+        .map((b, idx) => ({
+            id: b.id || `b-${idx}`,
+            x: clamp(b.x, 0, 1),
+            y: clamp(b.y, 0, 1),
+            w: clamp(b.w, 0.01, 1),
+            h: clamp(b.h, 0.01, 1),
+            shapeType: b.shapeType,
+            confidenceRect: b.confidenceRect ?? 0,
+        }))
+
+    if (!usable.length) return null
+
+    // Row clustering by vertical center.
+    const sorted = [...usable].sort((a, b) => (a.y + a.h / 2) - (b.y + b.h / 2))
+    const rows: Array<{ cy: number; items: typeof usable }> = []
+    const tol = 0.12 // normalized tolerance (tuned for hero layouts; adjust later)
+
+    for (const it of sorted) {
+        const cy = it.y + it.h / 2
+        const last = rows[rows.length - 1]
+        if (!last || Math.abs(cy - last.cy) > tol) {
+            rows.push({ cy, items: [it] as any })
+        } else {
+            ;(last.items as any).push(it)
+            last.cy = (last.cy * (last.items.length - 1) + cy) / last.items.length
+        }
+    }
+
+    // Convert to frames with stable row/col placement.
+    const frames: any[] = []
+    let currentRow = 1
+
+    // Identify a dominant block (largest area) excluding nav-like bars.
+    const areaOf = (b: any) => b.w * b.h
+    const isNavLike = (b: any) => {
+        const aspect = b.w / Math.max(1e-6, b.h)
+        return b.y <= 0.22 && b.h <= 0.18 && b.w >= 0.5 && aspect >= 4
+    }
+    const dominant = [...usable]
+        .filter((b) => !isNavLike(b))
+        .sort((a, b) => areaOf(b) - areaOf(a))[0]
+
+    for (const row of rows) {
+        const rowItems = [...row.items].sort((a, b) => a.x - b.x)
+        const rowSpans: number[] = []
+
+        for (const b of rowItems) {
+            const span = clamp(Math.max(1, Math.round(b.w * 12)), 1, 12)
+            const col = clamp(Math.floor(b.x * 12) + 1, 1, 13 - span)
+            const rowSpan = clamp(Math.max(1, Math.round(b.h * 6)), 1, 8)
+            rowSpans.push(rowSpan)
+
+            // Minimal semantics (helps renderer) without changing geometry.
+            const aspect = b.w / Math.max(1e-6, b.h)
+            const area = areaOf(b)
+            let semantic: any = "card"
+            if (isNavLike(b)) semantic = "nav"
+            else if (area >= 0.25 && b.h >= 0.25) semantic = "media"
+            else if (area <= 0.08 && b.y >= 0.35) semantic = "cta"
+            else if (b.y <= 0.55) semantic = "hero_text"
+
+            frames.push({
+                id: b.id,
+                type: "card",
+                role: dominant && dominant.id === b.id ? "dominant" : "supporting",
+                semantic,
+                col,
+                row: currentRow,
+                span,
+                rowSpan,
+            })
+        }
+
+        const maxSpan = rowSpans.length ? Math.max(...rowSpans) : 1
+        currentRow += maxSpan + 1
+    }
+
+    return frames
 }
 
 // it looks the feedback / summary from frontend and decides which layout template to use
@@ -668,15 +783,27 @@ export async function GenerateRealTimeAi({
     imageBase64,
     density = "airy",
     sketchSummary,
+    layoutMode = "balanced",
 }: {
     prompt?: string
     imageBase64?: string
     density?: DensityLevel
     sketchSummary?: SketchSummary
+    layoutMode?: LayoutMode | string
 }) {
     const total = sketchSummary?.counts?.total ?? 0
     const rects = sketchSummary?.counts?.rects ?? 0
     const hint = String(sketchSummary?.hint ?? "").toLowerCase()
+    const mode = String(layoutMode || "balanced").toLowerCase()
+
+    // STRICT MODE: if we have sketchGraph blocks, match the sketch geometry exactly.
+    if (mode === "strict") {
+        const strictFrames = framesFromSketchGraphStrict(sketchSummary?.sketchGraph)
+        if (strictFrames?.length) {
+            const screen = { id: "screen-1", name: "Screen 1", frames: strictFrames }
+            return [normalizeForCanvas({ screens: [screen] }).screens[0]]
+        }
+    }
 
     // Best signal: use bbox/zones/items to pick a deterministic layout (fast + stable).
     const templateFrames = framesFromSketchSummary(sketchSummary)
