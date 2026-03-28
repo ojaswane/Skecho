@@ -1,5 +1,8 @@
 // This is where the Ai gents all of the design Systems
+// Ts is the render
 
+//This is the flow of : user Sketch something -> then it will be converted into the groups like (nabv/ hero ) -> send the payload to the backend
+// -> then backend sends this to Gemini -> THen gemini will send us the data to this file and then this renders the payload from gemini
 import * as fabric from "fabric"
 import { layoutCard } from "../design-systems/cardLayout/CardLayout"
 import { renderSemanticBlock } from "@/lib/render/renderSemanticBlock"
@@ -30,7 +33,6 @@ type AIScreen = {
 }
 const GRID = {
   padding: 48,
-  colWidth: 120,
   rowHeight: 96,
   gap: 16,
 }
@@ -38,7 +40,7 @@ const GRID = {
 export default function renderFromAI(
   canvas: fabric.Canvas,
   screens: AIScreen[],
-  preset : any
+  preset: any // This is the JSON tossed by the gemini to frontend
 ) {
   if (!screens.length) return
   const cardRadius = preset?.radius?.xl ?? preset?.radius?.lg ?? 16
@@ -62,28 +64,40 @@ export default function renderFromAI(
       continue
     }
 
+    // Compute a grid that fits inside the actual frame width (prevents overflow).
+    const cols = 12
+    const padding = GRID.padding
+    const gap = GRID.gap
+
+    const colWidth = Math.max(24, (frame.width - padding * 2 - gap * (cols - 1)) / cols
+    )
+    const rowHeight = GRID.rowHeight
+
     for (const el of screen.elements) {
-      const left =
-        frame.left + GRID.padding + (el.col - 1) * (GRID.colWidth + GRID.gap)
+      const left = frame.left + padding + (el.col - 1) * (colWidth + gap)
 
-      const top =
-        frame.top + GRID.padding + (el.row - 1) * (GRID.rowHeight + GRID.gap)
+      const top = frame.top + padding + (el.row - 1) * (rowHeight + gap)
 
-      const width =
-        el.span * GRID.colWidth + (el.span - 1) * GRID.gap
+      const width = el.span * colWidth + (el.span - 1) * gap
 
-      const height =
-        el.rowSpan * GRID.rowHeight + (el.rowSpan - 1) * GRID.gap
+      const height = el.rowSpan * rowHeight + (el.rowSpan - 1) * gap
+
+      // Clamp to frame bounds (both directions).
+      const maxW = frame.left + frame.width - padding - left
+      const maxH = frame.top + frame.height - padding - top
+      if (maxW <= 1 || maxH <= 1) continue
+      const safeWidth = Math.max(1, Math.min(width, maxW))
+      const safeHeight = Math.max(1, Math.min(height, maxH))
 
       // Skip anything that would overflow the frame (quick MVP guardrail).
-      if (top + height > frame.top + frame.height - GRID.padding) continue
+      if (top + safeHeight > frame.top + frame.height - padding) continue
 
       /* ---------- CARD ---------- */
       const card = new fabric.Rect({
         left,
         top,
-        width,
-        height,
+        width: safeWidth,
+        height: safeHeight,
         fill: preset.color.card,
         stroke: preset.color.border,
         strokeWidth: 1,
@@ -98,7 +112,7 @@ export default function renderFromAI(
       canvas.add(card)
 
       /* --------- SEMANTIC BLOCKS -------- */
-      const laidOutBlocks = layoutCard(el.blocks, width)
+      const laidOutBlocks = layoutCard(el.blocks, safeWidth)
 
       laidOutBlocks.forEach((block) => {
         const obj = renderSemanticBlock({
