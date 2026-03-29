@@ -14,6 +14,7 @@ type AIScreen = {
   elements: {
     id: string
     role?: string
+    semantic?: string
     col: number
     row: number
     span: number
@@ -75,6 +76,7 @@ export default function renderFromAI(
     const rowHeight = GRID.rowHeight
 
     for (const el of screen.elements) {
+      const semantic = String((el as any).semantic ?? "").toLowerCase()
       const left = frame.left + padding + (el.col - 1) * (colWidth + gap)
 
       const top = frame.top + padding + (el.row - 1) * (rowHeight + gap)
@@ -93,7 +95,209 @@ export default function renderFromAI(
       // Skip anything that would overflow the frame (quick MVP guardrail).
       if (top + safeHeight > frame.top + frame.height - padding) continue
 
-      /* ---------- CARD ---------- */
+      /**
+       * Semantic-first rendering:
+       * - Don't wrap everything in a generic "card".
+       * - Render different skeletons depending on element semantic.
+       */
+
+      const addObj = (o: fabric.Object) => {
+        o.set("clipPath", frame.clipPath)
+        o.set("isAiGenerated", true)
+        o.set("frameId", screen.frameId)
+        canvas.add(o)
+      }
+
+      // NAV: simple top bar pills (logo + links + CTA)
+      if (semantic === "nav") {
+        const bar = new fabric.Rect({
+          left,
+          top,
+          width: safeWidth,
+          height: Math.min(64, safeHeight),
+          fill: preset?.color?.card ?? "#ffffff",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+          strokeWidth: 1,
+          rx: cardRadius,
+          ry: cardRadius,
+          shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+        })
+        addObj(bar)
+
+        const pills = [
+          { w: 92, text: "Logo" },
+          { w: 64, text: "Home" },
+          { w: 86, text: "Pricing" },
+          { w: 82, text: "About" },
+          { w: 96, text: "Contact" },
+        ]
+
+        let cursorX = left + 20
+        const pillY = top + 18
+        for (let i = 0; i < pills.length; i++) {
+          const p = pills[i]
+          if (cursorX + p.w > left + safeWidth - 140) break
+          const pill = new fabric.Rect({
+            left: cursorX,
+            top: pillY,
+            width: p.w,
+            height: 28,
+            fill: preset?.color?.neutral100 ?? "#f1f5f9",
+            rx: 999,
+            ry: 999,
+            selectable: false,
+            evented: false,
+          })
+          addObj(pill)
+          cursorX += p.w + 10
+        }
+
+        const cta = new fabric.Rect({
+          left: left + safeWidth - 120,
+          top: top + 16,
+          width: 104,
+          height: 32,
+          fill: preset?.color?.primary ?? "#4f46e5",
+          rx: 999,
+          ry: 999,
+          selectable: false,
+          evented: false,
+        })
+        addObj(cta)
+        continue
+      }
+
+      // CTA: just a pill button (no card wrapper)
+      if (semantic === "cta") {
+        const btnW = Math.min(240, safeWidth)
+        const btn = new fabric.Rect({
+          left,
+          top,
+          width: btnW,
+          height: Math.min(44, safeHeight),
+          fill: preset?.color?.primary ?? "#4f46e5",
+          rx: 999,
+          ry: 999,
+          shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+        })
+        addObj(btn)
+        const txt = new fabric.Text("Get started", {
+          left: left + btnW / 2,
+          top: top + Math.min(44, safeHeight) / 2,
+          originX: "center",
+          originY: "center",
+          fontFamily: "Inter, Arial",
+          fontSize: 14,
+          fill: preset?.color?.onPrimary ?? "#fff",
+          selectable: false,
+          evented: false,
+        } as any)
+        addObj(txt)
+        continue
+      }
+
+      // MEDIA: device/screenshot frame placeholder (no title pills)
+      if (semantic === "media") {
+        const media = new fabric.Rect({
+          left,
+          top,
+          width: safeWidth,
+          height: safeHeight,
+          fill: preset?.color?.neutral100 ?? "#f1f5f9",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+          strokeWidth: 1,
+          rx: cardRadius,
+          ry: cardRadius,
+          shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+        })
+        addObj(media)
+
+        const header = new fabric.Rect({
+          left: left + 16,
+          top: top + 16,
+          width: Math.min(120, safeWidth - 32),
+          height: 10,
+          fill: preset?.color?.neutral200 ?? "#e2e8f0",
+          rx: 999,
+          ry: 999,
+          selectable: false,
+          evented: false,
+        })
+        addObj(header)
+        continue
+      }
+
+      // HERO TEXT: card container + title/body/buttons skeleton
+      if (semantic === "hero_text") {
+        const card = new fabric.Rect({
+          left,
+          top,
+          width: safeWidth,
+          height: safeHeight,
+          fill: preset?.color?.card ?? "#ffffff",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+          strokeWidth: 1,
+          rx: cardRadius,
+          ry: cardRadius,
+          shadow: preset?.shadow?.md,
+        })
+        addObj(card)
+
+        const title = new fabric.Rect({
+          left: left + 20,
+          top: top + 20,
+          width: Math.min(safeWidth - 40, 360),
+          height: 18,
+          fill: preset?.color?.neutral200 ?? "#e2e8f0",
+          rx: 999,
+          ry: 999,
+          selectable: false,
+          evented: false,
+        })
+        addObj(title)
+
+        const body1 = new fabric.Rect({
+          left: left + 20,
+          top: top + 48,
+          width: Math.min(safeWidth - 40, 420),
+          height: 12,
+          fill: preset?.color?.neutral200 ?? "#e2e8f0",
+          rx: 999,
+          ry: 999,
+          selectable: false,
+          evented: false,
+        })
+        addObj(body1)
+
+        const body2 = new fabric.Rect({
+          left: left + 20,
+          top: top + 66,
+          width: Math.min(safeWidth - 40, 320),
+          height: 12,
+          fill: preset?.color?.neutral200 ?? "#e2e8f0",
+          rx: 999,
+          ry: 999,
+          selectable: false,
+          evented: false,
+        })
+        addObj(body2)
+
+        const primary = new fabric.Rect({
+          left: left + 20,
+          top: top + 92,
+          width: 140,
+          height: 40,
+          fill: preset?.color?.primary ?? "#4f46e5",
+          rx: 999,
+          ry: 999,
+          selectable: false,
+          evented: false,
+        })
+        addObj(primary)
+        continue
+      }
+
+      // DEFAULT: keep the existing card + layoutCard skeleton
       const card = new fabric.Rect({
         left,
         top,
@@ -106,29 +310,17 @@ export default function renderFromAI(
         ry: cardRadius,
         shadow: preset.shadow.md,
       })
+      addObj(card)
 
-      card.set("isAiGenerated", true)
-      card.set("frameId", screen.frameId)
-      card.set("clipPath", frame.clipPath)
-      canvas.add(card)
-
-      /* --------- SEMANTIC BLOCKS -------- */
-      // Layout the blocks within the card's inner dimensions (accounting for padding).
-      const laidOutBlocks = layoutCard(el.blocks, safeWidth) // This is where the magic happens, it takes the blocks and layout them according to the rules defined in the cardLayout file
-
+      const laidOutBlocks = layoutCard(el.blocks, safeWidth)
       laidOutBlocks.forEach((block) => {
         const obj = renderSemanticBlock({
-          ...block, //spread prev blocks
+          ...block,
           left: left + block.left,
           top: top + block.top,
           theme: blockTheme,
         })
-
-        obj.set("clipPath", frame.clipPath)
-        obj.set("isAiGenerated", true)
-        obj.set("frameId", screen.frameId)
-        
-        canvas.add(obj)
+        addObj(obj)
       })
     }
 

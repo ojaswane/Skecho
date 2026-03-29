@@ -776,6 +776,7 @@ const FramesOverlay = ({ frame }: any) => {
 
     function docToAIScreens(doc: any): AIScreen[] {
         if (!doc?.frameId || !Array.isArray(doc.sections)) return [];
+
         return doc.sections.map((section: any) => ({
             id: section.id ?? crypto.randomUUID(),
             name: section.name ?? "AI Screen",
@@ -783,6 +784,7 @@ const FramesOverlay = ({ frame }: any) => {
             elements: (section.elements || []).map((el: any) => ({
                 id: el.id ?? crypto.randomUUID(),
                 role: el.role,
+                semantic: (el as any).semantic,
                 col: el.col ?? 1,
                 row: el.row ?? 1,
                 span: el.span ?? 1,
