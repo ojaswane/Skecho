@@ -45,7 +45,7 @@ export default function renderFromAI(
 ) {
   if (!screens.length) return
   const cardRadius = preset?.radius?.xl ?? preset?.radius?.lg ?? 16
-  
+
   const blockTheme = {
     background: preset?.color?.neutral100 ?? "#F4F4F5",
     border: preset?.color?.border ?? "#E4E4E7",
@@ -125,11 +125,26 @@ export default function renderFromAI(
         addObj(bar)
 
         const pills = [
-          { w: 92, text: "Logo" },
-          { w: 64, text: "Home" },
-          { w: 86, text: "Pricing" },
-          { w: 82, text: "About" },
-          { w: 96, text: "Contact" },
+          {
+            w: 92,
+            text: "Logo"
+          },
+          {
+            w: 64,
+            text: "Home"
+          },
+          {
+            w: 86,
+            text: "Pricing"
+          },
+          {
+            w: 82,
+            text: "About"
+          },
+          {
+            w: 96,
+            text: "Contact"
+          },
         ]
 
         let cursorX = left + 20
