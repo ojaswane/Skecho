@@ -318,10 +318,12 @@ const FramesOverlay = ({ frame }: any) => {
                 // Ignore super-thin lines (usually just a single stroke, not a UI block).
                 const MIN_THICKNESS = Math.min(frame.width, frame.height) * 0.008;
                 // How close two strokes must be to be considered part of the same "box/region".
-                // "Strict" detection = only merge when two boxes overlap or are REALLY close.
-                const MERGE_GAP_PX = Math.max(3, Math.min(frame.width, frame.height) * 0.004);
+                // "Strict" detection = only merge when two boxes overlap by a *real area*
+                // or their edges are extremely close.
+                const MERGE_GAP_PX = Math.max(2, Math.min(frame.width, frame.height) * 0.0025);
 
-                const rectOverlaps = (a: CandidateBox, b: CandidateBox) => {
+                // Intersection area between two rectangles (0 if they only touch edges/corners).
+                const rectIntersectionArea = (a: CandidateBox, b: CandidateBox) => {
                     const ax1 = a.x;
                     const ay1 = a.y;
                     const ax2 = a.x + a.w;
@@ -330,7 +332,10 @@ const FramesOverlay = ({ frame }: any) => {
                     const by1 = b.y;
                     const bx2 = b.x + b.w;
                     const by2 = b.y + b.h;
-                    return ax1 <= bx2 && ax2 >= bx1 && ay1 <= by2 && ay2 >= by1;
+
+                    const ix = Math.max(0, Math.min(ax2, bx2) - Math.max(ax1, bx1));
+                    const iy = Math.max(0, Math.min(ay2, by2) - Math.max(ay1, by1));
+                    return ix * iy;
                 };
 
                 // Distance between two rectangles (0 if overlapping). Uses max(dx, dy).
@@ -356,7 +361,15 @@ const FramesOverlay = ({ frame }: any) => {
                 };
 
                 const shouldMerge = (a: CandidateBox, b: CandidateBox) => {
-                    if (rectOverlaps(a, b)) return true;
+                    // Only treat as "overlap" if there is a meaningful intersection area.
+                    // This prevents "touching edges" from forcing a merge.
+                    const interArea = rectIntersectionArea(a, b);
+                    if (interArea > 0) {
+                        const minArea = Math.min(a.area, b.area);
+                        // Require at least 8% overlap of the smaller box to merge.
+                        if (interArea >= minArea * 0.08) return true;
+                        return false;
+                    }
 
                     // Strict: only merge when extremely close.
                     const gap = rectEdgeGap(a, b);
