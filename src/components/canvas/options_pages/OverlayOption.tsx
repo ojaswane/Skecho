@@ -320,7 +320,7 @@ const FramesOverlay = ({ frame }: any) => {
                 // How close two strokes must be to be considered part of the same "box/region".
                 // "Strict" detection = only merge when two boxes overlap by a *real area*
                 // or their edges are extremely close.
-                const MERGE_GAP_PX = Math.max(2, Math.min(frame.width, frame.height) * 0.0025);
+                const MERGE_GAP_PX = Math.max(1.5, Math.min(frame.width, frame.height) * 0.0015);
 
                 // Intersection area between two rectangles (0 if they only touch edges/corners).
                 const rectIntersectionArea = (a: CandidateBox, b: CandidateBox) => {
@@ -366,8 +366,8 @@ const FramesOverlay = ({ frame }: any) => {
                     const interArea = rectIntersectionArea(a, b);
                     if (interArea > 0) {
                         const minArea = Math.min(a.area, b.area);
-                        // Require at least 8% overlap of the smaller box to merge.
-                        if (interArea >= minArea * 0.08) return true;
+                        // Require at least 15% overlap of the smaller box to merge.
+                        if (interArea >= minArea * 0.15) return true;
                         return false;
                     }
 
@@ -380,7 +380,20 @@ const FramesOverlay = ({ frame }: any) => {
 
                     // Prevent tiny CTA-like boxes from merging into huge boxes just because they are near.
                     const areaRatio = Math.min(a.area, b.area) / Math.max(a.area, b.area);
-                    if (areaRatio < 0.2) return false;
+                    if (areaRatio < 0.35) return false;
+
+                    // Sanity check: avoid merges that create an "exploding" union box (bridge effect).
+                    const unionMinX = Math.min(a.x, b.x);
+                    const unionMinY = Math.min(a.y, b.y);
+                    const unionMaxX = Math.max(a.x + a.w, b.x + b.w);
+                    const unionMaxY = Math.max(a.y + a.h, b.y + b.h);
+                    const unionArea = Math.max(1, (unionMaxX - unionMinX) * (unionMaxY - unionMinY));
+                    if (unionArea > (a.area + b.area) * 2.2) return false;
+
+                    // Size compatibility: require similar width OR similar height.
+                    const wRatio = Math.min(a.w, b.w) / Math.max(1, Math.max(a.w, b.w));
+                    const hRatio = Math.min(a.h, b.h) / Math.max(1, Math.max(a.h, b.h));
+                    if (wRatio < 0.55 && hRatio < 0.55) return false;
 
                     return true;
                 };
