@@ -366,9 +366,10 @@ const FramesOverlay = ({ frame }: any) => {
                     const interArea = rectIntersectionArea(a, b);
                     if (interArea > 0) {
                         const minArea = Math.min(a.area, b.area);
-                        // Require at least 15% overlap of the smaller box to merge.
-                        if (interArea >= minArea * 0.15) return true;
-                        return false;
+                        // SUPER STRICT: require a LARGE overlap of the smaller box to merge on overlap alone.
+                        // If overlap is small, don't immediately reject — fall through to the gap-based rules
+                        // (those include areaRatio/size checks, which prevents small CTAs from being absorbed).
+                        if (interArea >= minArea * 0.6) return true;
                     }
 
                     // Strict: only merge when extremely close.
