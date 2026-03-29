@@ -318,18 +318,58 @@ const FramesOverlay = ({ frame }: any) => {
                 // Ignore super-thin lines (usually just a single stroke, not a UI block).
                 const MIN_THICKNESS = Math.min(frame.width, frame.height) * 0.008;
                 // How close two strokes must be to be considered part of the same "box/region".
-                const MERGE_PAD_PX = Math.max(10, Math.min(frame.width, frame.height) * 0.02);
+                // "Strict" detection = only merge when two boxes overlap or are REALLY close.
+                const MERGE_GAP_PX = Math.max(3, Math.min(frame.width, frame.height) * 0.004);
 
-                const overlaps = (a: CandidateBox, b: CandidateBox, pad: number) => {
-                    const ax1 = a.x - pad;
-                    const ay1 = a.y - pad;
-                    const ax2 = a.x + a.w + pad;
-                    const ay2 = a.y + a.h + pad;
-                    const bx1 = b.x - pad;
-                    const by1 = b.y - pad;
-                    const bx2 = b.x + b.w + pad;
-                    const by2 = b.y + b.h + pad;
+                const rectOverlaps = (a: CandidateBox, b: CandidateBox) => {
+                    const ax1 = a.x;
+                    const ay1 = a.y;
+                    const ax2 = a.x + a.w;
+                    const ay2 = a.y + a.h;
+                    const bx1 = b.x;
+                    const by1 = b.y;
+                    const bx2 = b.x + b.w;
+                    const by2 = b.y + b.h;
                     return ax1 <= bx2 && ax2 >= bx1 && ay1 <= by2 && ay2 >= by1;
+                };
+
+                // Distance between two rectangles (0 if overlapping). Uses max(dx, dy).
+                const rectEdgeGap = (a: CandidateBox, b: CandidateBox) => {
+                    const ax1 = a.x;
+                    const ay1 = a.y;
+                    const ax2 = a.x + a.w;
+                    const ay2 = a.y + a.h;
+                    const bx1 = b.x;
+                    const by1 = b.y;
+                    const bx2 = b.x + b.w;
+                    const by2 = b.y + b.h;
+
+                    const dx = Math.max(0, Math.max(ax1 - bx2, bx1 - ax2));
+                    const dy = Math.max(0, Math.max(ay1 - by2, by1 - ay2));
+                    return Math.max(dx, dy);
+                };
+
+                // Long thin strokes (navbar-like bars) should not accidentally merge into big content boxes.
+                const isBarLike = (b: CandidateBox) => {
+                    const aspect = b.w / Math.max(1, b.h);
+                    return b.w >= frame.width * 0.35 && b.h <= frame.height * 0.18 && aspect >= 4;
+                };
+
+                const shouldMerge = (a: CandidateBox, b: CandidateBox) => {
+                    if (rectOverlaps(a, b)) return true;
+
+                    // Strict: only merge when extremely close.
+                    const gap = rectEdgeGap(a, b);
+                    if (gap > MERGE_GAP_PX) return false;
+
+                    // Never merge bar-like strokes with non-bar strokes unless they truly overlap.
+                    if (isBarLike(a) !== isBarLike(b)) return false;
+
+                    // Prevent tiny CTA-like boxes from merging into huge boxes just because they are near.
+                    const areaRatio = Math.min(a.area, b.area) / Math.max(a.area, b.area);
+                    if (areaRatio < 0.2) return false;
+
+                    return true;
                 };
 
                 // 1. Fabric objects → candidate boxes (frame-relative coordinates).
@@ -354,7 +394,7 @@ const FramesOverlay = ({ frame }: any) => {
                     const No_of_Groups: number[] = [];
                     for (let i = 0; i < groups.length; i += 1) {
                         // If this box overlaps ANY box in the group (with padding), treat it as same region.
-                        if (groups[i].some((g) => overlaps(g, box, MERGE_PAD_PX))) {
+                        if (groups[i].some((g) => shouldMerge(g, box))) {
                             No_of_Groups.push(i);
                         }
                     }
@@ -431,7 +471,7 @@ const FramesOverlay = ({ frame }: any) => {
                 // so the backend can be resolution-independent later.
                 const sketchGraph = {
                     version: 1,
-                    mergePadPx: MERGE_PAD_PX,
+                    mergeGapPx: MERGE_GAP_PX,
                     // This basically tries to understand the sketch
                     blocks: items.slice(0, 50).map((it: any, idx: number) => {
                         const aspect = it.w / Math.max(1, it.h);
