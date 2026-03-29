@@ -7,6 +7,10 @@ import * as fabric from "fabric"
 import { layoutCard } from "../design-systems/cardLayout/CardLayout"
 import { renderSemanticBlock } from "@/lib/render/renderSemanticBlock"
 
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n))
+}
+
 type AIScreen = {
   id: string
   name: string
@@ -106,6 +110,45 @@ export default function renderFromAI(
         o.set("isAiGenerated", true)
         o.set("frameId", screen.frameId)
         canvas.add(o)
+      }
+
+      // Responsive measurements for this element box (prevents overflow + looks less "rough")
+      const pad = clamp(safeWidth * 0.06, 14, 34)
+      const textFamily = preset?.typography?.fontFamily ?? "Inter, Arial"
+
+      const addPill = (opts: { x: number; y: number; w: number; h: number; fill?: string; stroke?: string }) => {
+        const pill = new fabric.Rect({
+          left: opts.x,
+          top: opts.y,
+          width: Math.max(1, opts.w),
+          height: Math.max(1, opts.h),
+          fill: opts.fill ?? (preset?.color?.neutral200 ?? "#e2e8f0"),
+          stroke: opts.stroke,
+          strokeWidth: opts.stroke ? 1 : 0,
+          rx: 999,
+          ry: 999,
+          selectable: false,
+          evented: false,
+        })
+        addObj(pill)
+        return pill
+      }
+
+      const addText = (opts: { x: number; y: number; w: number; text: string; size: number; weight?: number; fill?: string; lh?: number }) => {
+        const t = new fabric.Textbox(opts.text, {
+          left: opts.x,
+          top: opts.y,
+          width: Math.max(1, opts.w),
+          fontFamily: textFamily,
+          fontSize: opts.size,
+          fontWeight: (opts.weight ?? 600) as any,
+          fill: opts.fill ?? (preset?.color?.textPrimary ?? "#0f172a"),
+          lineHeight: opts.lh ?? 1.15,
+          selectable: false,
+          evented: false,
+        } as any)
+        addObj(t)
+        return t
       }
 
       // NAV: simple top bar pills (logo + links + CTA)
