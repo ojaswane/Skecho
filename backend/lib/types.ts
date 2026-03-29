@@ -12,13 +12,13 @@ export type SemanticVisualRule = {
     gap?: number
     repeat?: number
 
-    /* visuals (optional) */
+    /* visuals */
     Icon?: ForwardRefExoticComponent<
         Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
     >
 }
 
-
+// Inside a card Block types and layout results
 export type SemanticBlock = {
     id: string
     kind:

@@ -1,12 +1,15 @@
-// Its like , Where should Each pieces go inside the card
+// This file Alters the block into the layout for the render to be used to render the simentic clock 
 import SemanticVisualMap from "../sematicMap/SemanticMaps"
 import type { SemanticBlock, LaidOutBlock } from "../../../../backend/lib/types.js"
 
 export function layoutCard(
+
     blocks: SemanticBlock[],
     cardWidth: number,
     padding = 24
+
 ): LaidOutBlock[] {
+
     let cursorY = padding;
     const objects: LaidOutBlock[] = [];
     const usableWidth = cardWidth - (padding * 2);
@@ -17,9 +20,8 @@ export function layoutCard(
         if (!rule) continue;
 
         // DYNAMIC WIDTH CALCULATION
-        let width = rule.widthPercent
-            ? rule.widthPercent * usableWidth
-            : rule.size ?? usableWidth;
+        let width = rule.widthPercent ? rule.widthPercent * usableWidth : rule.size ?? usableWidth; // usableWidth when the any rule width info is NUll or Undefined
+
 
         width = Math.min(width, usableWidth); // Clamp to card width
 
@@ -57,6 +59,6 @@ export function layoutCard(
             cursorY += (height + (rule.gap ?? 8)) * (rule.repeat - 1);
         }
     }
-
     return objects;
+
 }

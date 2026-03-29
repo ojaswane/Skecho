@@ -44,6 +44,7 @@ export default function renderFromAI(
 ) {
   if (!screens.length) return
   const cardRadius = preset?.radius?.xl ?? preset?.radius?.lg ?? 16
+  
   const blockTheme = {
     background: preset?.color?.neutral100 ?? "#F4F4F5",
     border: preset?.color?.border ?? "#E4E4E7",
@@ -112,25 +113,29 @@ export default function renderFromAI(
       canvas.add(card)
 
       /* --------- SEMANTIC BLOCKS -------- */
-      const laidOutBlocks = layoutCard(el.blocks, safeWidth)
+      // Layout the blocks within the card's inner dimensions (accounting for padding).
+      const laidOutBlocks = layoutCard(el.blocks, safeWidth) // This is where the magic happens, it takes the blocks and layout them according to the rules defined in the cardLayout file
 
       laidOutBlocks.forEach((block) => {
         const obj = renderSemanticBlock({
-          ...block,
+          ...block, //spread prev blocks
           left: left + block.left,
           top: top + block.top,
           theme: blockTheme,
         })
+
         obj.set("clipPath", frame.clipPath)
         obj.set("isAiGenerated", true)
         obj.set("frameId", screen.frameId)
+        
         canvas.add(obj)
       })
     }
 
-
     // Frames are background artboards (solid fill). Keep them behind generated UI.
     canvas.sendObjectToBack(frame)
   }
+
   canvas.requestRenderAll()
+
 }

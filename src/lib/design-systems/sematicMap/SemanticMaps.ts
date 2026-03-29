@@ -1,22 +1,6 @@
 import { Images, CircleUser } from "lucide-react"
 import { SemanticVisualRule } from "../../../../backend/lib/types.js"
 
-// frame.blocks.forEach(block => {
-//   const visual = SemanticVisualMap[block.semantic]
-
-//   if (visual.shape === "circle") {
-//     drawCircleAvatar()
-//   }
-
-//   if (visual.shape === "pill") {
-//     drawRoundedRect()
-//   }
-
-//   if (visual.icon === "image") {
-//     drawImageIcon()
-//   }
-// })
-
 const SemanticVisualMap: Record<string, SemanticVisualRule> = {
     profile_image: {
         shape: "circle",

@@ -1,8 +1,10 @@
+// This is the renderer of the Sementic blocks
 import * as fabric from "fabric"
 
 export function renderSemanticBlock(block: any): fabric.Object {
     const { left, top, width, height, semantic, theme } = block;
 
+    // This is temporary design system
     const STYLES = {
         background: theme?.background ?? "#F4F4F5", // Slate 100
         border: theme?.border ?? "#E4E4E7",// Slate 200
@@ -29,7 +31,8 @@ export function renderSemanticBlock(block: any): fabric.Object {
             const btnRect = new fabric.Rect({
                 width: Math.min(width, 240),
                 height: 44,
-                rx: 22, ry: 22,
+                rx: 22,
+                ry: 22,
                 fill: STYLES.accent,
             });
             const btnText = new fabric.Text("Get Started", {
