@@ -113,7 +113,7 @@ export default function renderFromAI(
       }
 
       // Responsive measurements for this element box (prevents overflow + looks less "rough")
-      const pad = clamp(safeWidth * 0.06, 14, 34)
+      const pad = clamp(Math.min(safeWidth, safeHeight) * 0.08, 12, 32)
       const textFamily = preset?.typography?.fontFamily ?? "Inter, Arial"
 
       const addPill = (opts: { x: number; y: number; w: number; h: number; fill?: string; stroke?: string }) => {
@@ -153,11 +153,16 @@ export default function renderFromAI(
 
       // NAV: simple top bar pills (logo + links + CTA)
       if (semantic === "nav") {
+        const barH = Math.min(safeHeight, clamp(safeWidth * 0.12, 44, 72))
+        const inPad = clamp(barH * 0.22, 10, 18)
+        const pillH = clamp(barH * 0.45, 20, 30)
+        const pillY = top + (barH - pillH) / 2
+
         const bar = new fabric.Rect({
           left,
           top,
           width: safeWidth,
-          height: Math.min(64, safeHeight),
+          height: barH,
           fill: preset?.color?.card ?? "#ffffff",
           stroke: preset?.color?.border ?? "#e5e7eb",
           strokeWidth: 1,
@@ -167,54 +172,13 @@ export default function renderFromAI(
         })
         addObj(bar)
 
-        const pills = [
-          {
-            w: 92,
-            text: "Logo"
-          },
-          {
-            w: 64,
-            text: "Home"
-          },
-          {
-            w: 86,
-            text: "Pricing"
-          },
-          {
-            w: 82,
-            text: "About"
-          },
-          {
-            w: 96,
-            text: "Contact"
-          },
-        ]
-
-        let cursorX = left + 20
-        const pillY = top + 18
-        for (let i = 0; i < pills.length; i++) {
-          const p = pills[i]
-          if (cursorX + p.w > left + safeWidth - 140) break
-          const pill = new fabric.Rect({
-            left: cursorX,
-            top: pillY,
-            width: p.w,
-            height: 28,
-            fill: preset?.color?.neutral100 ?? "#f1f5f9",
-            rx: 999,
-            ry: 999,
-            selectable: false,
-            evented: false,
-          })
-          addObj(pill)
-          cursorX += p.w + 10
-        }
-
+        const ctaW = Math.min(safeWidth - inPad * 2, clamp(safeWidth * 0.18, 88, 136))
+        const ctaX = left + safeWidth - inPad - ctaW
         const cta = new fabric.Rect({
-          left: left + safeWidth - 120,
-          top: top + 16,
-          width: 104,
-          height: 32,
+          left: ctaX,
+          top: pillY,
+          width: ctaW,
+          height: pillH,
           fill: preset?.color?.primary ?? "#4f46e5",
           rx: 999,
           ry: 999,
@@ -222,17 +186,66 @@ export default function renderFromAI(
           evented: false,
         })
         addObj(cta)
+
+        addText({
+          x: ctaX,
+          y: pillY + pillH * 0.2,
+          w: ctaW,
+          text: "Get started",
+          size: clamp(pillH * 0.45, 11, 14),
+          weight: 700,
+          fill: preset?.color?.onPrimary ?? "#ffffff",
+          lh: 1.0,
+        })
+
+        // Left-side logo + a few link pills that stop before the CTA.
+        const logoW = Math.min(ctaX - (left + inPad) - 12, clamp(safeWidth * 0.16, 76, 116))
+        const logo = addPill({
+          x: left + inPad,
+          y: pillY,
+          w: Math.max(40, logoW),
+          h: pillH,
+          fill: preset?.color?.neutral100 ?? "#f1f5f9",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+        })
+        addText({
+          x: logo.left!,
+          y: pillY + pillH * 0.2,
+          w: logo.width!,
+          text: "Sketcho",
+          size: clamp(pillH * 0.45, 11, 14),
+          weight: 700,
+          fill: preset?.color?.textPrimary ?? "#0f172a",
+          lh: 1.0,
+        })
+
+        let cursorX = left + inPad + logo.width! + clamp(pillH * 0.5, 10, 14)
+        const linkW = clamp(safeWidth * 0.11, 52, 88)
+        const linkGap = clamp(pillH * 0.35, 6, 12)
+        const maxX = ctaX - inPad - 8
+        while (cursorX + linkW <= maxX) {
+          addPill({
+            x: cursorX,
+            y: pillY,
+            w: linkW,
+            h: pillH,
+            fill: preset?.color?.neutral100 ?? "#f1f5f9",
+            stroke: preset?.color?.border ?? "#e5e7eb",
+          })
+          cursorX += linkW + linkGap
+        }
         continue
       }
 
       // CTA: just a pill button (no card wrapper)
       if (semantic === "cta") {
-        const btnW = Math.min(240, safeWidth)
+        const btnW = Math.min(safeWidth, clamp(safeWidth * 0.9, 120, 280))
+        const btnH = Math.min(safeHeight, clamp(btnW * 0.18, 34, 52))
         const btn = new fabric.Rect({
           left,
           top,
           width: btnW,
-          height: Math.min(44, safeHeight),
+          height: btnH,
           fill: preset?.color?.primary ?? "#4f46e5",
           rx: 999,
           ry: 999,
@@ -241,11 +254,11 @@ export default function renderFromAI(
         addObj(btn)
         const txt = new fabric.Text("Get started", {
           left: left + btnW / 2,
-          top: top + Math.min(44, safeHeight) / 2,
+          top: top + btnH / 2,
           originX: "center",
           originY: "center",
-          fontFamily: "Inter, Arial",
-          fontSize: 14,
+          fontFamily: textFamily,
+          fontSize: clamp(btnH * 0.36, 12, 16),
           fill: preset?.color?.onPrimary ?? "#fff",
           selectable: false,
           evented: false,
@@ -256,12 +269,13 @@ export default function renderFromAI(
 
       // MEDIA: device/screenshot frame placeholder (no title pills)
       if (semantic === "media") {
+        const chromeH = clamp(safeHeight * 0.1, 18, 28)
         const media = new fabric.Rect({
           left,
           top,
           width: safeWidth,
           height: safeHeight,
-          fill: preset?.color?.neutral100 ?? "#f1f5f9",
+          fill: preset?.color?.card ?? "#ffffff",
           stroke: preset?.color?.border ?? "#e5e7eb",
           strokeWidth: 1,
           rx: cardRadius,
@@ -270,18 +284,54 @@ export default function renderFromAI(
         })
         addObj(media)
 
-        const header = new fabric.Rect({
-          left: left + 16,
-          top: top + 16,
-          width: Math.min(120, safeWidth - 32),
-          height: 10,
-          fill: preset?.color?.neutral200 ?? "#e2e8f0",
-          rx: 999,
-          ry: 999,
+        // "Window chrome" bar
+        const chrome = new fabric.Rect({
+          left: left + 1,
+          top: top + 1,
+          width: Math.max(1, safeWidth - 2),
+          height: chromeH,
+          fill: preset?.color?.neutral100 ?? "#f1f5f9",
+          rx: cardRadius,
+          ry: cardRadius,
           selectable: false,
           evented: false,
         })
-        addObj(header)
+        addObj(chrome)
+
+        // Window control dots
+        const dotR = clamp(chromeH * 0.14, 2.5, 4)
+        const dotY = top + chromeH / 2
+        const dotX0 = left + pad
+        const dotGap = clamp(dotR * 2.6, 8, 12)
+        ;[0, 1, 2].forEach((idx) => {
+          const c = new fabric.Circle({
+            left: dotX0 + idx * dotGap,
+            top: dotY,
+            radius: dotR,
+            originX: "center",
+            originY: "center",
+            fill: preset?.color?.neutral300 ?? "#cbd5e1",
+            selectable: false,
+            evented: false,
+          })
+          addObj(c)
+        })
+
+        // Screen area placeholder
+        const screen = new fabric.Rect({
+          left: left + pad,
+          top: top + chromeH + pad * 0.6,
+          width: Math.max(1, safeWidth - pad * 2),
+          height: Math.max(1, safeHeight - chromeH - pad * 1.2),
+          fill: preset?.color?.neutral100 ?? "#f1f5f9",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+          strokeWidth: 1,
+          rx: clamp(cardRadius * 0.8, 10, cardRadius),
+          ry: clamp(cardRadius * 0.8, 10, cardRadius),
+          selectable: false,
+          evented: false,
+        })
+        addObj(screen)
         continue
       }
 
@@ -301,57 +351,104 @@ export default function renderFromAI(
         })
         addObj(card)
 
-        const title = new fabric.Rect({
-          left: left + 20,
-          top: top + 20,
-          width: Math.min(safeWidth - 40, 360),
-          height: 18,
-          fill: preset?.color?.neutral200 ?? "#e2e8f0",
-          rx: 999,
-          ry: 999,
-          selectable: false,
-          evented: false,
-        })
-        addObj(title)
+        const contentX = left + pad
+        const contentW = Math.max(1, safeWidth - pad * 2)
 
-        const body1 = new fabric.Rect({
-          left: left + 20,
-          top: top + 48,
-          width: Math.min(safeWidth - 40, 420),
-          height: 12,
-          fill: preset?.color?.neutral200 ?? "#e2e8f0",
-          rx: 999,
-          ry: 999,
-          selectable: false,
-          evented: false,
-        })
-        addObj(body1)
+        const titleSize = clamp(safeWidth * 0.095, 22, 52)
+        const subSize = clamp(safeWidth * 0.04, 13, 20)
 
-        const body2 = new fabric.Rect({
-          left: left + 20,
-          top: top + 66,
-          width: Math.min(safeWidth - 40, 320),
-          height: 12,
-          fill: preset?.color?.neutral200 ?? "#e2e8f0",
-          rx: 999,
-          ry: 999,
-          selectable: false,
-          evented: false,
+        const title = addText({
+          x: contentX,
+          y: top + pad,
+          w: contentW,
+          text: "Turn sketches into modern layouts.",
+          size: titleSize,
+          weight: 800,
+          fill: preset?.color?.textPrimary ?? "#0f172a",
+          lh: 1.05,
         })
-        addObj(body2)
 
-        const primary = new fabric.Rect({
-          left: left + 20,
-          top: top + 92,
-          width: 140,
-          height: 40,
-          fill: preset?.color?.primary ?? "#4f46e5",
-          rx: 999,
-          ry: 999,
-          selectable: false,
-          evented: false,
+        const gap1 = clamp(titleSize * 0.28, 8, 16)
+        const subY = (title.top ?? top + pad) + (title.height ?? titleSize * 1.2) + gap1
+
+        const sub = addText({
+          x: contentX,
+          y: subY,
+          w: contentW,
+          text: "Draw a rough layout, then let AI fill it with clean typography, spacing, and components — without changing your structure.",
+          size: subSize,
+          weight: 500,
+          fill: preset?.color?.textMuted ?? "#475569",
+          lh: 1.35,
         })
-        addObj(primary)
+
+        const gap2 = clamp(subSize * 1.2, 10, 18)
+        const btnY = (sub.top ?? subY) + (sub.height ?? subSize * 2.2) + gap2
+
+        const btnH = Math.min(
+          safeHeight - (btnY - top) - pad,
+          clamp(titleSize * 1.05, 34, 46)
+        )
+
+        if (btnH >= 28) {
+          const btnGap = clamp(btnH * 0.35, 8, 14)
+          const primaryW = Math.min(contentW, clamp(contentW * 0.38, 120, 220))
+          const secondaryW = Math.min(contentW, clamp(contentW * 0.28, 96, 180))
+          const totalInline = primaryW + btnGap + secondaryW
+
+          const primaryX = contentX
+          const primaryBtn = new fabric.Rect({
+            left: primaryX,
+            top: btnY,
+            width: totalInline <= contentW ? primaryW : Math.min(contentW, clamp(contentW * 0.55, 140, 260)),
+            height: btnH,
+            fill: preset?.color?.primary ?? "#4f46e5",
+            rx: 999,
+            ry: 999,
+            shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+            selectable: false,
+            evented: false,
+          })
+          addObj(primaryBtn)
+          addText({
+            x: primaryBtn.left!,
+            y: btnY + btnH * 0.22,
+            w: primaryBtn.width!,
+            text: "Get started",
+            size: clamp(btnH * 0.42, 12, 16),
+            weight: 700,
+            fill: preset?.color?.onPrimary ?? "#ffffff",
+            lh: 1.0,
+          })
+
+          // Secondary CTA: outline/ghost button
+          const secondaryY = totalInline <= contentW ? btnY : btnY + btnH + btnGap
+          const secondaryX = totalInline <= contentW ? primaryX + primaryBtn.width! + btnGap : contentX
+          const secondaryBtn = new fabric.Rect({
+            left: secondaryX,
+            top: secondaryY,
+            width: totalInline <= contentW ? secondaryW : Math.min(contentW, clamp(contentW * 0.45, 120, 220)),
+            height: btnH,
+            fill: preset?.color?.card ?? "#ffffff",
+            stroke: preset?.color?.border ?? "#e5e7eb",
+            strokeWidth: 1,
+            rx: 999,
+            ry: 999,
+            selectable: false,
+            evented: false,
+          })
+          addObj(secondaryBtn)
+          addText({
+            x: secondaryBtn.left!,
+            y: secondaryY + btnH * 0.22,
+            w: secondaryBtn.width!,
+            text: "Learn more",
+            size: clamp(btnH * 0.42, 12, 16),
+            weight: 650,
+            fill: preset?.color?.textPrimary ?? "#0f172a",
+            lh: 1.0,
+          })
+        }
         continue
       }
 
