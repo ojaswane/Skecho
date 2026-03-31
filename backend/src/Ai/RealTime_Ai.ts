@@ -396,6 +396,34 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
         const aspect = b.w / Math.max(1e-6, b.h)
         return b.y <= 0.22 && b.h <= 0.18 && b.w >= 0.5 && aspect >= 4
     }
+    const isFooterLike = (b: any) => {
+        const aspect = b.w / Math.max(1e-6, b.h)
+        return b.y + b.h >= 0.82 && b.h <= 0.22 && b.w >= 0.55 && aspect >= 3
+    }
+    const isSidebarLike = (b: any) => {
+        const nearLeft = b.x <= 0.1
+        const nearRight = b.x + b.w >= 0.9
+        return b.w <= 0.26 && b.h >= 0.5 && (nearLeft || nearRight)
+    }
+    const isCtaLike = (b: any) => {
+        const aspect = b.w / Math.max(1e-6, b.h)
+        const area = areaOf(b)
+        const small = area <= 0.08
+        const pillish = b.h <= 0.22 && aspect >= 1.4 && aspect <= 10
+        const lowerHalf = b.y >= 0.35
+        return small && pillish && lowerHalf
+    }
+    const isHeroTextLike = (b: any) => {
+        const area = areaOf(b)
+        const wide = b.w >= 0.45
+        const notTall = b.h <= 0.35
+        const nearTop = b.y <= 0.65
+        return wide && notTall && nearTop && area >= 0.04 && area <= 0.35
+    }
+    const isMediaLike = (b: any) => {
+        const area = areaOf(b)
+        return area >= 0.22 && b.h >= 0.28
+    }
     const dominant = [...usable]
         .filter((b) => !isNavLike(b))
         .sort((a, b) => areaOf(b) - areaOf(a))[0]
@@ -411,13 +439,13 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
             rowSpans.push(rowSpan)
 
             // Minimal semantics (helps renderer) without changing geometry.
-            const aspect = b.w / Math.max(1e-6, b.h)
-            const area = areaOf(b)
             let semantic: any = "card"
             if (isNavLike(b)) semantic = "nav"
-            else if (area >= 0.25 && b.h >= 0.25) semantic = "media"
-            else if (area <= 0.08 && b.y >= 0.35) semantic = "cta"
-            else if (b.y <= 0.55) semantic = "hero_text"
+            else if (isFooterLike(b)) semantic = "footer"
+            else if (isSidebarLike(b)) semantic = "sidebar"
+            else if (isCtaLike(b)) semantic = "cta"
+            else if (isMediaLike(b)) semantic = "media"
+            else if (isHeroTextLike(b)) semantic = "hero_text"
 
             frames.push({
                 id: b.id,
@@ -428,6 +456,9 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
                 row: currentRow,
                 span,
                 rowSpan,
+                style: {
+                    bbox: { x: b.x, y: b.y, w: b.w, h: b.h },
+                },
             })
         }
 

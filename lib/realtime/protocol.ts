@@ -19,7 +19,19 @@ export type AiElement = {
   sectionId: string
   type: "card" | "text" | "button" | "input" | "image" | "block"
   // Optional semantic hint used by the renderer.
-  semantic?: "nav" | "hero_text" | "media" | "cta" | "card" | "unknown"
+  semantic?:
+    | "nav"
+    | "sidebar"
+    | "footer"
+    | "hero_text"
+    | "media"
+    | "cta"
+    | "feature_grid"
+    | "testimonial"
+    | "pricing"
+    | "faq"
+    | "card"
+    | "unknown"
   role?: string
   col?: number
   row?: number

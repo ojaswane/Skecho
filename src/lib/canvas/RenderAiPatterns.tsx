@@ -19,6 +19,9 @@ type AIScreen = {
     id: string
     role?: string
     semantic?: string
+    // Normalized bbox (0..1) from sketchGraph strict mode.
+    // If present, we render in absolute coordinates (matches sketch more closely).
+    bbox?: { x: number; y: number; w: number; h: number }
     col: number
     row: number
     span: number
@@ -81,23 +84,44 @@ export default function renderFromAI(
 
     for (const el of screen.elements) {
       const semantic = String((el as any).semantic ?? "").toLowerCase()
-      const left = frame.left + padding + (el.col - 1) * (colWidth + gap)
+      const bbox = (el as any).bbox
+      const useAbsolute =
+        bbox &&
+        typeof bbox.x === "number" &&
+        typeof bbox.y === "number" &&
+        typeof bbox.w === "number" &&
+        typeof bbox.h === "number"
 
-      const top = frame.top + padding + (el.row - 1) * (rowHeight + gap)
+      // Grid-based positioning (default) vs absolute positioning (strict sketchGraph mode).
+      const edgePad = useAbsolute ? 0 : padding
 
-      const width = el.span * colWidth + (el.span - 1) * gap
+      let left = useAbsolute
+        ? frame.left + clamp(bbox.x, 0, 1) * frame.width
+        : frame.left + padding + (el.col - 1) * (colWidth + gap)
 
-      const height = el.rowSpan * rowHeight + (el.rowSpan - 1) * gap
+      let top = useAbsolute
+        ? frame.top + clamp(bbox.y, 0, 1) * frame.height
+        : frame.top + padding + (el.row - 1) * (rowHeight + gap)
+
+      const width = useAbsolute
+        ? clamp(bbox.w, 0.01, 1) * frame.width
+        : el.span * colWidth + (el.span - 1) * gap
+
+      const height = useAbsolute
+        ? clamp(bbox.h, 0.01, 1) * frame.height
+        : el.rowSpan * rowHeight + (el.rowSpan - 1) * gap
 
       // Clamp to frame bounds (both directions).
-      const maxW = frame.left + frame.width - padding - left
-      const maxH = frame.top + frame.height - padding - top
+      left = Math.max(frame.left + edgePad, left)
+      top = Math.max(frame.top + edgePad, top)
+      const maxW = frame.left + frame.width - edgePad - left
+      const maxH = frame.top + frame.height - edgePad - top
       if (maxW <= 1 || maxH <= 1) continue
       const safeWidth = Math.max(1, Math.min(width, maxW))
       const safeHeight = Math.max(1, Math.min(height, maxH))
 
       // Skip anything that would overflow the frame (quick MVP guardrail).
-      if (top + safeHeight > frame.top + frame.height - padding) continue
+      if (!useAbsolute && top + safeHeight > frame.top + frame.height - padding) continue
 
       /**
        * Semantic-first rendering:
@@ -237,6 +261,151 @@ export default function renderFromAI(
         continue
       }
 
+      // SIDEBAR: vertical navigation panel (logo + menu pills + account chip)
+      if (semantic === "sidebar") {
+        const panel = new fabric.Rect({
+          left,
+          top,
+          width: safeWidth,
+          height: safeHeight,
+          fill: preset?.color?.card ?? "#ffffff",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+          strokeWidth: 1,
+          rx: cardRadius,
+          ry: cardRadius,
+          shadow: preset?.shadow?.md,
+        })
+        addObj(panel)
+
+        const itemH = clamp(Math.min(safeWidth, safeHeight) * 0.085, 20, 30)
+        const itemGap = clamp(itemH * 0.45, 8, 14)
+
+        const x = left + pad
+        let y = top + pad
+
+        const logoW = Math.max(40, Math.min(safeWidth - pad * 2, clamp(safeWidth * 0.62, 90, 160)))
+        addPill({
+          x,
+          y,
+          w: logoW,
+          h: itemH,
+          fill: preset?.color?.neutral100 ?? "#f1f5f9",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+        })
+        addText({
+          x,
+          y: y + itemH * 0.2,
+          w: logoW,
+          text: "Sketcho",
+          size: clamp(itemH * 0.52, 11, 15),
+          weight: 800,
+          fill: preset?.color?.textPrimary ?? "#0f172a",
+          lh: 1.0,
+        })
+        y += itemH + itemGap
+
+        const usableH = safeHeight - (y - top) - pad - itemH * 1.4
+        const count = Math.max(3, Math.min(9, Math.floor(usableH / (itemH + itemGap))))
+        for (let i = 0; i < count; i++) {
+          const w = Math.max(
+            48,
+            Math.min(safeWidth - pad * 2, clamp(safeWidth * (0.55 + (i % 3) * 0.12), 96, 240))
+          )
+          addPill({
+            x,
+            y,
+            w,
+            h: itemH,
+            fill: preset?.color?.neutral100 ?? "#f1f5f9",
+            stroke: preset?.color?.border ?? "#e5e7eb",
+          })
+          y += itemH + itemGap
+        }
+
+        const chipH = clamp(itemH * 1.15, 24, 36)
+        const chipY = top + safeHeight - pad - chipH
+        addPill({
+          x,
+          y: chipY,
+          w: Math.max(1, safeWidth - pad * 2),
+          h: chipH,
+          fill: preset?.color?.neutral100 ?? "#f1f5f9",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+        })
+        addText({
+          x,
+          y: chipY + chipH * 0.2,
+          w: Math.max(1, safeWidth - pad * 2),
+          text: "Account",
+          size: clamp(chipH * 0.44, 11, 14),
+          weight: 650,
+          fill: preset?.color?.textMuted ?? "#475569",
+          lh: 1.0,
+        })
+        continue
+      }
+
+      // FOOTER: wide link bar (brand + link pills)
+      if (semantic === "footer") {
+        const barH = Math.min(safeHeight, clamp(safeWidth * 0.12, 46, 88))
+        const bar = new fabric.Rect({
+          left,
+          top,
+          width: safeWidth,
+          height: barH,
+          fill: preset?.color?.card ?? "#ffffff",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+          strokeWidth: 1,
+          rx: cardRadius,
+          ry: cardRadius,
+          shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+        })
+        addObj(bar)
+
+        const inPad = clamp(barH * 0.22, 10, 18)
+        const pillH = clamp(barH * 0.35, 16, 24)
+        const y = top + (barH - pillH) / 2
+        const brandW = Math.min(safeWidth - inPad * 2, clamp(safeWidth * 0.22, 80, 140))
+
+        addPill({
+          x: left + inPad,
+          y,
+          w: brandW,
+          h: pillH,
+          fill: preset?.color?.neutral100 ?? "#f1f5f9",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+        })
+        addText({
+          x: left + inPad,
+          y: y + pillH * 0.2,
+          w: brandW,
+          text: "Sketcho",
+          size: clamp(pillH * 0.55, 10, 14),
+          weight: 800,
+          fill: preset?.color?.textPrimary ?? "#0f172a",
+          lh: 1.0,
+        })
+
+        const linkW = clamp(safeWidth * 0.11, 52, 88)
+        const linkGap = clamp(pillH * 0.35, 6, 12)
+        let cursorX = left + inPad + brandW + linkGap
+        const maxX = left + safeWidth - inPad
+        let added = 0
+        while (cursorX + linkW <= maxX && added < 6) {
+          addPill({
+            x: cursorX,
+            y,
+            w: linkW,
+            h: pillH,
+            fill: preset?.color?.neutral100 ?? "#f1f5f9",
+            stroke: preset?.color?.border ?? "#e5e7eb",
+          })
+          cursorX += linkW + linkGap
+          added++
+        }
+        continue
+      }
+
       // CTA: just a pill button (no card wrapper)
       if (semantic === "cta") {
         const btnW = Math.min(safeWidth, clamp(safeWidth * 0.9, 120, 280))
@@ -264,6 +433,167 @@ export default function renderFromAI(
           evented: false,
         } as any)
         addObj(txt)
+        continue
+      }
+
+      // FEATURE GRID: container filled with 3 cards (useful when sketch is just one big "content" box)
+      if (semantic === "feature_grid") {
+        const innerGap = clamp(Math.min(safeWidth, safeHeight) * 0.04, 10, 18)
+        const isWide = safeWidth >= safeHeight * 1.15
+        const cols = isWide ? 3 : 1
+        const rows = isWide ? 1 : 3
+        const cardW = (safeWidth - innerGap * (cols - 1)) / cols
+        const cardH = (safeHeight - innerGap * (rows - 1)) / rows
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cx = left + c * (cardW + innerGap)
+            const cy = top + r * (cardH + innerGap)
+            const card = new fabric.Rect({
+              left: cx,
+              top: cy,
+              width: Math.max(1, cardW),
+              height: Math.max(1, cardH),
+              fill: preset?.color?.card ?? "#ffffff",
+              stroke: preset?.color?.border ?? "#e5e7eb",
+              strokeWidth: 1,
+              rx: clamp(cardRadius, 12, 22),
+              ry: clamp(cardRadius, 12, 22),
+              shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+            })
+            addObj(card)
+            addPill({
+              x: cx + pad,
+              y: cy + pad,
+              w: Math.max(40, Math.min(cardW - pad * 2, cardW * 0.6)),
+              h: clamp(cardH * 0.08, 10, 14),
+            })
+            addPill({
+              x: cx + pad,
+              y: cy + pad + clamp(cardH * 0.12, 16, 22),
+              w: Math.max(40, Math.min(cardW - pad * 2, cardW * 0.8)),
+              h: clamp(cardH * 0.06, 8, 12),
+            })
+          }
+        }
+        continue
+      }
+
+      // PRICING: container filled with 3 pricing cards (headline + price + button)
+      if (semantic === "pricing") {
+        const innerGap = clamp(Math.min(safeWidth, safeHeight) * 0.04, 10, 18)
+        const cols = 3
+        const cardW = (safeWidth - innerGap * (cols - 1)) / cols
+        const cardH = safeHeight
+        for (let c = 0; c < cols; c++) {
+          const cx = left + c * (cardW + innerGap)
+          const cy = top
+
+          const card = new fabric.Rect({
+            left: cx,
+            top: cy,
+            width: Math.max(1, cardW),
+            height: Math.max(1, cardH),
+            fill: preset?.color?.card ?? "#ffffff",
+            stroke: preset?.color?.border ?? "#e5e7eb",
+            strokeWidth: 1,
+            rx: clamp(cardRadius, 12, 22),
+            ry: clamp(cardRadius, 12, 22),
+            shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+          })
+
+          addObj(card)
+          addPill({ x: cx + pad, y: cy + pad, w: cardW * 0.5, h: clamp(cardH * 0.06, 10, 14) })
+          addPill({ x: cx + pad, y: cy + pad + 22, w: cardW * 0.35, h: clamp(cardH * 0.06, 10, 14) })
+          const btnH = clamp(cardH * 0.12, 32, 44)
+          const btnW = Math.min(cardW - pad * 2, clamp(cardW * 0.7, 90, 180))
+          
+          const btn = new fabric.Rect({
+            left: cx + pad,
+            top: cy + cardH - pad - btnH,
+            width: btnW,
+            height: btnH,
+            fill: preset?.color?.primary ?? "#4f46e5",
+            rx: 999,
+            ry: 999,
+            selectable: false,
+            evented: false,
+          })
+          
+          addObj(btn)
+        }
+        continue
+      }
+
+      // FAQ: stacked accordion rows (question pill + chevron dot)
+      if (semantic === "faq") {
+        const rowH = clamp(Math.min(safeWidth, safeHeight) * 0.14, 42, 64)
+        const rowGap = clamp(rowH * 0.25, 10, 16)
+        let y = top + pad
+        let i = 0
+        while (y + rowH <= top + safeHeight - pad && i < 6) {
+          const row = new fabric.Rect({
+            left: left + pad,
+            top: y,
+            width: Math.max(1, safeWidth - pad * 2),
+            height: rowH,
+            fill: preset?.color?.card ?? "#ffffff",
+            stroke: preset?.color?.border ?? "#e5e7eb",
+            strokeWidth: 1,
+            rx: clamp(cardRadius, 12, 18),
+            ry: clamp(cardRadius, 12, 18),
+            selectable: false,
+            evented: false,
+          })
+          addObj(row)
+          addPill({ x: row.left! + pad, y: y + rowH * 0.3, w: row.width! * 0.6, h: clamp(rowH * 0.18, 10, 14) })
+          const dot = new fabric.Circle({
+            left: row.left! + row.width! - pad * 1.2,
+            top: y + rowH / 2,
+            radius: clamp(rowH * 0.08, 3, 5),
+            originX: "center",
+            originY: "center",
+            fill: preset?.color?.neutral300 ?? "#cbd5e1",
+            selectable: false,
+            evented: false,
+          })
+          addObj(dot)
+          y += rowH + rowGap
+          i++
+        }
+        continue
+      }
+
+      // TESTIMONIAL: quote card (avatar + lines)
+      if (semantic === "testimonial") {
+        const card = new fabric.Rect({
+          left,
+          top,
+          width: safeWidth,
+          height: safeHeight,
+          fill: preset?.color?.card ?? "#ffffff",
+          stroke: preset?.color?.border ?? "#e5e7eb",
+          strokeWidth: 1,
+          rx: cardRadius,
+          ry: cardRadius,
+          shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+        })
+        addObj(card)
+        const avatarR = clamp(Math.min(safeWidth, safeHeight) * 0.08, 10, 16)
+        const avatar = new fabric.Circle({
+          left: left + pad + avatarR,
+          top: top + pad + avatarR,
+          radius: avatarR,
+          originX: "center",
+          originY: "center",
+          fill: preset?.color?.neutral200 ?? "#e2e8f0",
+          selectable: false,
+          evented: false,
+        })
+        addObj(avatar)
+        addPill({ x: left + pad + avatarR * 2 + 10, y: top + pad + avatarR * 0.3, w: safeWidth * 0.35, h: clamp(avatarR * 0.7, 10, 14) })
+        addPill({ x: left + pad, y: top + pad + avatarR * 2 + 14, w: safeWidth - pad * 2, h: clamp(safeHeight * 0.06, 10, 14) })
+        addPill({ x: left + pad, y: top + pad + avatarR * 2 + 34, w: safeWidth * 0.8, h: clamp(safeHeight * 0.06, 10, 14) })
         continue
       }
 

@@ -162,6 +162,7 @@ export function attachRealtimeWSServer(server: HttpServer) {
                 span: f.span,
                 rowSpan: f.rowSpan,
                 text: f.text,
+                style: f.style,
               })),
             })),
           }

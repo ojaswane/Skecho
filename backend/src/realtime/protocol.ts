@@ -17,7 +17,19 @@ export type AiElement = {
   type: "card" | "text" | "button" | "input" | "image" | "block"
   // Optional semantic hint used by the frontend renderer.
   // This avoids guessing semantics from element ids or roles.
-  semantic?: "nav" | "hero_text" | "media" | "cta" | "card" | "unknown"
+  semantic?:
+    | "nav"
+    | "sidebar"
+    | "footer"
+    | "hero_text"
+    | "media"
+    | "cta"
+    | "feature_grid"
+    | "testimonial"
+    | "pricing"
+    | "faq"
+    | "card"
+    | "unknown"
   role?: string
   col?: number
   row?: number

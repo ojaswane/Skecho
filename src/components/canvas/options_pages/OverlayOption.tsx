@@ -785,6 +785,9 @@ const FramesOverlay = ({ frame }: any) => {
                 id: el.id ?? crypto.randomUUID(),
                 role: el.role,
                 semantic: (el as any).semantic,
+                // When backend runs in strict layout mode it includes the original sketch box
+                // as a normalized bbox (0..1) so the renderer can place elements "as sketched".
+                bbox: (el as any)?.style?.bbox,
                 col: el.col ?? 1,
                 row: el.row ?? 1,
                 span: el.span ?? 1,
