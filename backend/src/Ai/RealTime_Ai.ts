@@ -323,9 +323,9 @@ function navHeroTwoColFrames() {
             col: 1,
             row: 2,
             span: 6,
-                rowSpan: 4,
-                type: "card",
-                semantic: "hero_text",
+            rowSpan: 4,
+            type: "card",
+            semantic: "hero_text",
         },
         {
             id: "hero-media",
@@ -381,7 +381,7 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
         if (!last || Math.abs(cy - last.cy) > tol) {
             rows.push({ cy, items: [it] as any })
         } else {
-            ;(last.items as any).push(it)
+            ; (last.items as any).push(it)
             last.cy = (last.cy * (last.items.length - 1) + cy) / last.items.length
         }
     }
@@ -389,6 +389,7 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
     // Convert to frames with stable row/col placement.
     const frames: any[] = []
     let currentRow = 1
+    const consumed = new Set<string>()
 
     // Identify a dominant block (largest area) excluding nav-like bars.
     const areaOf = (b: any) => b.w * b.h
@@ -428,11 +429,166 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
         .filter((b) => !isNavLike(b))
         .sort((a, b) => areaOf(b) - areaOf(a))[0]
 
+    // Heuristic patterns to identify common UI groupings and assign semantics.
+    const unionBBox = (items: any[]) => {
+        const minX = Math.min(...items.map((it) => it.x))
+        const minY = Math.min(...items.map((it) => it.y))
+        const maxX = Math.max(...items.map((it) => it.x + it.w))
+        const maxY = Math.max(...items.map((it) => it.y + it.h))
+        return {
+            x: minX,
+            y: minY,
+            w: Math.max(0.01, maxX - minX),
+            h: Math.max(0.01, maxY - minY)
+        }
+    }
+
+    const frameFromBBox = (opts: { id: string; bbox: { x: number; y: number; w: number; h: number }; semantic: any; role?: string; row: number }) => {
+        const b = opts.bbox
+        const span = clamp(Math.max(1, Math.round(b.w * 12)), 1, 12)
+        const col = clamp(Math.floor(b.x * 12) + 1, 1, 13 - span)
+        const rowSpan = clamp(Math.max(1, Math.round(b.h * 6)), 1, 10)
+        frames.push({
+            id: opts.id,
+            type: "card",
+            role: opts.role ?? "supporting",
+            semantic: opts.semantic,
+            col,
+            row: opts.row,
+            span,
+            rowSpan,
+            style: { bbox: { x: b.x, y: b.y, w: b.w, h: b.h } },
+        })
+        return rowSpan
+    }
+
+    // --- Pattern grouping (variety) ---
+    // FAQ: a stack of thin wide rows -> emit a single `faq` container.
+    const isFaqRowLike = (b: any) => {
+        if (isNavLike(b) || isFooterLike(b) || isSidebarLike(b)) return false
+        return b.w >= 0.6 && b.h <= 0.16 && b.y >= 0.22
+    }
+    const faqRows = [...usable].filter(isFaqRowLike).sort((a, b) => a.y - b.y)
+    const faqStart = new Map<string, { ids: string[]; bbox: { x: number; y: number; w: number; h: number } }>()
+    {
+        let group: any[] = []
+        let last: any | null = null
+        const closeEnough = (a: any, b: any) => {
+            const xOk = Math.abs(a.x - b.x) <= 0.08
+            const wOk = Math.abs(a.w - b.w) <= 0.22
+            const gap = b.y - (a.y + a.h)
+            const gapOk = gap >= -0.02 && gap <= 0.12
+            return xOk && wOk && gapOk
+        }
+        const flush = () => {
+            if (group.length >= 4) {
+                const bbox = unionBBox(group)
+                const ids = group.map((g) => g.id)
+                faqStart.set(group[0].id, { ids, bbox })
+            }
+            group = []
+            last = null
+        }
+        for (const r of faqRows) {
+            if (!last) {
+                group = [r]
+                last = r
+                continue
+            }
+            if (closeEnough(last, r)) {
+                group.push(r)
+                last = r
+                continue
+            }
+            flush()
+            group = [r]
+            last = r
+        }
+        flush()
+    }
+
     for (const row of rows) {
         const rowItems = [...row.items].sort((a, b) => a.x - b.x)
         const rowSpans: number[] = []
 
+        // If this row starts an FAQ group, emit it as a single container and consume the children.
+        for (const it of rowItems) {
+            const group = faqStart.get(it.id)
+            if (!group) continue
+            const alreadyConsumed = group.ids.some((id) => consumed.has(id))
+            if (alreadyConsumed) break
+            group.ids.forEach((id) => consumed.add(id))
+            rowSpans.push(
+                frameFromBBox({
+                    id: `faq-${group.ids[0]}`,
+                    bbox: group.bbox,
+                    semantic: "faq",
+                    row: currentRow,
+                    role: "supporting",
+                })
+            )
+            break
+        }
+
+        // Row pattern: 3 similar boxes -> pricing / feature_grid container.
+        const available = rowItems.filter((b) => !consumed.has(b.id) && !isNavLike(b) && !isFooterLike(b) && !isSidebarLike(b) && !isCtaLike(b))
+        const findTriple = (items: any[], opts: { wTol: number; hTol: number }) => {
+            if (items.length < 3) return null
+            const sorted = [...items].sort((a, b) => a.x - b.x)
+            for (let i = 0; i <= sorted.length - 3; i++) {
+                const a = sorted[i]
+                const b = sorted[i + 1]
+                const c = sorted[i + 2]
+                const wAvg = (a.w + b.w + c.w) / 3
+                const hAvg = (a.h + b.h + c.h) / 3
+                const wOk =
+                    Math.abs(a.w - wAvg) / wAvg <= opts.wTol &&
+                    Math.abs(b.w - wAvg) / wAvg <= opts.wTol &&
+                    Math.abs(c.w - wAvg) / wAvg <= opts.wTol
+                const hOk =
+                    Math.abs(a.h - hAvg) / hAvg <= opts.hTol &&
+                    Math.abs(b.h - hAvg) / hAvg <= opts.hTol &&
+                    Math.abs(c.h - hAvg) / hAvg <= opts.hTol
+                if (!wOk || !hOk) continue
+                return [a, b, c]
+            }
+            return null
+        }
+
+        const pricingCandidates = available.filter((b) => b.h >= 0.28 && b.w >= 0.12 && b.w <= 0.42)
+        const pricingTriple = findTriple(pricingCandidates, { wTol: 0.28, hTol: 0.22 })
+        if (pricingTriple) {
+            const bbox = unionBBox(pricingTriple)
+            pricingTriple.forEach((t) => consumed.add(t.id))
+            rowSpans.push(
+                frameFromBBox({
+                    id: `pricing-${pricingTriple[0].id}`,
+                    bbox,
+                    semantic: "pricing",
+                    row: currentRow,
+                    role: "supporting",
+                })
+            )
+        } else {
+            const gridCandidates = available.filter((b) => b.h >= 0.12 && b.h <= 0.35 && b.w >= 0.12 && b.w <= 0.45)
+            const gridTriple = findTriple(gridCandidates, { wTol: 0.3, hTol: 0.28 })
+            if (gridTriple) {
+                const bbox = unionBBox(gridTriple)
+                gridTriple.forEach((t) => consumed.add(t.id))
+                rowSpans.push(
+                    frameFromBBox({
+                        id: `feature-${gridTriple[0].id}`,
+                        bbox,
+                        semantic: "feature_grid",
+                        row: currentRow,
+                        role: "supporting",
+                    })
+                )
+            }
+        }
+
         for (const b of rowItems) {
+            if (consumed.has(b.id)) continue
             const span = clamp(Math.max(1, Math.round(b.w * 12)), 1, 12)
             const col = clamp(Math.floor(b.x * 12) + 1, 1, 13 - span)
             const rowSpan = clamp(Math.max(1, Math.round(b.h * 6)), 1, 8)

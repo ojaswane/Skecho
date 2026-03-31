@@ -1,3 +1,4 @@
+// thisis the protocol definition for the realtime AI generation feature. It defines the data structures and types used for communication between the frontend and backend during the AI generation process.
 // Canonical frame lifecycle status used by realtime generation.
 export type RealtimeFrameStatus = "idle" | "streaming" | "error" | "ready"
 

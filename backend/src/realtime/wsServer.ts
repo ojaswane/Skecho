@@ -169,6 +169,16 @@ export function attachRealtimeWSServer(server: HttpServer) {
 
           upsertSessionDoc(sessionId, generatedDoc)
 
+          // Quick debugging: see which semantics the backend emitted (and their bbox if present).
+          try {
+            const debug = generatedDoc.sections?.[0]?.elements?.map((e: any) => ({
+              id: e.id,
+              semantic: e.semantic,
+              bbox: e.style?.bbox,
+            }))
+            console.log("[layout] emitted semantics", debug)
+          } catch { }
+
           send({
             type: "screen.patch",
             frameId,

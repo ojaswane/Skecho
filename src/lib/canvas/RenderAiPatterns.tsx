@@ -3,6 +3,14 @@
 
 //This is the flow of : user Sketch something -> then it will be converted into the groups like (nabv/ hero ) -> send the payload to the backend
 // -> then backend sends this to Gemini -> THen gemini will send us the data to this file and then this renders the payload from gemini
+
+// ================ heuristics on sketcho =====================
+// If a box is long + thin + at the very top → call it nav
+// If a box is very tall + stuck to left/right edge → call it sidebar
+// If there are 3 similar boxes in one row → call it feature_grid
+// If there are 4–6 thin wide rows stacked → call it faq
+// If a box is tiny and pill-shaped → call it cta
+
 import * as fabric from "fabric"
 import { layoutCard } from "../design-systems/cardLayout/CardLayout"
 import { renderSemanticBlock } from "@/lib/render/renderSemanticBlock"
