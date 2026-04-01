@@ -252,19 +252,33 @@ export default function renderFromAI(
         })
 
         let cursorX = left + inPad + logo.width! + clamp(pillH * 0.5, 10, 14)
-        const linkW = clamp(safeWidth * 0.11, 52, 88)
-        const linkGap = clamp(pillH * 0.35, 6, 12)
         const maxX = ctaX - inPad - 8
-        while (cursorX + linkW <= maxX) {
+        const space = Math.max(0, maxX - cursorX)
+        const linkGap = clamp(pillH * 0.35, 6, 12)
+        const minLinkW = clamp(safeWidth * 0.08, 44, 72)
+        const maxLinkW = clamp(safeWidth * 0.12, 56, 96)
+
+        // Fill the available space with evenly sized link pills.
+        // This makes the nav feel centered even when the sketch box is slightly off.
+        let count = Math.min(6, Math.max(2, Math.floor((space + linkGap) / (minLinkW + linkGap))))
+        while (count >= 2) {
+          const w = (space - linkGap * (count - 1)) / count
+          if (w >= minLinkW * 0.95) break
+          count--
+        }
+        const linkW = clamp((space - linkGap * (count - 1)) / Math.max(1, count), minLinkW, maxLinkW)
+
+        for (let i = 0; i < count; i++) {
+          const x = cursorX + i * (linkW + linkGap)
+          if (x + linkW > maxX + 0.5) break
           addPill({
-            x: cursorX,
+            x,
             y: pillY,
             w: linkW,
             h: pillH,
             fill: preset?.color?.neutral100 ?? "#f1f5f9",
             stroke: preset?.color?.border ?? "#e5e7eb",
           })
-          cursorX += linkW + linkGap
         }
         continue
       }
