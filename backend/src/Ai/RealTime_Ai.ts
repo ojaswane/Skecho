@@ -391,6 +391,85 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
     let currentRow = 1
     const consumed = new Set<string>()
 
+    // So we apply a small alignment/centering pass on the final bboxes.
+    const centerStrictFrames = (fs: any[]) => {
+        const marginX = 0.06
+        const marginY = 0.06
+        const contentLeft = marginX
+        const contentRight = 1 - marginX
+        const contentW = Math.max(0.1, contentRight - contentLeft)
+
+        const clamp01 = (n: number) => clamp(n, 0, 1)
+        const clampBBox = (b: any) => {
+            const w = clamp(b.w, 0.01, 1)
+            const h = clamp(b.h, 0.01, 1)
+            const x = clamp(b.x, 0, 1 - w)
+            const y = clamp(b.y, 0, 1 - h)
+            return { x, y, w, h }
+        }
+
+        const normalizeBBoxForSemantic = (bboxIn: any, semanticRaw: any) => {
+            const semantic = String(semanticRaw ?? "").toLowerCase()
+            let { x, y, w, h } = clampBBox(bboxIn)
+
+            // Keep everything inside a consistent vertical rhythm.
+            y = clamp(y, marginY, 1 - marginY - h)
+
+            // Nav/footer: always full content width, centered horizontally.
+            if (semantic === "nav") {
+                w = contentW
+                x = contentLeft
+                h = clamp(h, 0.06, 0.16)
+                y = Math.min(y, marginY * 0.6)
+                return clampBBox({ x, y, w, h })
+            }
+            if (semantic === "footer") {
+                w = contentW
+                x = contentLeft
+                h = clamp(h, 0.06, 0.18)
+                y = 1 - marginY * 0.6 - h
+                return clampBBox({ x, y, w, h })
+            }
+
+            // Sidebars should stay on their side (left/right), but still be snapped to margins.
+            if (semantic === "sidebar") {
+                w = clamp(w, 0.12, 0.28)
+                const centerX = x + w / 2
+                x = centerX < 0.5 ? contentLeft : contentRight - w
+                y = clamp(y, marginY, 1 - marginY - h)
+                return clampBBox({ x, y, w, h })
+            }
+
+            // Default: center horizontally within the content area (doesn't change the overall structure).
+            w = clamp(w, 0.08, contentW)
+            x = 0.5 - w / 2
+            x = clamp(x, contentLeft, contentRight - w)
+            return clampBBox({ x, y, w, h })
+        }
+
+        return fs.map((f) => {
+            const bbox = f?.style?.bbox
+            if (!bbox || typeof bbox.x !== "number") return f
+            const newB = normalizeBBoxForSemantic(bbox, f.semantic)
+
+            // Keep col/span roughly consistent with the corrected bbox (even though renderer prefers bbox).
+            const span = clamp(Math.max(1, Math.round(newB.w * 12)), 1, 12)
+            const col = clamp(Math.floor(newB.x * 12) + 1, 1, 13 - span)
+            const rowSpan = clamp(Math.max(1, Math.round(newB.h * 6)), 1, 10)
+
+            return {
+                ...f,
+                col,
+                span,
+                rowSpan,
+                style: {
+                    ...(f.style ?? {}),
+                    bbox: newB,
+                },
+            }
+        })
+    }
+
     // Identify a dominant block (largest area) excluding nav-like bars.
     const areaOf = (b: any) => b.w * b.h
 
@@ -476,18 +555,6 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
         })
         return rowSpan
     }
-
-    // Content Area : top 6% and left 6%
-    const MarginX = 0.06
-    const MarginY = 0.06
-
-    const content_left = MarginX
-    const content_right = 1 - MarginX
-    const content_top = MarginY
-    const content_bottom = 1 - MarginY
-    const content_width = content_right - content_left
-    const content_height = content_bottom - content_top
-
 
     // --- Pattern grouping (variety) ---
     // FAQ: a stack of thin wide rows -> emit a single `faq` container.
@@ -650,7 +717,7 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
         currentRow += maxSpan + 1
     }
 
-    return frames
+    return centerStrictFrames(frames)
 }
 
 // it looks the feedback / summary from frontend and decides which layout template to use
