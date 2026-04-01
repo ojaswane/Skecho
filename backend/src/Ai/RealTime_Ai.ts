@@ -417,8 +417,11 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
 
             // Nav/footer: always full content width, centered horizontally.
             if (semantic === "nav") {
-                w = contentW
-                x = contentLeft
+                // Use a centered "floating" nav card (not full-bleed).
+                // Keep width stable even if the sketch is slightly off.
+                w = clamp(w, 0.6, contentW)
+                x = 0.5 - w / 2
+                x = clamp(x, contentLeft, contentRight - w)
                 h = clamp(h, 0.06, 0.16)
                 y = Math.min(y, marginY * 0.6)
                 return clampBBox({ x, y, w, h })
