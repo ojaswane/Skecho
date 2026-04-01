@@ -822,7 +822,11 @@ function normalizeForCanvas(layout: any) {
                 id: f.id || `frame-${si}-${fi}`,
                 type: f.type || "card",
                 role: f.role,
+                // Preserve semantic hints (used by the frontend renderer)
+                semantic: f.semantic,
                 text: f.text,
+                // Preserve any auxiliary style payload (e.g. strict-mode bbox)
+                style: f.style,
                 col: f.col ?? f.colStart ?? 1,
                 row: f.row ?? f.rowStart ?? 1,
                 span: f.span ?? f.colSpan ?? 12,

@@ -612,6 +612,28 @@ const FramesOverlay = ({ frame }: any) => {
                     const styleKey = typeof doc?.style === "string" ? doc.style : "";
                     const preset = presetMap[styleKey as keyof typeof presetMap] ?? defaultSaasPreset;
 
+                    // Debug: expose the exact JSON that the renderer consumes.
+                    // Use this in DevTools console: `window.__sketchoLastRender.screens`
+                    // (Avoid JSON.stringify on huge objects; keep a live reference instead.)
+                    try {
+                        (window as any).__sketchoLastRender = {
+                            ts: Date.now(),
+                            frameId: realtimeFrameId,
+                            styleKey,
+                            preset,
+                            screens: aiScreens,
+                            generatedDoc: response.generatedDoc,
+                        };
+                        console.log("[realtime-ai] renderer input", {
+                            frameId: realtimeFrameId,
+                            styleKey,
+                            screens: aiScreens.length,
+                            elements: aiScreens?.[0]?.elements?.length ?? 0,
+                            // helpful: quick peek at semantics coming through
+                            semantics: (aiScreens?.[0]?.elements ?? []).map((e: any) => e.semantic),
+                        });
+                    } catch { }
+
                     if (aiScreens.length > 0) {
                         console.log("[realtime-ai] rendering screens", aiScreens.length);
                         const stale = canvas.getObjects().filter((o: any) =>
