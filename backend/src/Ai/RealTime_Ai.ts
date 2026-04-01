@@ -393,19 +393,23 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
 
     // Identify a dominant block (largest area) excluding nav-like bars.
     const areaOf = (b: any) => b.w * b.h
+
     const isNavLike = (b: any) => {
         const aspect = b.w / Math.max(1e-6, b.h)
         return b.y <= 0.22 && b.h <= 0.18 && b.w >= 0.5 && aspect >= 4
     }
+
     const isFooterLike = (b: any) => {
         const aspect = b.w / Math.max(1e-6, b.h)
         return b.y + b.h >= 0.82 && b.h <= 0.22 && b.w >= 0.55 && aspect >= 3
     }
+
     const isSidebarLike = (b: any) => {
         const nearLeft = b.x <= 0.1
         const nearRight = b.x + b.w >= 0.9
         return b.w <= 0.26 && b.h >= 0.5 && (nearLeft || nearRight)
     }
+
     const isCtaLike = (b: any) => {
         const aspect = b.w / Math.max(1e-6, b.h)
         const area = areaOf(b)
@@ -414,6 +418,7 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
         const lowerHalf = b.y >= 0.35
         return small && pillish && lowerHalf
     }
+
     const isHeroTextLike = (b: any) => {
         const area = areaOf(b)
         const wide = b.w >= 0.45
@@ -421,10 +426,12 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
         const nearTop = b.y <= 0.65
         return wide && notTall && nearTop && area >= 0.04 && area <= 0.35
     }
+
     const isMediaLike = (b: any) => {
         const area = areaOf(b)
         return area >= 0.22 && b.h >= 0.28
     }
+
     const dominant = [...usable]
         .filter((b) => !isNavLike(b))
         .sort((a, b) => areaOf(b) - areaOf(a))[0]
@@ -457,10 +464,30 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
             row: opts.row,
             span,
             rowSpan,
-            style: { bbox: { x: b.x, y: b.y, w: b.w, h: b.h } },
+            style: {
+                bbox:
+                {
+                    x: b.x,
+                    y: b.y,
+                    w: b.w,
+                    h: b.h
+                }
+            },
         })
         return rowSpan
     }
+
+    // Content Area : top 6% and left 6%
+    const MarginX = 0.06
+    const MarginY = 0.06
+
+    const content_left = MarginX
+    const content_right = 1 - MarginX
+    const content_top = MarginY
+    const content_bottom = 1 - MarginY
+    const content_width = content_right - content_left
+    const content_height = content_bottom - content_top
+
 
     // --- Pattern grouping (variety) ---
     // FAQ: a stack of thin wide rows -> emit a single `faq` container.
@@ -480,6 +507,7 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
             const gapOk = gap >= -0.02 && gap <= 0.12
             return xOk && wOk && gapOk
         }
+        // flush is basically to emit a faq container for the current group if it has enough items
         const flush = () => {
             if (group.length >= 4) {
                 const bbox = unionBBox(group)
