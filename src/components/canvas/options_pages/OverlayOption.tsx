@@ -1215,7 +1215,7 @@ const FramesOverlay = ({ frame }: any) => {
 
     const DEFAULT_AI_Heading = {
         text: "Ai Zone",
-        fontSize: 40,
+        fontSize: 70,
         charSpacing: -100,
         fill: "#000",
         fontFamily: "arial",
@@ -1223,7 +1223,7 @@ const FramesOverlay = ({ frame }: any) => {
 
     const DEFAULT_AI_Text = {
         text: "Sketch to get results",
-        fontSize: 65,
+        fontSize: 200,
         charSpacing: -70,
         fill: "#000",
         fontFamily: "arial"
@@ -1643,13 +1643,15 @@ const FramesOverlay = ({ frame }: any) => {
         <>
             {isSourceSketchFrame && aiScreenPos && aiScreenFrame && (
                 <div
-                    className={`absolute pointer-events-none  ${isCanvasEmpty ? 'opacity-100' : 'opacity-0' // Just fade it out instead of deleting it
+                    className={`absolute pointer-events-none ${isCanvasEmpty ? 'opacity-100' : 'opacity-0' // Just fade it out instead of deleting it
                         }`}
                     style={{
                         left: aiScreenPos.x,
                         top: aiScreenPos.y,
-                        width: aiScreenFrame.width * zoom + 1,
-                        height: aiScreenFrame.height * zoom + 1,
+                        width: aiScreenFrame.width,
+                        height: aiScreenFrame.height,
+                        transform: `scale(${zoom})`,
+                        transformOrigin: 'top left',
                         zIndex: 0,
                         borderRadius: '6px',
                         overflow: 'hidden',

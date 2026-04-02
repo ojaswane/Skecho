@@ -29,6 +29,23 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
     setCanvas(c)
     setStoreCanvas(c as any)
 
+    const applyOverlayVignette = (t: 'light' | 'dark') => {
+      const h = c.getHeight()
+      const strength = t === 'dark' ? 0.18 : 0.08
+      c.overlayColor = new fabric.Gradient({
+        type: 'linear',
+        gradientUnits: 'pixels',
+        coords: { x1: 0, y1: 0, x2: 0, y2: h },
+        colorStops: [
+          { offset: 0, color: `rgba(0,0,0,${strength})` },
+          { offset: 0.8, color: `rgba(0,0,0,${strength * 0.4})` },
+          { offset: 1, color: 'rgba(0,0,0,0)' },
+        ],
+      })
+      c.requestRenderAll()
+    }
+    applyOverlayVignette(theme)
+
     // Delete key
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete') {
@@ -74,6 +91,18 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
     if (!canvas) return
 
     canvas.backgroundColor = theme === 'dark' ? '#1a1a1a' : '#ffffff'
+    const h = canvas.getHeight()
+    const strength = theme === 'dark' ? 0.18 : 0.08
+    canvas.overlayColor = new fabric.Gradient({
+      type: 'linear',
+      gradientUnits: 'pixels',
+      coords: { x1: 0, y1: 0, x2: 0, y2: h },
+      colorStops: [
+        { offset: 0, color: `rgba(0,0,0,${strength})` },
+        { offset: 0.8, color: `rgba(0,0,0,${strength * 0.4})` },
+        { offset: 1, color: 'rgba(0,0,0,0)' },
+      ],
+    })
     canvas.requestRenderAll()
 
   }, [theme, canvas])
@@ -275,43 +304,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   }, [canvas])
 
 
-  // Add vignette effect styles once on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const vignetteStyleId = 'canvas-vignette-style';
-      if (!document.getElementById(vignetteStyleId)) {
-        const style = document.createElement('style');
-        style.id = vignetteStyleId;
-        style.innerHTML = `
-          .vignette-effect {
-            position: relative;
-          }
-          .vignette-effect::after {
-            content: '';
-            pointer-events: none;
-            position: absolute;
-            left: 0;
-            top: 0;
-            right: 0;
-            height: 98%; /* leave bottom border clear */
-            border-top-left-radius: 1rem;
-            border-top-right-radius: 1rem;
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-            z-index: 10;
-            box-shadow:
-              0 0 0 16px rgba(0,0,0,0.08),
-              0 0 64px 32px rgba(0,0,0,0.13);
-            background: linear-gradient(to bottom, rgba(0,0,0,0.13) 0%, rgba(0,0,0,0.07) 80%, rgba(0,0,0,0) 100%);
-            filter: blur(4px);
-            opacity: 0.85;
-            transition: opacity 0.3s;
-          }
-        `;
-        document.head.appendChild(style);
-      }
-    }
-  }, []);
+  // Vignette overlay is now rendered inside Fabric so it stays stable while zooming.
 
   return (
     <div className="relative w-full h-full overflow-hidden mt-5 flex justify-center items-start">
