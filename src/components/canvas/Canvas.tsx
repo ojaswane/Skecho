@@ -12,7 +12,6 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null)
   const { setCanvas: setStoreCanvas, setSelectedObject } = useCanvasStore()
-
   /* =========================
     CANVAS INIT
   ========================= */

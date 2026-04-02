@@ -66,6 +66,8 @@ const FramesOverlay = ({ frame }: any) => {
     const FRAME_GAP = 100;
     const SECTION_PADDING = 60;
     const SECTION_TOP_MARGIN = 70;
+    const { activeTool } = useCanvasStore() // This will give us the tool which is active 
+    // now we gotta check that if te tool is select then we will add the debugg boxex
 
     // Realtime control refs (kept outside render loop).
     // Debounce/snapshot refs keep timers stable across renders.
@@ -107,12 +109,13 @@ const FramesOverlay = ({ frame }: any) => {
         }
     }
 
-    
+
     // DEBUG: "INVISIBLE BOXES"
     // Draws thin outlines + labels for sketchGraph.blocks[] so you can visually confirm
     // what the algorithm thinks the user sketched.
     // - Only used on SketchZone.
     // - Objects are tagged isDebugOverlay=true and can be cleared safely.
+
 
     const clearSketchDebugOverlay = React.useCallback(() => {
         if (!canvas) return;
@@ -126,6 +129,7 @@ const FramesOverlay = ({ frame }: any) => {
         if (!canvas) return;
         clearSketchDebugOverlay();
         if (!showSketchDebug) return;
+        
         if (!Array.isArray(blocks) || blocks.length === 0) {
             // If nothing was detected, still show *something* so we know the debug overlay is active.
             const msg = new fabric.Text("No debug blocks (tune thresholds)", {
@@ -203,7 +207,7 @@ const FramesOverlay = ({ frame }: any) => {
     // If debug is toggled off, immediately remove overlays.
     useEffect(() => {
         if (!canvas) return;
-        if (!showSketchDebug) {
+        if (!showSketchDebug && activeTool !== "Select") {
             clearSketchDebugOverlay();
             canvas.requestRenderAll();
         } else {
