@@ -1753,6 +1753,29 @@ const FramesOverlay = ({ frame }: any) => {
 
             </div>
 
+            {/* Hover hint: show "Label Your Sketch..." inside the hovered block */}
+            {activeTool === "Select" && hoveredBlockRect && (
+                <div
+                    className="absolute pointer-events-none z-40"
+                    style={{
+                        left: canvasToScreen(canvas, hoveredBlockRect.x, hoveredBlockRect.y).x,
+                        top: canvasToScreen(canvas, hoveredBlockRect.x, hoveredBlockRect.y).y,
+                        width: hoveredBlockRect.w * zoom,
+                        height: hoveredBlockRect.h * zoom,
+                    }}
+                >
+                    <div
+                        className="px-4 py-2 text-sm text-white/70"
+                        style={{
+                            fontFamily: "Inter, Arial",
+                            fontSize: "18px",
+                        }}
+                    >
+                        Label Your Sketch ...
+                    </div>
+                </div>
+            )}
+
             {/* Label popover (Select mode) */}
             {selectedBlockId && labelPopoverPos && (
                 <div
@@ -1762,38 +1785,51 @@ const FramesOverlay = ({ frame }: any) => {
                         top: labelPopoverPos.y - 48,
                     }}
                 >
-                    <div className="bg-black/80 text-white rounded-xl p-3 w-[220px] shadow-xl border border-white/10">
-                        <div className="text-xs text-white/70 mb-2">Label this block</div>
-                        <input
-                            value={labelInput}
-                            onChange={(e) => setLabelInput(e.target.value)}
-                            className="w-full rounded-md bg-white/10 border border-white/10 text-white text-sm px-2 py-1 outline-none"
-                            placeholder="e.g. timer"
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
+                    <div className="bg-black/80 text-white rounded-2xl p-4 w-[360px] shadow-2xl border border-white/10 animate-in fade-in slide-in-from-top-2">
+                        <div className="text-sm text-white/70 mb-3">Label Your Sketch ...</div>
+                        <div className="flex items-center gap-2 bg-white/10 border border-white/10 rounded-full px-3 py-2">
+                            <span className="text-xs text-white/70">AI suggests</span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                {quickLabels.map((q) => (
+                                    <button
+                                        key={q}
+                                        onClick={() => {
+                                            setLabelInput(q);
+                                            setBlockLabels((prev) => ({ ...prev, [selectedBlockId]: q }));
+                                        }}
+                                        className="text-xs px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/10"
+                                    >
+                                        {q}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-3">
+                            <input
+                                value={labelInput}
+                                onChange={(e) => setLabelInput(e.target.value)}
+                                className="flex-1 rounded-md bg-white/10 border border-white/10 text-white text-sm px-3 py-2 outline-none"
+                                placeholder="Type your own label..."
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        saveLabel();
+                                        setSelectedBlockId(null);
+                                        setLabelPopoverPos(null);
+                                    }
+                                }}
+                            />
+                            <button
+                                onClick={() => {
                                     saveLabel();
                                     setSelectedBlockId(null);
                                     setLabelPopoverPos(null);
-                                }
-                            }}
-                        />
-
-                        <div className="flex flex-wrap gap-1 mt-2">
-                            {quickLabels.map((q) => (
-                                <button
-                                    key={q}
-                                    onClick={() => {
-                                        setLabelInput(q);
-                                        setBlockLabels((prev) => ({ ...prev, [selectedBlockId]: q }));
-                                    }}
-                                    className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/10"
-                                >
-                                    {q}
-                                </button>
-                            ))}
+                                }}
+                                className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md"
+                            >
+                                Save
+                            </button>
                         </div>
-
-                        <div className="flex items-center justify-end gap-2 mt-3">
+                        <div className="flex items-center justify-end gap-2 mt-2">
                             <button
                                 onClick={() => {
                                     setLabelInput("");
@@ -1806,16 +1842,6 @@ const FramesOverlay = ({ frame }: any) => {
                                 className="text-xs text-white/70 hover:text-white"
                             >
                                 Clear
-                            </button>
-                            <button
-                                onClick={() => {
-                                    saveLabel();
-                                    setSelectedBlockId(null);
-                                    setLabelPopoverPos(null);
-                                }}
-                                className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded-md"
-                            >
-                                Save
                             </button>
                         </div>
                     </div>
