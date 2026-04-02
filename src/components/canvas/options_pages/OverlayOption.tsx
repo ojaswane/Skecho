@@ -64,7 +64,7 @@ const FramesOverlay = ({ frame }: any) => {
     const [labelInput, setLabelInput] = useState("");
     const [blockLabels, setBlockLabels] = useState<Record<string, string>>({});
     const hoverOutlineRef = React.useRef<fabric.Rect | null>(null);
-    
+
     const normalizedBadge = String(frame.badge || '').toLowerCase();
     const isSourceSketchFrame = normalizedBadge === 'sketch' || normalizedBadge === 'idea';
     const pairedAiFrame = isSourceSketchFrame
@@ -123,7 +123,6 @@ const FramesOverlay = ({ frame }: any) => {
     // what the algorithm thinks the user sketched.
     // - Only used on SketchZone.
     // - Objects are tagged isDebugOverlay=true and can be cleared safely.
-
 
     const clearSketchDebugOverlay = React.useCallback(() => {
         if (!canvas) return;
@@ -223,6 +222,99 @@ const FramesOverlay = ({ frame }: any) => {
             drawSketchDebugOverlay(lastSketchDebugBlocksRef.current);
         }
     }, [canvas, clearSketchDebugOverlay, drawSketchDebugOverlay, showSketchDebug]);
+
+    // Hover outline (Select mode): show Figma-like border around detected blocks.
+    useEffect(() => {
+        if (!canvas || !isSourceSketchFrame) return;
+
+        const ensureHoverOutline = () => {
+            if (hoverOutlineRef.current) return hoverOutlineRef.current; //for do the hover thing without rerendering
+
+            const rect = new fabric.Rect({
+                left: 0,
+                top: 0,
+                width: 1,
+                height: 1,
+                fill: "rgba(0,0,0,0)",
+                stroke: "rgba(59, 130, 246, 0.95)", // blue
+                strokeWidth: 2,
+                strokeDashArray: [6, 4],
+                rx: 8,
+                ry: 8,
+                selectable: false,
+                evented: false,
+                visible: false,
+            });
+
+            rect.set("isHoverOverlay", true);
+            rect.set("frameId", frame.id);
+            canvas.add(rect);
+            canvas.bringObjectToFront(rect);
+            hoverOutlineRef.current = rect;
+            return rect;
+        };
+
+        const hideOutline = () => {
+            const rect = hoverOutlineRef.current;
+            if (!rect) return;
+            rect.set({ visible: false });
+            canvas.requestRenderAll();
+        };
+
+        const findHoveredBlock = (pt: { x: number; y: number }) => {
+            const blocks = lastSketchDebugBlocksRef.current || [];
+            for (const b of blocks) {
+                const pxX = frame.left + b.x * frame.width;
+                const pxY = frame.top + b.y * frame.height;
+                const pxW = Math.max(1, b.w * frame.width);
+                const pxH = Math.max(1, b.h * frame.height);
+                if (pt.x >= pxX && pt.x <= pxX + pxW && pt.y >= pxY && pt.y <= pxY + pxH) {
+                    return { id: b.id, x: pxX, y: pxY, w: pxW, h: pxH };
+                }
+            }
+            return null;
+        };
+
+        const onMouseMove = (e: any) => {
+            if (activeTool !== "Select") {
+                if (hoveredBlockId) setHoveredBlockId(null);
+                hideOutline();
+                return;
+            }
+            const pointer = canvas.getPointer(e.e);
+            const hit = findHoveredBlock(pointer);
+            if (!hit) {
+                if (hoveredBlockId) setHoveredBlockId(null);
+                hideOutline();
+                return;
+            }
+            if (hoveredBlockId !== hit.id) setHoveredBlockId(hit.id);
+            const outline = ensureHoverOutline();
+            outline.set({
+                left: hit.x,
+                top: hit.y,
+                width: hit.w,
+                height: hit.h,
+                visible: true,
+            });
+            outline.setCoords();
+            canvas.bringObjectToFront(outline);
+            canvas.requestRenderAll();
+        };
+
+        const onMouseOut = () => {
+            if (hoveredBlockId) setHoveredBlockId(null);
+            hideOutline();
+        };
+
+        canvas.on("mouse:move", onMouseMove);
+        canvas.on("mouse:out", onMouseOut as any);
+
+        return () => {
+            canvas.off("mouse:move", onMouseMove);
+            canvas.off("mouse:out", onMouseOut as any);
+        };
+    }, [canvas, activeTool, frame.id, frame.left, frame.top, frame.width, frame.height, hoveredBlockId, isSourceSketchFrame]);
 
     /* ------------------ Web Sockets ------------------*/
 
