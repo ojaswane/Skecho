@@ -250,11 +250,12 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
         lastPointer = new fabric.Point(p.x, p.y)
         pendingZoomDelta += dy
       } else {
+        const panSpeed = 0.7
         if (e.shiftKey) {
-          pendingPanX += dy
+          pendingPanX += dy * panSpeed
         } else {
-          pendingPanX += dx
-          pendingPanY += dy
+          pendingPanX += dx * panSpeed
+          pendingPanY += dy * panSpeed
         }
       }
 
