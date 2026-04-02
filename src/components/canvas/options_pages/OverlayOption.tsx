@@ -57,6 +57,14 @@ const FramesOverlay = ({ frame }: any) => {
     // Debug toggle: shows the "invisible boxes" (detected sketchGraph blocks) on the SketchZone canvas.
     const [showSketchDebug, setShowSketchDebug] = useState(false);
     const lastSketchDebugBlocksRef = React.useRef<any[]>([]);
+
+    // Hover/label state for sketch blocks (Select mode).
+    const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
+    const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+    const [labelInput, setLabelInput] = useState("");
+    const [blockLabels, setBlockLabels] = useState<Record<string, string>>({});
+    const hoverOutlineRef = React.useRef<fabric.Rect | null>(null);
+    
     const normalizedBadge = String(frame.badge || '').toLowerCase();
     const isSourceSketchFrame = normalizedBadge === 'sketch' || normalizedBadge === 'idea';
     const pairedAiFrame = isSourceSketchFrame
