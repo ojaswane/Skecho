@@ -210,30 +210,67 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   useEffect(() => {
     if (!canvas) return
 
-    const onWheel = (opt: any) => {
-      const e = opt.e
-      const delta = e.deltaY
-      const zoom = canvas.getZoom()
-      const vpt = canvas.viewportTransform!
+    // Smooth trackpad zoom/pan (rAF-batched) for a Figma-like feel.
+    let rafId: number | null = null
+    let pendingPanX = 0
+    let pendingPanY = 0
+    let pendingZoomDelta = 0
+    let lastPointer: fabric.Point | null = null
 
-      if (e.ctrlKey) {
-        let newZoom = zoom * (delta > 0 ? 0.95 : 1.05)
+    const flush = () => {
+      rafId = null
+      const zoom = canvas.getZoom()
+
+      if (pendingZoomDelta !== 0 && lastPointer) {
+        const zoomFactor = Math.exp(-pendingZoomDelta * 0.0015)
+        let newZoom = zoom * zoomFactor
         newZoom = Math.min(Math.max(newZoom, 0.1), 6)
-        const p = canvas.getPointer(e)
-        canvas.zoomToPoint(new fabric.Point(p.x, p.y), newZoom)
-      } else if (e.shiftKey) {
-        vpt[4] -= delta
-      } else {
-        vpt[5] -= delta
+        canvas.zoomToPoint(lastPointer, newZoom)
       }
 
+      if (pendingPanX !== 0 || pendingPanY !== 0) {
+        canvas.relativePan(new fabric.Point(-pendingPanX, -pendingPanY))
+      }
+
+      pendingPanX = 0
+      pendingPanY = 0
+      pendingZoomDelta = 0
       canvas.requestRenderAll()
+    }
+
+    const onWheel = (opt: any) => {
+      const e = opt.e
+      const deltaMode = e.deltaMode || 0
+      const scale = deltaMode === 1 ? 16 : deltaMode === 2 ? 120 : 1
+      const dx = (e.deltaX || 0) * scale
+      const dy = (e.deltaY || 0) * scale
+
+      if (e.ctrlKey || e.metaKey) {
+        const p = canvas.getPointer(e)
+        lastPointer = new fabric.Point(p.x, p.y)
+        pendingZoomDelta += dy
+      } else {
+        if (e.shiftKey) {
+          pendingPanX += dy
+        } else {
+          pendingPanX += dx
+          pendingPanY += dy
+        }
+      }
+
+      if (rafId == null) {
+        rafId = requestAnimationFrame(flush)
+      }
+
       e.preventDefault()
       e.stopPropagation()
     }
 
     canvas.on('mouse:wheel', onWheel)
-    return () => canvas.off('mouse:wheel', onWheel)
+    return () => {
+      canvas.off('mouse:wheel', onWheel)
+      if (rafId) cancelAnimationFrame(rafId)
+    }
   }, [canvas])
 
 
