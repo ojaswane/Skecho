@@ -63,6 +63,8 @@ const FramesOverlay = ({ frame }: any) => {
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
     const [labelInput, setLabelInput] = useState("");
     const [blockLabels, setBlockLabels] = useState<Record<string, string>>({});
+    const [hoveredBlockRect, setHoveredBlockRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+    const [labelPopoverPos, setLabelPopoverPos] = useState<{ x: number; y: number } | null>(null);
     const hoverOutlineRef = React.useRef<fabric.Rect | null>(null);
 
     const normalizedBadge = String(frame.badge || '').toLowerCase();
@@ -278,6 +280,7 @@ const FramesOverlay = ({ frame }: any) => {
         const onMouseMove = (e: any) => {
             if (activeTool !== "Select") {
                 if (hoveredBlockId) setHoveredBlockId(null);
+                if (hoveredBlockRect) setHoveredBlockRect(null);
                 hideOutline();
                 return;
             }
@@ -285,10 +288,14 @@ const FramesOverlay = ({ frame }: any) => {
             const hit = findHoveredBlock(pointer);
             if (!hit) {
                 if (hoveredBlockId) setHoveredBlockId(null);
+                if (hoveredBlockRect) setHoveredBlockRect(null);
                 hideOutline();
                 return;
             }
             if (hoveredBlockId !== hit.id) setHoveredBlockId(hit.id);
+            if (!hoveredBlockRect || hoveredBlockRect.x !== hit.x || hoveredBlockRect.y !== hit.y) {
+                setHoveredBlockRect({ x: hit.x, y: hit.y, w: hit.w, h: hit.h });
+            }
             const outline = ensureHoverOutline();
             outline.set({
                 left: hit.x,
@@ -304,6 +311,7 @@ const FramesOverlay = ({ frame }: any) => {
 
         const onMouseOut = () => {
             if (hoveredBlockId) setHoveredBlockId(null);
+            if (hoveredBlockRect) setHoveredBlockRect(null);
             hideOutline();
         };
 
@@ -315,6 +323,36 @@ const FramesOverlay = ({ frame }: any) => {
             canvas.off("mouse:out", onMouseOut as any);
         };
     }, [canvas, activeTool, frame.id, frame.left, frame.top, frame.width, frame.height, hoveredBlockId, isSourceSketchFrame]);
+
+    // Click-to-label (Select mode): click a hovered block to open label input.
+    useEffect(() => {
+        if (!canvas || !isSourceSketchFrame) return;
+
+        const onMouseDown = () => {
+            if (activeTool !== "Select") return;
+            if (!hoveredBlockId || !hoveredBlockRect) return;
+
+            setSelectedBlockId(hoveredBlockId);
+            setLabelInput(blockLabels[hoveredBlockId] ?? "");
+
+            // Position popover near the block (screen coords).
+            const screen = canvasToScreen(canvas, hoveredBlockRect.x, hoveredBlockRect.y);
+            setLabelPopoverPos({ x: screen.x, y: screen.y });
+        };
+
+        canvas.on("mouse:down", onMouseDown);
+        return () => {
+            canvas.off("mouse:down", onMouseDown);
+        };
+    }, [canvas, activeTool, hoveredBlockId, hoveredBlockRect, blockLabels, isSourceSketchFrame]);
+
+    // If user leaves Select mode, close the label UI.
+    useEffect(() => {
+        if (activeTool !== "Select") {
+            setSelectedBlockId(null);
+            setLabelPopoverPos(null);
+        }
+    }, [activeTool]);
 
     /* ------------------ Web Sockets ------------------*/
 
@@ -627,6 +665,7 @@ const FramesOverlay = ({ frame }: any) => {
                             shapeType,
                             confidenceRect,
                             zone: it.zone,
+                            label: blockLabels[`b-${idx}`] ?? "",
                         };
                     }),
                 };
@@ -1588,6 +1627,17 @@ const FramesOverlay = ({ frame }: any) => {
 
 
     /* ------------------ UI ------------------ */
+    const quickLabels = ["timer", "chart", "calendar", "kpi", "tasks", "table"];
+    const saveLabel = () => {
+        if (!selectedBlockId) return;
+        const value = labelInput.trim();
+        setBlockLabels((prev) => {
+            const next = { ...prev };
+            if (value) next[selectedBlockId] = value;
+            else delete next[selectedBlockId];
+            return next;
+        });
+    };
     return (
 
         <>
@@ -1702,6 +1752,75 @@ const FramesOverlay = ({ frame }: any) => {
 
 
             </div>
+
+            {/* Label popover (Select mode) */}
+            {selectedBlockId && labelPopoverPos && (
+                <div
+                    className="absolute pointer-events-auto z-50"
+                    style={{
+                        left: labelPopoverPos.x,
+                        top: labelPopoverPos.y - 48,
+                    }}
+                >
+                    <div className="bg-black/80 text-white rounded-xl p-3 w-[220px] shadow-xl border border-white/10">
+                        <div className="text-xs text-white/70 mb-2">Label this block</div>
+                        <input
+                            value={labelInput}
+                            onChange={(e) => setLabelInput(e.target.value)}
+                            className="w-full rounded-md bg-white/10 border border-white/10 text-white text-sm px-2 py-1 outline-none"
+                            placeholder="e.g. timer"
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    saveLabel();
+                                    setSelectedBlockId(null);
+                                    setLabelPopoverPos(null);
+                                }
+                            }}
+                        />
+
+                        <div className="flex flex-wrap gap-1 mt-2">
+                            {quickLabels.map((q) => (
+                                <button
+                                    key={q}
+                                    onClick={() => {
+                                        setLabelInput(q);
+                                        setBlockLabels((prev) => ({ ...prev, [selectedBlockId]: q }));
+                                    }}
+                                    className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/10"
+                                >
+                                    {q}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 mt-3">
+                            <button
+                                onClick={() => {
+                                    setLabelInput("");
+                                    setBlockLabels((prev) => {
+                                        const next = { ...prev };
+                                        delete next[selectedBlockId];
+                                        return next;
+                                    });
+                                }}
+                                className="text-xs text-white/70 hover:text-white"
+                            >
+                                Clear
+                            </button>
+                            <button
+                                onClick={() => {
+                                    saveLabel();
+                                    setSelectedBlockId(null);
+                                    setLabelPopoverPos(null);
+                                }}
+                                className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded-md"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     )
 }
