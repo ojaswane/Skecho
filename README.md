@@ -2,6 +2,11 @@ STATUS : development
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## MVP Notes / Later
+
+- **Blob / Organic card container** (gooey/liquid UI): implement an “organic” card shape (like the reference chip-card) as a renderer style option (e.g. `style: blob` / `style: organic`), ideally via an SVG path (`fabric.Path` / `loadSVGFromString`) or a quick MVP version by composing rounded-rect + circles with matching fill.
+- **Image generation / replacement:** allow users to generate (or swap) images for `media` blocks (hero images, card thumbnails) via an image-gen step, without changing the layout geometry (`bbox` stays fixed).
+
 ## Getting Started
 
 This repo has **two** dev servers:
