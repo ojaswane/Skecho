@@ -366,6 +366,7 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
             h: clamp(b.h, 0.01, 1),
             shapeType: b.shapeType,
             confidenceRect: b.confidenceRect ?? 0,
+            label: typeof (b as any).label === "string" ? (b as any).label : "",
         }))
 
     if (!usable.length) return null
@@ -694,12 +695,24 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
 
             // Minimal semantics (helps renderer) without changing geometry.
             let semantic: any = "card"
-            if (isNavLike(b)) semantic = "nav"
-            else if (isFooterLike(b)) semantic = "footer"
-            else if (isSidebarLike(b)) semantic = "sidebar"
-            else if (isCtaLike(b)) semantic = "cta"
-            else if (isMediaLike(b)) semantic = "media"
-            else if (isHeroTextLike(b)) semantic = "hero_text"
+
+            // Label override: if user labeled the block, prefer that intent.
+            const rawLabel = String((b as any).label || "").trim().toLowerCase()
+            if (rawLabel) {
+                if (["timer", "time", "tracker", "stopwatch"].includes(rawLabel)) semantic = "widget_timer"
+                else if (["chart", "graph", "progress", "analytics"].includes(rawLabel)) semantic = "widget_chart"
+                else if (["calendar", "schedule", "agenda"].includes(rawLabel)) semantic = "widget_calendar"
+                else if (["tasks", "todo", "checklist"].includes(rawLabel)) semantic = "widget_tasks"
+            }
+
+            if (semantic === "card") {
+                if (isNavLike(b)) semantic = "nav"
+                else if (isFooterLike(b)) semantic = "footer"
+                else if (isSidebarLike(b)) semantic = "sidebar"
+                else if (isCtaLike(b)) semantic = "cta"
+                else if (isMediaLike(b)) semantic = "media"
+                else if (isHeroTextLike(b)) semantic = "hero_text"
+            }
 
             frames.push({
                 id: b.id,
