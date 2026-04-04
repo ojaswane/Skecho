@@ -147,6 +147,29 @@ export default function renderFromAI(
       return t
     }
 
+    // Pre-calc nav/sidebar lanes for main content alignment
+    const absElements = screen.elements.filter((e) => e.bbox)
+    const navEl = absElements.find((e) => String(e.semantic ?? "").toLowerCase() === "nav")
+    const sidebarEl = absElements.find((e) => String(e.semantic ?? "").toLowerCase() === "sidebar")
+    const hasNav = Boolean(navEl?.bbox)
+    const hasSidebar = Boolean(sidebarEl?.bbox)
+    const margin = clamp(frame.width * 0.04, 16, 36)
+    const laneGap = clamp(frame.width * 0.02, 12, 24)
+    const navBottom = hasNav && navEl?.bbox
+      ? frame.top + navEl.bbox.y * frame.height + navEl.bbox.h * frame.height
+      : frame.top + margin
+    const sidebarRight = hasSidebar && sidebarEl?.bbox
+      ? frame.left + sidebarEl.bbox.x * frame.width + sidebarEl.bbox.w * frame.width
+      : frame.left + margin
+    const mainLeft = hasSidebar ? sidebarRight + laneGap : frame.left + margin
+    const mainTop = hasNav ? navBottom + laneGap : frame.top + margin
+    const mainRight = frame.left + frame.width - margin
+    const mainBottom = frame.top + frame.height - margin
+    const mainWidth = Math.max(1, mainRight - mainLeft)
+    const mainHeight = Math.max(1, mainBottom - mainTop)
+    let mainStackY = mainTop
+    const stackGap = clamp(frame.height * 0.02, 12, 24)
+
     // Container-first layout (profile/dashboard style): one big box + children inside
     const absoluteElements = screen.elements.filter((e) => e.bbox)
     let containerEl = absoluteElements
@@ -316,7 +339,16 @@ export default function renderFromAI(
       }
     }
 
-    for (const el of screen.elements) {
+    const sortedElements = [...screen.elements].sort((a, b) => {
+      const ay = a.bbox?.y ?? a.row ?? 0
+      const by = b.bbox?.y ?? b.row ?? 0
+      if (ay !== by) return ay - by
+      const ax = a.bbox?.x ?? a.col ?? 0
+      const bx = b.bbox?.x ?? b.col ?? 0
+      return ax - bx
+    })
+
+    for (const el of sortedElements) {
       const semantic = String((el as any).semantic ?? "").toLowerCase()
       const bbox = (el as any).bbox
 
@@ -400,6 +432,24 @@ export default function renderFromAI(
         // Clamp to frame bounds again after snapping
         left = Math.max(frame.left + margin, Math.min(left, frame.left + frame.width - margin - safeWidth))
         top = Math.max(frame.top + margin, Math.min(top, frame.top + frame.height - margin - safeHeight))
+      }
+
+      // Lane-based main content alignment (dashboard-like)
+      const semanticKey = String((el as any).semantic ?? "").toLowerCase()
+      const isLaneElement = semanticKey === "nav" || semanticKey === "sidebar" || semanticKey === "footer"
+      const shouldStackInMain =
+        useAbsolute &&
+        (hasNav || hasSidebar) &&
+        !isLaneElement &&
+        !skippedIds.has(el.id) &&
+        mainStackY < mainBottom - 20
+
+      if (shouldStackInMain) {
+        left = mainLeft
+        top = mainStackY
+        safeWidth = Math.min(safeWidth, mainWidth)
+        safeHeight = Math.min(safeHeight, Math.max(1, mainBottom - top))
+        mainStackY = top + safeHeight + stackGap
       }
 
       // Simple collision resolver : prevent overlapping cards
