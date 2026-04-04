@@ -285,13 +285,22 @@ export default function renderFromAI(
 
       // SIDEBAR: vertical navigation panel (logo + menu pills + account chip)
       if (semantic === "sidebar") {
+        // Dark premium sidebar styling (matches reference)
+        const sidebarBg = "#141416"
+        const sidebarBorder = "#232328"
+        const textLight = "#E7EAF0"
+        const textMuted = "#9CA3AF"
+        const itemFill = "#1B1B20"
+        const itemActive = "#3B32B2"
+        const buttonFill = "#5B5BFF"
+
         const panel = new fabric.Rect({
           left,
           top,
           width: safeWidth,
           height: safeHeight,
-          fill: preset?.color?.card ?? "#ffffff",
-          stroke: preset?.color?.border ?? "#e5e7eb",
+          fill: sidebarBg,
+          stroke: sidebarBorder,
           strokeWidth: 1,
           rx: cardRadius,
           ry: cardRadius,
@@ -299,69 +308,266 @@ export default function renderFromAI(
         })
         addObj(panel)
 
-        const itemH = clamp(Math.min(safeWidth, safeHeight) * 0.085, 20, 30)
-        const itemGap = clamp(itemH * 0.45, 8, 14)
+        const innerPad = clamp(Math.min(safeWidth, safeHeight) * 0.09, 14, 26)
+        const x = left + innerPad
+        let y = top + innerPad
 
-        const x = left + pad
-        let y = top + pad
-
-        const logoW = Math.max(40, Math.min(safeWidth - pad * 2, clamp(safeWidth * 0.62, 90, 160)))
-        addPill({
-          x,
-          y,
-          w: logoW,
-          h: itemH,
-          fill: preset?.color?.neutral100 ?? "#f1f5f9",
-          stroke: preset?.color?.border ?? "#e5e7eb",
+        // Brand row
+        const brandH = clamp(Math.min(safeWidth, safeHeight) * 0.08, 22, 30)
+        const brandIconR = clamp(brandH * 0.35, 6, 10)
+        const icon = new fabric.Circle({
+          left: x + brandIconR,
+          top: y + brandH / 2,
+          radius: brandIconR,
+          originX: "center",
+          originY: "center",
+          fill: "#ffffff",
+          selectable: false,
+          evented: false,
         })
+        addObj(icon)
         addText({
-          x,
-          y: y + itemH * 0.2,
-          w: logoW,
-          text: "Sketcho",
-          size: clamp(itemH * 0.52, 11, 15),
-          weight: 800,
-          fill: preset?.color?.textPrimary ?? "#0f172a",
+          x: x + brandIconR * 2 + clamp(brandH * 0.4, 6, 10),
+          y: y + brandH * 0.1,
+          w: safeWidth - innerPad * 2,
+          text: "Workly",
+          size: clamp(brandH * 0.75, 12, 16),
+          weight: 700,
+          fill: textLight,
           lh: 1.0,
         })
-        y += itemH + itemGap
+        y += brandH + clamp(brandH * 0.6, 10, 16)
 
-        const usableH = safeHeight - (y - top) - pad - itemH * 1.4
-        const count = Math.max(3, Math.min(9, Math.floor(usableH / (itemH + itemGap))))
-        for (let i = 0; i < count; i++) {
-          const w = Math.max(
-            48,
-            Math.min(safeWidth - pad * 2, clamp(safeWidth * (0.55 + (i % 3) * 0.12), 96, 240))
-          )
-          addPill({
-            x,
-            y,
-            w,
-            h: itemH,
-            fill: preset?.color?.neutral100 ?? "#f1f5f9",
-            stroke: preset?.color?.border ?? "#e5e7eb",
+        // Search bar
+        const searchH = clamp(brandH * 1.2, 26, 34)
+        const search = new fabric.Rect({
+          left: x,
+          top: y,
+          width: Math.max(1, safeWidth - innerPad * 2),
+          height: searchH,
+          fill: itemFill,
+          stroke: sidebarBorder,
+          strokeWidth: 1,
+          rx: 999,
+          ry: 999,
+          selectable: false,
+          evented: false,
+        })
+        addObj(search)
+        addText({
+          x: x + searchH * 0.5,
+          y: y + searchH * 0.22,
+          w: safeWidth - innerPad * 2 - searchH,
+          text: "Search...",
+          size: clamp(searchH * 0.38, 10, 13),
+          weight: 500,
+          fill: textMuted,
+          lh: 1.0,
+        })
+        y += searchH + clamp(searchH * 0.7, 10, 16)
+
+        const itemH = clamp(Math.min(safeWidth, safeHeight) * 0.085, 22, 30)
+        const itemGap = clamp(itemH * 0.45, 8, 14)
+        const menu = ["Home", "Notifications", "Tasks", "Settings"]
+
+        menu.forEach((label, i) => {
+          const isActive = label === "Tasks"
+          const row = new fabric.Rect({
+            left: x,
+            top: y,
+            width: Math.max(1, safeWidth - innerPad * 2),
+            height: itemH,
+            fill: isActive ? itemActive : "transparent",
+            rx: 999,
+            ry: 999,
+            selectable: false,
+            evented: false,
+          })
+          addObj(row)
+          const dot = new fabric.Circle({
+            left: x + itemH * 0.5,
+            top: y + itemH / 2,
+            radius: clamp(itemH * 0.22, 4, 6),
+            originX: "center",
+            originY: "center",
+            fill: isActive ? "#FFFFFF" : "#6B7280",
+            selectable: false,
+            evented: false,
+          })
+          addObj(dot)
+          addText({
+            x: x + itemH * 0.9,
+            y: y + itemH * 0.2,
+            w: safeWidth - innerPad * 2 - itemH,
+            text: label,
+            size: clamp(itemH * 0.48, 11, 14),
+            weight: isActive ? 700 : 600,
+            fill: textLight,
+            lh: 1.0,
           })
           y += itemH + itemGap
-        }
-
-        const chipH = clamp(itemH * 1.15, 24, 36)
-        const chipY = top + safeHeight - pad - chipH
-        addPill({
-          x,
-          y: chipY,
-          w: Math.max(1, safeWidth - pad * 2),
-          h: chipH,
-          fill: preset?.color?.neutral100 ?? "#f1f5f9",
-          stroke: preset?.color?.border ?? "#e5e7eb",
         })
+
+        // Section label
         addText({
           x,
-          y: chipY + chipH * 0.2,
-          w: Math.max(1, safeWidth - pad * 2),
-          text: "Account",
-          size: clamp(chipH * 0.44, 11, 14),
+          y: y + itemGap * 0.2,
+          w: safeWidth - innerPad * 2,
+          text: "OTHER",
+          size: clamp(itemH * 0.42, 10, 12),
+          weight: 700,
+          fill: textMuted,
+          lh: 1.0,
+        })
+        y += clamp(itemH * 0.9, 18, 24)
+
+        const otherItems = ["Documentation", "Refer a Friend", "Inbox", "Support"]
+        otherItems.forEach((label) => {
+          const row = new fabric.Rect({
+            left: x,
+            top: y,
+            width: Math.max(1, safeWidth - innerPad * 2),
+            height: itemH,
+            fill: "transparent",
+            rx: 999,
+            ry: 999,
+            selectable: false,
+            evented: false,
+          })
+          addObj(row)
+          const dot = new fabric.Circle({
+            left: x + itemH * 0.5,
+            top: y + itemH / 2,
+            radius: clamp(itemH * 0.2, 4, 6),
+            originX: "center",
+            originY: "center",
+            fill: "#6B7280",
+            selectable: false,
+            evented: false,
+          })
+          addObj(dot)
+          addText({
+            x: x + itemH * 0.9,
+            y: y + itemH * 0.2,
+            w: safeWidth - innerPad * 2 - itemH,
+            text: label,
+            size: clamp(itemH * 0.46, 10, 13),
+            weight: 600,
+            fill: textLight,
+            lh: 1.0,
+          })
+          y += itemH + itemGap
+        })
+
+        // Bottom CTA card
+        const ctaCardH = clamp(safeHeight * 0.2, 80, 120)
+        const ctaY = top + safeHeight - innerPad - ctaCardH - clamp(itemH * 1.2, 26, 36)
+        const ctaCard = new fabric.Rect({
+          left: x,
+          top: ctaY,
+          width: Math.max(1, safeWidth - innerPad * 2),
+          height: ctaCardH,
+          fill: itemFill,
+          stroke: sidebarBorder,
+          strokeWidth: 1,
+          rx: clamp(cardRadius, 14, 22),
+          ry: clamp(cardRadius, 14, 22),
+          selectable: false,
+          evented: false,
+        })
+        addObj(ctaCard)
+        addText({
+          x: x + innerPad * 0.6,
+          y: ctaY + innerPad * 0.5,
+          w: ctaCard.width!,
+          text: "Boost with AI",
+          size: clamp(itemH * 0.52, 12, 15),
+          weight: 700,
+          fill: textLight,
+          lh: 1.0,
+        })
+        addText({
+          x: x + innerPad * 0.6,
+          y: ctaY + innerPad * 1.4,
+          w: ctaCard.width! * 0.9,
+          text: "AI-powered replies, tag insights, and tools that save hours.",
+          size: clamp(itemH * 0.38, 9, 11),
+          weight: 500,
+          fill: textMuted,
+          lh: 1.2,
+        })
+        const btnH = clamp(itemH * 0.9, 22, 30)
+        const btnW = Math.min(ctaCard.width! - innerPad * 1.2, clamp(ctaCard.width! * 0.7, 90, 150))
+        const btn = new fabric.Rect({
+          left: x + innerPad * 0.6,
+          top: ctaY + ctaCardH - btnH - innerPad * 0.6,
+          width: btnW,
+          height: btnH,
+          fill: buttonFill,
+          rx: 999,
+          ry: 999,
+          selectable: false,
+          evented: false,
+        })
+        addObj(btn)
+        addText({
+          x: btn.left!,
+          y: btn.top! + btnH * 0.22,
+          w: btnW,
+          text: "Upgrade to Pro",
+          size: clamp(btnH * 0.45, 10, 13),
+          weight: 700,
+          fill: "#ffffff",
+          lh: 1.0,
+        })
+
+        // Profile chip
+        const chipH = clamp(itemH * 1.25, 26, 36)
+        const chipY = top + safeHeight - innerPad - chipH
+        const chip = new fabric.Rect({
+          left: x,
+          top: chipY,
+          width: Math.max(1, safeWidth - innerPad * 2),
+          height: chipH,
+          fill: itemFill,
+          stroke: sidebarBorder,
+          strokeWidth: 1,
+          rx: 999,
+          ry: 999,
+          selectable: false,
+          evented: false,
+        })
+        addObj(chip)
+        const avatarR = clamp(chipH * 0.3, 6, 9)
+        const avatar = new fabric.Circle({
+          left: x + chipH * 0.55,
+          top: chipY + chipH / 2,
+          radius: avatarR,
+          originX: "center",
+          originY: "center",
+          fill: "#64748b",
+          selectable: false,
+          evented: false,
+        })
+        addObj(avatar)
+        addText({
+          x: x + chipH * 1.1,
+          y: chipY + chipH * 0.18,
+          w: safeWidth - innerPad * 2 - chipH * 1.2,
+          text: "Damir S.",
+          size: clamp(chipH * 0.45, 11, 13),
           weight: 650,
-          fill: preset?.color?.textMuted ?? "#475569",
+          fill: textLight,
+          lh: 1.0,
+        })
+        addText({
+          x: x + chipH * 1.1,
+          y: chipY + chipH * 0.58,
+          w: safeWidth - innerPad * 2 - chipH * 1.2,
+          text: "damirschdev@gmail.com",
+          size: clamp(chipH * 0.32, 9, 11),
+          weight: 500,
+          fill: textMuted,
           lh: 1.0,
         })
         continue
