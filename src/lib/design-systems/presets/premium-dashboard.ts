@@ -31,24 +31,34 @@ export const premiumDashboardPreset = {
     },
     color: {
         ...color,
-        background: "#eef1f4",
-        backgroundMuted: "#f4f5f7",
-        surface: "#f7f6f2",
-        card: "#f8f7f3",
-        textPrimary: "#111827",
-        textMuted: "#6b7280",
-        border: "#e7e5e4",
-        borderStrong: "#d6d3d1",
-        primary: "#f5c84c",
-        primarySoft: "#fff5cc",
-        accent: "#f59e0b",
-        gradientPurple: "linear-gradient(135deg, #e9e3ff 0%, #fff3d6 100%)",
-        gradientBlue: "linear-gradient(135deg, #d7e8ff 0%, #f7f3dd 100%)"
+        // Dark premium dashboard surfaces (layered elevation)
+        background: "#121214",
+        backgroundMuted: "#15161A",
+        surface: "#181A1F",
+        card: "#1D2027",
+        // Text + borders tuned for dark mode readability
+        textPrimary: "#E7EAF0",
+        textMuted: "#9CA3AF",
+        border: "#2A2D36",
+        borderStrong: "#343843",
+        // Accent system (neon green + deep blue like references)
+        primary: "#C6FF4A",
+        primarySoft: "#2A2F1D",
+        accent: "#4C6FFF",
+        // Optional gradients for hero panels
+        gradientPurple: "linear-gradient(135deg, #1B1E2B 0%, #282C3A 100%)",
+        gradientBlue: "linear-gradient(135deg, #0F1B2B 0%, #1C2A3C 100%)",
+        // Sidebar-specific tones
+        sidebarBg: "#141416",
+        sidebarBorder: "#232328",
+        sidebarItem: "#1B1B20",
+        sidebarActive: "#3B32B2",
+        sidebarButton: "#5B5BFF"
     },
     shadow: {
-        sm: "0 4px 12px rgba(17,24,39,0.08)",
-        md: "0 12px 28px rgba(17,24,39,0.12)",
-        lg: "0 28px 56px rgba(17,24,39,0.18)"
+        sm: "0 4px 10px rgba(0,0,0,0.35)",
+        md: "0 12px 28px rgba(0,0,0,0.45)",
+        lg: "0 28px 56px rgba(0,0,0,0.55)"
     },
     size,
     contentWidth: "wide",

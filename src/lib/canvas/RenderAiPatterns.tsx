@@ -62,8 +62,8 @@ export default function renderFromAI(
   const cardRadius = preset?.radius?.xl ?? preset?.radius?.lg ?? 16
 
   const blockTheme = {
-    background: preset?.color?.neutral100 ?? "#F4F4F5",
-    border: preset?.color?.border ?? "#E4E4E7",
+    background: preset?.color?.card ?? preset?.color?.neutral100 ?? "#F4F4F5",
+    border: preset?.color?.borderStrong ?? preset?.color?.border ?? "#E4E4E7",
     text: preset?.color?.textMuted ?? "#71717A",
     accent: preset?.color?.primary ?? "#4F46E5",
     radius: cardRadius,
@@ -286,13 +286,13 @@ export default function renderFromAI(
       // SIDEBAR: vertical navigation panel (logo + menu pills + account chip)
       if (semantic === "sidebar") {
         // Dark premium sidebar styling (matches reference)
-        const sidebarBg = "#141416"
-        const sidebarBorder = "#232328"
-        const textLight = "#E7EAF0"
-        const textMuted = "#9CA3AF"
-        const itemFill = "#1B1B20"
-        const itemActive = "#3B32B2"
-        const buttonFill = "#5B5BFF"
+        const sidebarBg = preset?.color?.sidebarBg ?? "#141416"
+        const sidebarBorder = preset?.color?.sidebarBorder ?? "#232328"
+        const textLight = preset?.color?.textPrimary ?? "#E7EAF0"
+        const textMuted = preset?.color?.textMuted ?? "#9CA3AF"
+        const itemFill = preset?.color?.sidebarItem ?? "#1B1B20"
+        const itemActive = preset?.color?.sidebarActive ?? "#3B32B2"
+        const buttonFill = preset?.color?.sidebarButton ?? "#5B5BFF"
 
         const panel = new fabric.Rect({
           left,
