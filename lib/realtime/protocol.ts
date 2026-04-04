@@ -30,6 +30,10 @@ export type AiElement = {
     | "testimonial"
     | "pricing"
     | "faq"
+    | "widget_timer"
+    | "widget_chart"
+    | "widget_calendar"
+    | "widget_tasks"
     | "card"
     | "unknown"
   role?: string

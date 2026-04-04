@@ -3,6 +3,7 @@ import { defaultSaasPreset } from "./default-Saas";
 import { glassNeonPreset } from "./glass-neon";
 import { darkCinematicPreset } from "./dark-cinematic";
 import { softPastelPreset } from "./soft-pastel";
+import { premiumDashboardPreset } from "./premium-dashboard";
 
 const document = {
     id: "doc_01",
@@ -15,5 +16,6 @@ export {
     minimalSaasPreset,
     glassNeonPreset,
     darkCinematicPreset,
-    softPastelPreset
+    softPastelPreset,
+    premiumDashboardPreset
 }

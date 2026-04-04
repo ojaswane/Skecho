@@ -23,6 +23,7 @@ import { useRealtimeGeneration } from '@/hooks/useRealtimeGeneration'
 import {
     defaultSaasPreset,
     darkCinematicPreset,
+    premiumDashboardPreset,
     glassNeonPreset,
     minimalSaasPreset,
     softPastelPreset
@@ -108,6 +109,7 @@ const FramesOverlay = ({ frame }: any) => {
         glass_neon: glassNeonPreset,
         dark_cinematic: darkCinematicPreset,
         soft_pastel: softPastelPreset,
+        premium_dashboard: premiumDashboardPreset,
     };
 
     /* ------------------ UTILS ------------------ */
@@ -753,7 +755,7 @@ const FramesOverlay = ({ frame }: any) => {
                     const aiScreens = docToAIScreens(response.generatedDoc as any);
                     const doc = response.generatedDoc;
                     const styleKey = typeof doc?.style === "string" ? doc.style : "";
-                    const preset = presetMap[styleKey as keyof typeof presetMap] ?? defaultSaasPreset;
+                    const preset = presetMap[styleKey as keyof typeof presetMap] ?? premiumDashboardPreset;
 
                     // Debug: expose the exact JSON that the renderer consumes.
                     // Use this in DevTools console: `window.__sketchoLastRender.screens`
