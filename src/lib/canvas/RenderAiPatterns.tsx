@@ -421,7 +421,7 @@ export default function renderFromAI(
         })
         y += clamp(itemH * 0.9, 18, 24)
 
-        const otherItems = ["Documentation", "Refer a Friend", "Inbox", "Support"]
+        const otherItems = ["Documentation", "Settings", "Inbox", "Support"]
         otherItems.forEach((label) => {
           const row = new fabric.Rect({
             left: x,
@@ -505,9 +505,9 @@ export default function renderFromAI(
           height: btnH,
           fill: buttonFill,
           rx: 999,
-          ry: 999,
-          selectable: false,
-          evented: false,
+          ry: 300,
+          selectable: true,
+          evented: true,
         })
         addObj(btn)
         addText({
