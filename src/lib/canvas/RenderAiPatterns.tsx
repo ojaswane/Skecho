@@ -91,6 +91,231 @@ export default function renderFromAI(
     )
     const rowHeight = GRID.rowHeight
 
+
+    //Detect the largest box as the parent container.
+    // Render that container first(rounded, premium card).
+    // Lay out children top‑to‑bottom inside it with strict padding + gaps.
+    // Skip those child elements in the normal renderer so they don’t overlap.
+    //  frame → card → header → main block → stats.
+
+    const placed: {
+      left: number;
+      top: number;
+      width: number;
+      height: number
+    }[] = []
+
+    const addObj = (o: fabric.Object) => {
+      o.set("clipPath", frame.clipPath)
+      o.set("isAiGenerated", true)
+      o.set("frameId", screen.frameId)
+      canvas.add(o)
+    }
+
+    const addPill = (opts: { x: number; y: number; w: number; h: number; fill?: string; stroke?: string }) => {
+      const pill = new fabric.Rect({
+        left: opts.x,
+        top: opts.y,
+        width: Math.max(1, opts.w),
+        height: Math.max(1, opts.h),
+        fill: opts.fill ?? (preset?.color?.neutral200 ?? "#e2e8f0"),
+        stroke: opts.stroke,
+        strokeWidth: opts.stroke ? 1 : 0,
+        rx: 999,
+        ry: 999,
+        selectable: false,
+        evented: false,
+      })
+      addObj(pill)
+      return pill
+    }
+
+    const addText = (opts: { x: number; y: number; w: number; text: string; size: number; weight?: number; fill?: string; lh?: number }) => {
+      const t = new fabric.Textbox(opts.text, {
+        left: opts.x,
+        top: opts.y,
+        width: Math.max(1, opts.w),
+        fontFamily: preset?.typography?.fontFamily ?? "Inter, Arial",
+        fontSize: opts.size,
+        fontWeight: (opts.weight ?? 600) as any,
+        fill: opts.fill ?? (preset?.color?.textPrimary ?? "#0f172a"),
+        lineHeight: opts.lh ?? 1.15,
+        selectable: false,
+        evented: false,
+      } as any)
+      addObj(t)
+      return t
+    }
+
+    // Container-first layout (profile/dashboard style): one big box + children inside
+    const absoluteElements = screen.elements.filter((e) => e.bbox)
+    let containerEl = absoluteElements
+      .map((e) => ({ e, area: (e.bbox?.w ?? 0) * (e.bbox?.h ?? 0) }))
+      .sort((a, b) => b.area - a.area)[0]?.e
+
+    let containerChildren: typeof screen.elements = []
+    if (containerEl && containerEl.bbox) {
+      const cb = containerEl.bbox
+      const inside = (b: any) => {
+        const cx = b.x + b.w / 2
+        const cy = b.y + b.h / 2
+        return cx >= cb.x && cx <= cb.x + cb.w && cy >= cb.y && cy <= cb.y + cb.h
+      }
+      containerChildren = absoluteElements.filter(
+        (e) => e.id !== containerEl?.id && e.bbox && inside(e.bbox)
+      )
+    }
+
+    const shouldContainerLayout =
+      containerEl &&
+      containerEl.bbox &&
+      containerChildren.length >= 2 &&
+      (containerEl.bbox.w ?? 0) * (containerEl.bbox.h ?? 0) >= 0.25
+
+    const skippedIds = new Set<string>()
+    if (shouldContainerLayout && containerEl) {
+      skippedIds.add(containerEl.id)
+      containerChildren.forEach((c) => skippedIds.add(c.id))
+    }
+
+    const renderContainerLayout = () => {
+      if (!containerEl?.bbox) return
+      const bbox = containerEl.bbox
+      const grid = 8
+      const snap = (v: number) => Math.round(v / grid) * grid
+      const margin = clamp(frame.width * 0.04, 16, 36)
+
+      let cLeft = frame.left + clamp(bbox.x, 0, 1) * frame.width
+      let cTop = frame.top + clamp(bbox.y, 0, 1) * frame.height
+      let cWidth = clamp(bbox.w, 0.1, 1) * frame.width
+      let cHeight = clamp(bbox.h, 0.1, 1) * frame.height
+
+      if (cWidth >= frame.width * 0.6) {
+        cLeft = frame.left + margin
+        cWidth = frame.width - margin * 2
+      }
+      cLeft = snap(cLeft)
+      cWidth = snap(cWidth)
+      cTop = Math.max(frame.top + margin, cTop)
+      cHeight = Math.min(cHeight, frame.top + frame.height - cTop - margin)
+
+      const card = new fabric.Rect({
+        left: cLeft,
+        top: cTop,
+        width: cWidth,
+        height: cHeight,
+        fill: preset?.color?.card ?? "#1D2027",
+        stroke: preset?.color?.border ?? "#2A2D36",
+        strokeWidth: 1,
+        rx: cardRadius,
+        ry: cardRadius,
+        shadow: preset?.shadow?.md,
+      })
+      addObj(card)
+
+      const pad = clamp(Math.min(cWidth, cHeight) * 0.06, 12, 22)
+      const gap = clamp(Math.min(cWidth, cHeight) * 0.04, 10, 18)
+      const innerLeft = cLeft + pad
+      const innerTop = cTop + pad
+      const innerW = cWidth - pad * 2
+      const innerH = cHeight - pad * 2
+
+      // Slots: header / main / stats
+      let headerH = clamp(innerH * 0.18, 44, 80)
+      let mainH = clamp(innerH * 0.5, 140, innerH * 0.62)
+      let statsH = innerH - headerH - mainH - gap * 2
+      if (statsH < 60) {
+        mainH = Math.max(120, mainH - (60 - statsH))
+        statsH = innerH - headerH - mainH - gap * 2
+      }
+
+      // Header block
+      addText({
+        x: innerLeft,
+        y: innerTop,
+        w: innerW * 0.8,
+        text: "Insights",
+        size: clamp(headerH * 0.42, 16, 22),
+        weight: 700,
+        fill: preset?.color?.textPrimary ?? "#E7EAF0",
+        lh: 1.1,
+      })
+      addPill({
+        x: innerLeft + innerW * 0.8,
+        y: innerTop + headerH * 0.2,
+        w: innerW * 0.18,
+        h: clamp(headerH * 0.35, 18, 28),
+        fill: preset?.color?.sidebarItem ?? "#1B1B20",
+        stroke: preset?.color?.border ?? "#2A2D36",
+      })
+
+      // Main media/chart block
+      const media = new fabric.Rect({
+        left: innerLeft,
+        top: innerTop + headerH + gap,
+        width: innerW,
+        height: mainH,
+        fill: preset?.color?.backgroundMuted ?? "#15161A",
+        stroke: preset?.color?.border ?? "#2A2D36",
+        strokeWidth: 1,
+        rx: clamp(cardRadius * 0.9, 12, cardRadius),
+        ry: clamp(cardRadius * 0.9, 12, cardRadius),
+        selectable: false,
+        evented: false,
+      })
+      addObj(media)
+
+      // Stats grid
+      if (statsH > 40) {
+        const cols = 2
+        const rows = Math.min(2, Math.max(1, Math.floor(statsH / 70)))
+        const cardW = (innerW - gap) / cols
+        const cardH = (statsH - gap * (rows - 1)) / rows
+        const statTop = innerTop + headerH + gap + mainH + gap
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const sx = innerLeft + c * (cardW + gap)
+            const sy = statTop + r * (cardH + gap)
+            const stat = new fabric.Rect({
+              left: sx,
+              top: sy,
+              width: cardW,
+              height: cardH,
+              fill: preset?.color?.card ?? "#1D2027",
+              stroke: preset?.color?.border ?? "#2A2D36",
+              strokeWidth: 1,
+              rx: clamp(cardRadius * 0.8, 10, cardRadius),
+              ry: clamp(cardRadius * 0.8, 10, cardRadius),
+              selectable: false,
+              evented: false,
+            })
+            addObj(stat)
+            addText({
+              x: sx + pad * 0.6,
+              y: sy + pad * 0.4,
+              w: cardW * 0.7,
+              text: "Weekly",
+              size: clamp(cardH * 0.2, 10, 12),
+              weight: 600,
+              fill: preset?.color?.textMuted ?? "#9CA3AF",
+              lh: 1.0,
+            })
+            addText({
+              x: sx + pad * 0.6,
+              y: sy + pad * 1.1,
+              w: cardW * 0.7,
+              text: "92%",
+              size: clamp(cardH * 0.38, 16, 22),
+              weight: 700,
+              fill: preset?.color?.textPrimary ?? "#E7EAF0",
+              lh: 1.0,
+            })
+          }
+        }
+      }
+    }
+
     for (const el of screen.elements) {
       const semantic = String((el as any).semantic ?? "").toLowerCase()
       const bbox = (el as any).bbox
@@ -168,16 +393,33 @@ export default function renderFromAI(
           }
         }
 
-        // Snap to grid
+        // Snap only X/width to grid (keep Y from sketch to avoid vertical overlap)
         left = snap(left)
-        top = snap(top)
         safeWidth = snap(safeWidth)
-        safeHeight = snap(safeHeight)
 
         // Clamp to frame bounds again after snapping
         left = Math.max(frame.left + margin, Math.min(left, frame.left + frame.width - margin - safeWidth))
         top = Math.max(frame.top + margin, Math.min(top, frame.top + frame.height - margin - safeHeight))
       }
+
+      // Simple collision resolver : prevent overlapping cards
+      if (useAbsolute && placed.length) {
+        const gap = 12
+        let adjustedTop = top
+        for (const r of placed) {
+          const overlapsX = left < r.left + r.width && left + safeWidth > r.left
+          const overlapsY = adjustedTop < r.top + r.height && adjustedTop + safeHeight > r.top
+          if (overlapsX && overlapsY) {
+            adjustedTop = Math.max(adjustedTop, r.top + r.height + gap)
+          }
+        }
+        if (adjustedTop !== top) {
+          top = Math.min(adjustedTop, frame.top + frame.height - safeHeight - 12)
+        }
+      }
+
+      // Track placement for collision avoidance
+      placed.push({ left, top, width: safeWidth, height: safeHeight })
 
       /**
        * Semantic-first rendering:
@@ -185,51 +427,11 @@ export default function renderFromAI(
        * - Render different skeletons depending on element semantic.
        */
 
-      const addObj = (o: fabric.Object) => {
-        o.set("clipPath", frame.clipPath)
-        o.set("isAiGenerated", true)
-        o.set("frameId", screen.frameId)
-        canvas.add(o)
-      }
+      // Skip elements that are handled by container-first layout
+      if (skippedIds.has(el.id)) continue
 
       // Responsive measurements for this element box (prevents overflow + looks less "rough")
       const pad = clamp(Math.min(safeWidth, safeHeight) * 0.08, 12, 32)
-      const textFamily = preset?.typography?.fontFamily ?? "Inter, Arial"
-
-      const addPill = (opts: { x: number; y: number; w: number; h: number; fill?: string; stroke?: string }) => {
-        const pill = new fabric.Rect({
-          left: opts.x,
-          top: opts.y,
-          width: Math.max(1, opts.w),
-          height: Math.max(1, opts.h),
-          fill: opts.fill ?? (preset?.color?.neutral200 ?? "#e2e8f0"),
-          stroke: opts.stroke,
-          strokeWidth: opts.stroke ? 1 : 0,
-          rx: 999,
-          ry: 999,
-          selectable: false,
-          evented: false,
-        })
-        addObj(pill)
-        return pill
-      }
-
-      const addText = (opts: { x: number; y: number; w: number; text: string; size: number; weight?: number; fill?: string; lh?: number }) => {
-        const t = new fabric.Textbox(opts.text, {
-          left: opts.x,
-          top: opts.y,
-          width: Math.max(1, opts.w),
-          fontFamily: textFamily,
-          fontSize: opts.size,
-          fontWeight: (opts.weight ?? 600) as any,
-          fill: opts.fill ?? (preset?.color?.textPrimary ?? "#0f172a"),
-          lineHeight: opts.lh ?? 1.15,
-          selectable: false,
-          evented: false,
-        } as any)
-        addObj(t)
-        return t
-      }
 
       // NAV: simple top bar pills (logo + links + CTA)
       if (semantic === "nav") {
@@ -702,7 +904,7 @@ export default function renderFromAI(
           top: top + btnH / 2,
           originX: "center",
           originY: "center",
-          fontFamily: textFamily,
+          fontFamily: preset?.typography?.fontFamily ?? "Inter, Arial",
           fontSize: clamp(btnH * 0.36, 12, 16),
           fill: preset?.color?.onPrimary ?? "#fff",
           selectable: false,
@@ -1083,6 +1285,11 @@ export default function renderFromAI(
         })
         addObj(obj)
       })
+    }
+
+    // Render container-first layout after other elements
+    if (shouldContainerLayout) {
+      renderContainerLayout()
     }
 
     // Frames are background artboards (solid fill). Keep them behind generated UI.
