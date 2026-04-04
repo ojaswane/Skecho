@@ -15,6 +15,7 @@ import * as fabric from "fabric"
 import { layoutCard } from "../design-systems/cardLayout/CardLayout"
 import { renderSemanticBlock } from "@/lib/render/renderSemanticBlock"
 
+// clamp a number between min and max
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n))
 }
@@ -93,6 +94,8 @@ export default function renderFromAI(
     for (const el of screen.elements) {
       const semantic = String((el as any).semantic ?? "").toLowerCase()
       const bbox = (el as any).bbox
+
+      // use absolute coordinates if bbox is present (sketchGraph strict mode), otherwise use grid-based layout
       const useAbsolute =
         bbox &&
         typeof bbox.x === "number" &&
@@ -125,11 +128,56 @@ export default function renderFromAI(
       const maxW = frame.left + frame.width - edgePad - left
       const maxH = frame.top + frame.height - edgePad - top
       if (maxW <= 1 || maxH <= 1) continue
-      const safeWidth = Math.max(1, Math.min(width, maxW))
-      const safeHeight = Math.max(1, Math.min(height, maxH))
+      let safeWidth = Math.max(1, Math.min(width, maxW))
+      let safeHeight = Math.max(1, Math.min(height, maxH))
 
       // Skip anything that would overflow the frame (quick MVP guardrail).
       if (!useAbsolute && top + safeHeight > frame.top + frame.height - padding) continue
+
+      // Premium alignment pass (only for strict mode )
+      if (useAbsolute) {
+        const grid = 8
+        const margin = clamp(frame.width * 0.04, 16, 36)
+        const snap = (v: number) => Math.round(v / grid) * grid
+
+        // Horizontal alignment rules by semantic
+        if (semantic === "nav" || semantic === "footer") {
+          const maxW = frame.width - margin * 2
+          const w = Math.min(safeWidth, maxW)
+
+          left = frame.left + (frame.width - w) / 2
+          safeWidth = w
+
+        } else if (semantic === "sidebar") {
+
+          const maxW = frame.width * 0.28
+          const w = Math.min(safeWidth, maxW)
+          left = frame.left + margin
+          top = Math.max(top, frame.top + margin)
+          safeWidth = w
+        }
+        else if (semantic === "cta") {
+          // Center CTA inside its own box
+          left = left + (safeWidth - Math.min(safeWidth, frame.width * 0.45)) / 2
+        } else {
+          // Default: snap to a clean left margin if box is wide
+          if (safeWidth >= frame.width * 0.6) {
+            const w = Math.min(safeWidth, frame.width - margin * 2)
+            left = frame.left + margin
+            safeWidth = w
+          }
+        }
+
+        // Snap to grid
+        left = snap(left)
+        top = snap(top)
+        safeWidth = snap(safeWidth)
+        safeHeight = snap(safeHeight)
+
+        // Clamp to frame bounds again after snapping
+        left = Math.max(frame.left + margin, Math.min(left, frame.left + frame.width - margin - safeWidth))
+        top = Math.max(frame.top + margin, Math.min(top, frame.top + frame.height - margin - safeHeight))
+      }
 
       /**
        * Semantic-first rendering:
@@ -735,7 +783,7 @@ export default function renderFromAI(
           addPill({ x: cx + pad, y: cy + pad + 22, w: cardW * 0.35, h: clamp(cardH * 0.06, 10, 14) })
           const btnH = clamp(cardH * 0.12, 32, 44)
           const btnW = Math.min(cardW - pad * 2, clamp(cardW * 0.7, 90, 180))
-          
+
           const btn = new fabric.Rect({
             left: cx + pad,
             top: cy + cardH - pad - btnH,
@@ -747,7 +795,7 @@ export default function renderFromAI(
             selectable: false,
             evented: false,
           })
-          
+
           addObj(btn)
         }
         continue
@@ -861,19 +909,19 @@ export default function renderFromAI(
         const dotY = top + chromeH / 2
         const dotX0 = left + pad
         const dotGap = clamp(dotR * 2.6, 8, 12)
-        ;[0, 1, 2].forEach((idx) => {
-          const c = new fabric.Circle({
-            left: dotX0 + idx * dotGap,
-            top: dotY,
-            radius: dotR,
-            originX: "center",
-            originY: "center",
-            fill: preset?.color?.neutral300 ?? "#cbd5e1",
-            selectable: false,
-            evented: false,
+          ;[0, 1, 2].forEach((idx) => {
+            const c = new fabric.Circle({
+              left: dotX0 + idx * dotGap,
+              top: dotY,
+              radius: dotR,
+              originX: "center",
+              originY: "center",
+              fill: preset?.color?.neutral300 ?? "#cbd5e1",
+              selectable: false,
+              evented: false,
+            })
+            addObj(c)
           })
-          addObj(c)
-        })
 
         // Screen area placeholder
         const screen = new fabric.Rect({
