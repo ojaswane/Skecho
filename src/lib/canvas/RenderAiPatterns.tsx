@@ -324,6 +324,7 @@ export default function renderFromAI(
         selectable: false,
         evented: false,
       })
+      
       addObj(media)
       addMiniChart({
         x: innerLeft + pad * 0.6,
