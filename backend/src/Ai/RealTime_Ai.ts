@@ -344,6 +344,59 @@ function clamp(n: number, min: number, max: number) {
     return Math.max(min, Math.min(max, n))
 }
 
+type LayoutNode = {
+    id?: string
+    type: "row" | "column" | "element"
+    gap?: number
+    align?: "start" | "center" | "end" | "stretch"
+    justify?: "start" | "center" | "end" | "space-between"
+    elementId?: string
+    children?: LayoutNode[]
+}
+
+function buildLayoutTreeFromBlocks(blocks: Array<{ id: string; x: number; y: number; w: number; h: number }>): LayoutNode | null {
+    if (!blocks.length) return null
+    const ROW_THRESHOLD = 0.07
+    const sorted = [...blocks].sort((a, b) => (a.y + a.h / 2) - (b.y + b.h / 2))
+    const rows: Array<{ cy: number; items: typeof blocks }> = []
+
+    for (const it of sorted) {
+        const cy = it.y + it.h / 2
+        const last = rows[rows.length - 1]
+        if (!last || Math.abs(cy - last.cy) > ROW_THRESHOLD) {
+            rows.push({ cy, items: [it] as any })
+        } else {
+            ; (last.items as any).push(it)
+            last.cy = (last.cy * (last.items.length - 1) + cy) / last.items.length
+        }
+    }
+
+    const rowNodes: LayoutNode[] = rows.map((row, idx) => {
+        const items = row.items.sort((a, b) => a.x - b.x)
+        const widths = items.map((i) => i.w)
+        const minW = Math.min(...widths)
+        const maxW = Math.max(...widths)
+        const similarWidths = minW > 0 && maxW / minW <= 1.25
+        return {
+            id: `row-${idx + 1}`,
+            type: "row",
+            gap: 16,
+            align: "center",
+            justify: similarWidths && items.length >= 2 ? "space-between" : "start",
+            children: items.map((i) => ({
+                type: "element",
+                elementId: i.id,
+            })),
+        }
+    })
+
+    return {
+        type: "column",
+        gap: 24,
+        align: "stretch",
+        children: rowNodes,
+    }
+}
 
 // MODE: Convert sketchGraph.blocks (normalized 0..1) to frames that match the sketch geometry.
 // No "template guessing"
@@ -733,7 +786,8 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
         currentRow += maxSpan + 1
     }
 
-    return centerStrictFrames(frames)
+    const layoutTree = buildLayoutTreeFromBlocks(usable.map((b) => ({ id: b.id, x: b.x, y: b.y, w: b.w, h: b.h })))
+    return { frames: centerStrictFrames(frames), layoutTree }
 }
 
 // it looks the feedback / summary from frontend and decides which layout template to use
@@ -929,6 +983,7 @@ function normalizeForCanvas(layout: any) {
         screens: (layout.screens || []).map((s: any, si: number) => ({
             id: s.id || `screen-${si + 1}`,
             name: s.name || `Screen ${si + 1}`,
+            layoutTree: s.layoutTree,
             frames: (s.frames || []).map((f: any, fi: number) => ({
                 id: f.id || `frame-${si}-${fi}`,
                 type: f.type || "card",
@@ -1100,9 +1155,9 @@ export async function GenerateRealTimeAi({
 
     // STRICT MODE: if we have sketchGraph blocks, match the sketch geometry exactly.
     if (mode === "strict") {
-        const strictFrames = framesFromSketchGraphStrict(sketchSummary?.sketchGraph)
-        if (strictFrames?.length) {
-            const screen = { id: "screen-1", name: "Screen 1", frames: strictFrames }
+        const strictResult = framesFromSketchGraphStrict(sketchSummary?.sketchGraph)
+        if (strictResult?.frames?.length) {
+            const screen = { id: "screen-1", name: "Screen 1", frames: strictResult.frames, layoutTree: strictResult.layoutTree }
             return [normalizeForCanvas({ screens: [screen] }).screens[0]]
         }
     }

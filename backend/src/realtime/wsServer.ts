@@ -143,14 +143,15 @@ export function attachRealtimeWSServer(server: HttpServer) {
           console.log("[ws] flash result screens", screens.length)
 
           const generatedDoc: AiDocument = {
-            frameId,
+            frameId: frameId!, // means there always be framwId
             version: Date.now(),
             status: "ready",
             updatedAt: Date.now(),
             sections: screens.map((screen: any) => ({
               id: screen.id,
-              frameId,
+              frameId: frameId!,
               name: screen.name,
+              layoutTree: screen.layoutTree,
               elements: (screen.frames || []).map((f: any) => ({
                 id: f.id,
                 sectionId: screen.id,

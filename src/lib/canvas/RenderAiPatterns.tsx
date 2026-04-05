@@ -77,6 +77,10 @@ export default function renderFromAI(
         o.get?.("frameId") === screen.frameId
     ) as fabric.Rect
 
+    if ((screen as any).layoutTree) {
+      console.log("[layoutTree] screen", screen.id, (screen as any).layoutTree)
+    }
+
     if (!frame) {
       console.warn("No frame for screen", screen.id)
       continue

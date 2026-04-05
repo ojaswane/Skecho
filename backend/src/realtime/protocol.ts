@@ -11,6 +11,18 @@ export type AiSectionStyle = {
   colorScheme?: string
 }
 
+// Layout tree node (row/column auto-layout)
+export type AiLayoutNode = {
+  id?: string
+  type: "row" | "column" | "element"
+  gap?: number
+  align?: "start" | "center" | "end" | "stretch"
+  justify?: "start" | "center" | "end" | "space-between"
+  // Only present for type="element"
+  elementId?: string
+  children?: AiLayoutNode[]
+}
+
 // A single renderable item inside a section.
 export type AiElement = {
   id: string
@@ -51,6 +63,7 @@ export type AiSection = {
   frameId: string
   name?: string
   style?: AiSectionStyle
+  layoutTree?: AiLayoutNode
   elements: AiElement[]
 }
 
