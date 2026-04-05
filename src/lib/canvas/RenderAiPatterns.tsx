@@ -155,14 +155,17 @@ export default function renderFromAI(
     const hasSidebar = Boolean(sidebarEl?.bbox)
     const margin = clamp(frame.width * 0.04, 16, 36)
     const laneGap = clamp(frame.width * 0.02, 12, 24)
-    const navBottom = hasNav && navEl?.bbox
-      ? frame.top + navEl.bbox.y * frame.height + navEl.bbox.h * frame.height
+    const navH = hasNav && navEl?.bbox
+      ? clamp(navEl.bbox.h * frame.height, 40, 90)
+      : 0
+    const navBottom = hasNav
+      ? frame.top + margin + navH
       : frame.top + margin
     const sidebarRight = hasSidebar && sidebarEl?.bbox
       ? frame.left + sidebarEl.bbox.x * frame.width + sidebarEl.bbox.w * frame.width
       : frame.left + margin
     const mainLeft = hasSidebar ? sidebarRight + laneGap : frame.left + margin
-    const mainTop = hasNav ? navBottom + laneGap : frame.top + margin
+    const mainTop = hasNav ? navBottom + Math.min(laneGap, 16) : frame.top + margin
     const mainRight = frame.left + frame.width - margin
     const mainBottom = frame.top + frame.height - margin
     const mainWidth = Math.max(1, mainRight - mainLeft)
