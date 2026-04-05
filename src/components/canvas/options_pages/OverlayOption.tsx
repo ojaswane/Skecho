@@ -141,7 +141,7 @@ const FramesOverlay = ({ frame }: any) => {
         if (!canvas) return;
         clearSketchDebugOverlay();
         if (!showSketchDebug) return;
-        
+
         if (!Array.isArray(blocks) || blocks.length === 0) {
             // If nothing was detected, still show *something* so we know the debug overlay is active.
             const msg = new fabric.Text("No debug blocks (tune thresholds)", {
@@ -1817,14 +1817,14 @@ const FramesOverlay = ({ frame }: any) => {
                     }}
                 >
                     <div
-                        className="px-4 py-2 text-sm text-white/70"
+                        className="px-4 py-2 text-sm text-white/50"
                         style={{
                             fontFamily: "Inter, Arial",
                             fontSize: "15px",
                         }}
                     >
                         {
-                            
+                            hoveredBlockId ? blockLabels[hoveredBlockId] : "Label your sketch"
                         }
                     </div>
                 </div>
