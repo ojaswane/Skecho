@@ -147,6 +147,39 @@ export default function renderFromAI(
       return t
     }
 
+    const addMiniChart = (opts: { x: number; y: number; w: number; h: number }) => {
+      const gridColor = preset?.color?.border ?? "#2A2D36"
+      const lineColor = preset?.color?.accent ?? "#4C6FFF"
+      const baseY = opts.y + opts.h - 6
+
+      // baseline
+      const base = new fabric.Line([opts.x, baseY, opts.x + opts.w, baseY], {
+        stroke: gridColor,
+        strokeWidth: 1,
+        selectable: false,
+        evented: false,
+      })
+      addObj(base)
+
+      // simple polyline chart
+      const points = [
+        { x: opts.x, y: opts.y + opts.h * 0.65 },
+        { x: opts.x + opts.w * 0.2, y: opts.y + opts.h * 0.45 },
+        { x: opts.x + opts.w * 0.4, y: opts.y + opts.h * 0.55 },
+        { x: opts.x + opts.w * 0.6, y: opts.y + opts.h * 0.35 },
+        { x: opts.x + opts.w * 0.8, y: opts.y + opts.h * 0.5 },
+        { x: opts.x + opts.w, y: opts.y + opts.h * 0.4 },
+      ]
+      const line = new fabric.Polyline(points, {
+        stroke: lineColor,
+        strokeWidth: 2,
+        fill: "transparent",
+        selectable: false,
+        evented: false,
+      })
+      addObj(line)
+    }
+
     // Pre-calc nav/sidebar lanes for main content alignment
     const absElements = screen.elements.filter((e) => e.bbox)
     const navEl = absElements.find((e) => String(e.semantic ?? "").toLowerCase() === "nav")
@@ -292,6 +325,12 @@ export default function renderFromAI(
         evented: false,
       })
       addObj(media)
+      addMiniChart({
+        x: innerLeft + pad * 0.6,
+        y: innerTop + headerH + gap + pad * 0.6,
+        w: innerW - pad * 1.2,
+        h: mainH - pad * 1.2,
+      })
 
       // Stats grid
       if (statsH > 40) {
@@ -338,6 +377,13 @@ export default function renderFromAI(
               weight: 700,
               fill: preset?.color?.textPrimary ?? "#E7EAF0",
               lh: 1.0,
+            })
+            addPill({
+              x: sx + pad * 0.6,
+              y: sy + cardH - pad * 0.8,
+              w: cardW * 0.5,
+              h: clamp(cardH * 0.08, 6, 10),
+              fill: preset?.color?.primarySoft ?? "#2A2F1D",
             })
           }
         }
