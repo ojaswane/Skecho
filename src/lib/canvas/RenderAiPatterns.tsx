@@ -239,6 +239,16 @@ export default function renderFromAI(
       containerChildren.forEach((c) => skippedIds.add(c.id))
     }
 
+    const nonLaneCount = absElements.filter((e) => {
+      const key = String(e.semantic ?? "").toLowerCase()
+      return !["nav", "sidebar", "footer"].includes(key)
+    }).length
+    const shouldDashboardRecipe =
+      (hasNav || hasSidebar) &&
+      nonLaneCount >= 3 &&
+      mainWidth >= frame.width * 0.45 &&
+      mainHeight >= frame.height * 0.4
+
     const renderContainerLayout = () => {
       if (!containerEl?.bbox) return
       const bbox = containerEl.bbox
@@ -388,6 +398,160 @@ export default function renderFromAI(
             })
           }
         }
+      }
+    }
+
+    const renderDashboardRecipe = () => {
+      const pad = clamp(Math.min(mainWidth, mainHeight) * 0.05, 12, 22)
+      const gap = clamp(Math.min(mainWidth, mainHeight) * 0.04, 12, 20)
+      const laneLeft = mainLeft
+      const laneTop = mainTop
+      const laneW = mainWidth
+      const laneH = mainHeight
+
+      // Row 1: KPI cards (4)
+      const kpiH = clamp(laneH * 0.18, 80, 140)
+      const kpiGap = clamp(gap, 12, 18)
+      const kpiW = (laneW - kpiGap * 3) / 4
+      for (let i = 0; i < 4; i++) {
+        const x = laneLeft + i * (kpiW + kpiGap)
+        const y = laneTop
+        const card = new fabric.Rect({
+          left: x,
+          top: y,
+          width: kpiW,
+          height: kpiH,
+          fill: preset?.color?.card ?? "#1D2027",
+          stroke: preset?.color?.border ?? "#2A2D36",
+          strokeWidth: 1,
+          rx: clamp(cardRadius * 0.8, 10, cardRadius),
+          ry: clamp(cardRadius * 0.8, 10, cardRadius),
+          shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+          selectable: false,
+          evented: false,
+        })
+        addObj(card)
+        addText({
+          x: x + pad,
+          y: y + pad * 0.5,
+          w: kpiW - pad * 2,
+          text: "Total Holding",
+          size: clamp(kpiH * 0.18, 10, 13),
+          weight: 600,
+          fill: preset?.color?.textMuted ?? "#9CA3AF",
+          lh: 1.0,
+        })
+        addText({
+          x: x + pad,
+          y: y + pad * 1.4,
+          w: kpiW - pad * 2,
+          text: "$12,304",
+          size: clamp(kpiH * 0.34, 16, 22),
+          weight: 700,
+          fill: preset?.color?.textPrimary ?? "#E7EAF0",
+          lh: 1.0,
+        })
+        addPill({
+          x: x + pad,
+          y: y + kpiH - pad * 1.3,
+          w: kpiW * 0.5,
+          h: clamp(kpiH * 0.12, 10, 14),
+          fill: preset?.color?.primarySoft ?? "#2A2F1D",
+        })
+      }
+
+      // Row 2: Big chart
+      const chartY = laneTop + kpiH + gap
+      const chartH = clamp(laneH * 0.36, 160, 260)
+      const chart = new fabric.Rect({
+        left: laneLeft,
+        top: chartY,
+        width: laneW,
+        height: chartH,
+        fill: preset?.color?.card ?? "#1D2027",
+        stroke: preset?.color?.border ?? "#2A2D36",
+        strokeWidth: 1,
+        rx: clamp(cardRadius, 12, cardRadius),
+        ry: clamp(cardRadius, 12, cardRadius),
+        shadow: preset?.shadow?.md,
+        selectable: false,
+        evented: false,
+      })
+      addObj(chart)
+      addText({
+        x: laneLeft + pad,
+        y: chartY + pad * 0.5,
+        w: laneW * 0.6,
+        text: "Portfolio Performance",
+        size: clamp(chartH * 0.16, 12, 16),
+        weight: 600,
+        fill: preset?.color?.textMuted ?? "#9CA3AF",
+        lh: 1.0,
+      })
+      addMiniChart({
+        x: laneLeft + pad,
+        y: chartY + pad * 1.5,
+        w: laneW - pad * 2,
+        h: chartH - pad * 2.2,
+      })
+
+      // Row 3: Table + watchlist
+      const bottomY = chartY + chartH + gap
+      const bottomH = Math.max(1, laneTop + laneH - bottomY)
+      if (bottomH > 80) {
+        const leftW = laneW * 0.68
+        const rightW = laneW - leftW - gap
+        const table = new fabric.Rect({
+          left: laneLeft,
+          top: bottomY,
+          width: leftW,
+          height: bottomH,
+          fill: preset?.color?.card ?? "#1D2027",
+          stroke: preset?.color?.border ?? "#2A2D36",
+          strokeWidth: 1,
+          rx: clamp(cardRadius, 12, cardRadius),
+          ry: clamp(cardRadius, 12, cardRadius),
+          shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+          selectable: false,
+          evented: false,
+        })
+        addObj(table)
+        addText({
+          x: laneLeft + pad,
+          y: bottomY + pad * 0.5,
+          w: leftW * 0.6,
+          text: "Portfolio Overview",
+          size: clamp(bottomH * 0.12, 12, 15),
+          weight: 600,
+          fill: preset?.color?.textMuted ?? "#9CA3AF",
+          lh: 1.0,
+        })
+
+        const watch = new fabric.Rect({
+          left: laneLeft + leftW + gap,
+          top: bottomY,
+          width: rightW,
+          height: bottomH,
+          fill: preset?.color?.card ?? "#1D2027",
+          stroke: preset?.color?.border ?? "#2A2D36",
+          strokeWidth: 1,
+          rx: clamp(cardRadius, 12, cardRadius),
+          ry: clamp(cardRadius, 12, cardRadius),
+          shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+          selectable: false,
+          evented: false,
+        })
+        addObj(watch)
+        addText({
+          x: laneLeft + leftW + gap + pad,
+          y: bottomY + pad * 0.5,
+          w: rightW * 0.6,
+          text: "Watchlist",
+          size: clamp(bottomH * 0.12, 12, 15),
+          weight: 600,
+          fill: preset?.color?.textMuted ?? "#9CA3AF",
+          lh: 1.0,
+        })
       }
     }
 
@@ -564,8 +728,14 @@ export default function renderFromAI(
        * - Render different skeletons depending on element semantic.
        */
 
-      // Skip elements that are handled by container-first layout
+      // Skip elements handled by container-first layout or dashboard recipe
       if (skippedIds.has(el.id)) continue
+      if (shouldDashboardRecipe) {
+        const key = String((el as any).semantic ?? "").toLowerCase()
+        if (!["nav", "sidebar", "footer"].includes(key)) {
+          continue
+        }
+      }
 
       // Responsive measurements for this element box (prevents overflow + looks less "rough")
       const pad = clamp(Math.min(safeWidth, safeHeight) * 0.08, 12, 32)
@@ -1427,6 +1597,9 @@ export default function renderFromAI(
     // Render container-first layout after other elements
     if (shouldContainerLayout) {
       renderContainerLayout()
+    }
+    if (shouldDashboardRecipe) {
+      renderDashboardRecipe()
     }
 
     // Frames are background artboards (solid fill). Keep them behind generated UI.
