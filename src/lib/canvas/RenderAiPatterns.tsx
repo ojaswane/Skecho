@@ -172,6 +172,8 @@ export default function renderFromAI(
     const mainHeight = Math.max(1, mainBottom - mainTop)
     let mainStackY = mainTop
     const stackGap = clamp(frame.height * 0.02, 12, 24)
+    const colGap = clamp(frame.width * 0.02, 12, 24)
+    let mainColIndex = 0
 
     // Container-first layout (profile/dashboard style): one big box + children inside
     const absoluteElements = screen.elements.filter((e) => e.bbox)
@@ -351,6 +353,13 @@ export default function renderFromAI(
       return ax - bx
     })
 
+    const stackableCount = sortedElements.filter((e) => {
+      const key = String((e as any).semantic ?? "").toLowerCase()
+      return !["nav", "sidebar", "footer"].includes(key) && !skippedIds.has(e.id)
+    }).length
+    const useTwoColMain = (hasNav || hasSidebar) && stackableCount >= 2 && mainWidth >= frame.width * 0.45
+    const mainColW = useTwoColMain ? (mainWidth - colGap) / 2 : mainWidth
+
     for (const el of sortedElements) {
       const semantic = String((el as any).semantic ?? "").toLowerCase()
       const bbox = (el as any).bbox
@@ -448,11 +457,39 @@ export default function renderFromAI(
         mainStackY < mainBottom - 20
 
       if (shouldStackInMain) {
-        left = mainLeft
-        top = mainStackY
-        safeWidth = Math.min(safeWidth, mainWidth)
-        safeHeight = Math.min(safeHeight, Math.max(1, mainBottom - top))
-        mainStackY = top + safeHeight + stackGap
+        const mainArea = Math.max(1, mainWidth * mainHeight)
+        const elemArea = safeWidth * safeHeight
+        const isHeroLike =
+          semanticKey === "hero_text" ||
+          semanticKey === "media" ||
+          safeWidth >= mainWidth * 0.85 ||
+          elemArea / mainArea >= 0.45
+
+        if (isHeroLike) {
+          left = mainLeft
+          top = mainStackY
+          safeWidth = mainWidth
+          safeHeight = Math.min(safeHeight, Math.max(1, mainBottom - top))
+          mainStackY = top + safeHeight + stackGap
+        } else if (useTwoColMain) {
+        if (useTwoColMain) {
+          const colLeft = mainLeft + (mainColIndex % 2) * (mainColW + colGap)
+          left = colLeft
+          top = mainStackY
+          safeWidth = Math.min(safeWidth, mainColW)
+          safeHeight = Math.min(safeHeight, Math.max(1, mainBottom - top))
+          mainColIndex += 1
+          if (mainColIndex % 2 === 0) {
+            mainStackY = top + safeHeight + stackGap
+          }
+        } else {
+          left = mainLeft
+          top = mainStackY
+          safeWidth = Math.min(safeWidth, mainWidth)
+          safeHeight = Math.min(safeHeight, Math.max(1, mainBottom - top))
+          mainStackY = top + safeHeight + stackGap
+        }
+        }
       }
 
       // Simple collision resolver : prevent overlapping cards
