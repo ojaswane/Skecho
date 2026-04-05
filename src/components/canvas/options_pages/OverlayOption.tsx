@@ -67,6 +67,7 @@ const FramesOverlay = ({ frame }: any) => {
     const [hoveredBlockRect, setHoveredBlockRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
     const [labelPopoverPos, setLabelPopoverPos] = useState<{ x: number; y: number } | null>(null);
     const hoverOutlineRef = React.useRef<fabric.Rect | null>(null);
+    const hoverLabelRef = React.useRef<fabric.Text | null>(null);
 
     const normalizedBadge = String(frame.badge || '').toLowerCase();
     const isSourceSketchFrame = normalizedBadge === 'sketch' || normalizedBadge === 'idea';
@@ -258,10 +259,34 @@ const FramesOverlay = ({ frame }: any) => {
             return rect;
         };
 
+        const ensureHoverLabel = () => {
+            if (hoverLabelRef.current) return hoverLabelRef.current;
+            const label = new fabric.Text("Label your sketch", {
+                left: 0,
+                top: 0,
+                fontFamily: "Inter, Arial",
+                fontSize: 12,
+                fill: "rgba(255,255,255,0.9)",
+                backgroundColor: "rgba(17,17,17,0.85)",
+                padding: 4,
+                selectable: false,
+                evented: false,
+                visible: false,
+            } as any);
+            label.set("isHoverOverlay", true);
+            label.set("frameId", frame.id);
+            canvas.add(label);
+            canvas.bringObjectToFront(label);
+            hoverLabelRef.current = label;
+            return label;
+        };
+
         const hideOutline = () => {
             const rect = hoverOutlineRef.current;
             if (!rect) return;
             rect.set({ visible: false });
+            const label = hoverLabelRef.current;
+            if (label) label.set({ visible: false });
             canvas.requestRenderAll();
         };
 
@@ -308,6 +333,17 @@ const FramesOverlay = ({ frame }: any) => {
             });
             outline.setCoords();
             canvas.bringObjectToFront(outline);
+
+            const label = ensureHoverLabel();
+            const text = blockLabels[hit.id] ? blockLabels[hit.id] : "Label your sketch";
+            label.set({
+                text,
+                left: hit.x + 6,
+                top: hit.y - 18,
+                visible: true,
+            } as any);
+            label.setCoords();
+            canvas.bringObjectToFront(label);
             canvas.requestRenderAll();
         };
 
@@ -324,7 +360,7 @@ const FramesOverlay = ({ frame }: any) => {
             canvas.off("mouse:move", onMouseMove);
             canvas.off("mouse:out", onMouseOut as any);
         };
-    }, [canvas, activeTool, frame.id, frame.left, frame.top, frame.width, frame.height, hoveredBlockId, isSourceSketchFrame]);
+    }, [canvas, activeTool, frame.id, frame.left, frame.top, frame.width, frame.height, hoveredBlockId, isSourceSketchFrame, blockLabels]);
 
     // Click-to-label (Select mode): click a hovered block to open label input.
     useEffect(() => {
@@ -640,6 +676,15 @@ const FramesOverlay = ({ frame }: any) => {
 
                 //sketchGraph.blocks is the same info as items, but normalized (0..1)
                 // so the backend can be resolution-independent later.
+                const makeBlockId = (b: { x: number; y: number; w: number; h: number }) => {
+                    const q = (n: number) => Math.round(n * 100) / 100; // 2-decimal quantize
+                    const nx = q(b.x / frame.width);
+                    const ny = q(b.y / frame.height);
+                    const nw = q(b.w / frame.width);
+                    const nh = q(b.h / frame.height);
+                    return `b-${nx}-${ny}-${nw}-${nh}`;
+                };
+
                 const sketchGraph = {
                     version: 1,
                     mergeGapPx: MERGE_GAP_PX,
@@ -658,8 +703,9 @@ const FramesOverlay = ({ frame }: any) => {
 
                         const shapeType = lineLike ? "line" : circleLike ? "circle" : rectLike ? "rect" : "unknown";
 
+                        const blockId = makeBlockId(it);
                         return {
-                            id: `b-${idx}`,
+                            id: blockId,
                             x: it.x / frame.width,
                             y: it.y / frame.height,
                             w: it.w / frame.width,
@@ -667,7 +713,7 @@ const FramesOverlay = ({ frame }: any) => {
                             shapeType,
                             confidenceRect,
                             zone: it.zone,
-                            label: blockLabels[`b-${idx}`] ?? "",
+                            label: blockLabels[blockId] ?? "",
                         };
                     }),
                 };
@@ -1630,6 +1676,7 @@ const FramesOverlay = ({ frame }: any) => {
 
     /* ------------------ UI ------------------ */
     const quickLabels = ["timer", "chart", "calendar", "kpi", "tasks", "table"];
+
     const saveLabel = () => {
         if (!selectedBlockId) return;
         const value = labelInput.trim();
@@ -1640,6 +1687,7 @@ const FramesOverlay = ({ frame }: any) => {
             return next;
         });
     };
+
     return (
 
         <>
@@ -1772,10 +1820,12 @@ const FramesOverlay = ({ frame }: any) => {
                         className="px-4 py-2 text-sm text-white/70"
                         style={{
                             fontFamily: "Inter, Arial",
-                            fontSize: "18px",
+                            fontSize: "15px",
                         }}
                     >
-                        Label Your Sketch ...
+                        {
+                            
+                        }
                     </div>
                 </div>
             )}
