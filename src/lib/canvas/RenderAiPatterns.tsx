@@ -184,6 +184,85 @@ export default function renderFromAI(
       addObj(line)
     }
 
+    // LayoutTree → absolute positions (flex-like rows/columns)
+    const layoutTree = (screen as any).layoutTree
+    const layoutPositions = new Map<string, { left: number; top: number; width: number; height: number }>()
+
+    if (layoutTree) {
+      const margin = clamp(frame.width * 0.04, 16, 36)
+      const container = {
+        left: frame.left + margin,
+        top: frame.top + margin,
+        width: frame.width - margin * 2,
+        height: frame.height - margin * 2,
+      }
+
+      const byId = new Map(screen.elements.map((e) => [e.id, e]))
+      const desiredSize = (id: string) => {
+        const el = byId.get(id)
+        const bbox = (el as any)?.bbox ?? (el as any)?.style?.bbox
+        if (bbox && typeof bbox.w === "number" && typeof bbox.h === "number") {
+          return {
+            w: clamp(bbox.w, 0.08, 1) * frame.width,
+            h: clamp(bbox.h, 0.06, 1) * frame.height,
+          }
+        }
+        
+        const span = (el as any)?.span ?? 6
+        const rowSpan = (el as any)?.rowSpan ?? 2
+        return {
+          w: clamp(span / 12, 0.2, 1) * container.width,
+          h: clamp(rowSpan / 8, 0.12, 0.8) * container.height,
+        }
+      }
+
+      const DEFAULT_GAP = 16
+
+      const layoutNode = (node: any, rect: { left: number; top: number; width: number; height: number }) => {
+        if (!node) return
+        if (node.type === "element" && node.elementId) {
+          layoutPositions.set(node.elementId, rect)
+          return
+        }
+        const children = node.children ?? []
+        if (!children.length) return
+
+        const gap = typeof node.gap === "number" ? node.gap : DEFAULT_GAP
+
+        if (node.type === "row") {
+          const desired = children.map((c: any) =>
+            c.type === "element" && c.elementId ? desiredSize(c.elementId).w : rect.width / children.length
+          )
+          const total = desired.reduce((s: any, v: any) => s + v, 0)
+          const maxTotal = rect.width - gap * (children.length - 1)
+          const scale = total > maxTotal ? maxTotal / total : 1
+          let x = rect.left
+          children.forEach((child: any, idx: number) => {
+            const w = Math.max(1, desired[idx] * scale)
+            layoutNode(child, { left: x, top: rect.top, width: w, height: rect.height })
+            x += w + gap
+          })
+          return
+        }
+
+        // column (default)
+        const desired = children.map((c: any) =>
+          c.type === "element" && c.elementId ? desiredSize(c.elementId).h : rect.height / children.length
+        )
+        const total = desired.reduce((s: any, v: any) => s + v, 0)
+        const maxTotal = rect.height - gap * (children.length - 1)
+        const scale = total > maxTotal ? maxTotal / total : 1
+        let y = rect.top
+        children.forEach((child: any, idx: number) => {
+          const h = Math.max(1, desired[idx] * scale)
+          layoutNode(child, { left: rect.left, top: y, width: rect.width, height: h })
+          y += h + gap
+        })
+      }
+
+      layoutNode(layoutTree, container)
+    }
+
     // Pre-calc nav/sidebar lanes for main content alignment
     const absElements = screen.elements.filter((e) => e.bbox)
     const navEl = absElements.find((e) => String(e.semantic ?? "").toLowerCase() === "nav")
@@ -338,7 +417,7 @@ export default function renderFromAI(
         selectable: false,
         evented: false,
       })
-      
+
       addObj(media)
       addMiniChart({
         x: innerLeft + pad * 0.6,
@@ -615,11 +694,21 @@ export default function renderFromAI(
       let safeWidth = Math.max(1, Math.min(width, maxW))
       let safeHeight = Math.max(1, Math.min(height, maxH))
 
+      // If layoutTree provided a position, use it and bypass bbox/grid heuristics
+      const layoutRect = layoutPositions.get(el.id)
+      const usingLayoutTree = Boolean(layoutRect)
+      if (usingLayoutTree && layoutRect) {
+        left = layoutRect.left
+        top = layoutRect.top
+        safeWidth = layoutRect.width
+        safeHeight = layoutRect.height
+      }
+
       // Skip anything that would overflow the frame (quick MVP guardrail).
       if (!useAbsolute && top + safeHeight > frame.top + frame.height - padding) continue
 
       // Premium alignment pass (only for strict mode )
-      if (useAbsolute) {
+      if (useAbsolute && !usingLayoutTree) {
         const grid = 8
         const margin = clamp(frame.width * 0.04, 16, 36)
         const snap = (v: number) => Math.round(v / grid) * grid
@@ -669,6 +758,7 @@ export default function renderFromAI(
         (hasNav || hasSidebar) &&
         !isLaneElement &&
         !skippedIds.has(el.id) &&
+        !usingLayoutTree &&
         mainStackY < mainBottom - 20
 
       if (shouldStackInMain) {
@@ -687,28 +777,28 @@ export default function renderFromAI(
           safeHeight = Math.min(safeHeight, Math.max(1, mainBottom - top))
           mainStackY = top + safeHeight + stackGap
         } else if (useTwoColMain) {
-        if (useTwoColMain) {
-          const colLeft = mainLeft + (mainColIndex % 2) * (mainColW + colGap)
-          left = colLeft
-          top = mainStackY
-          safeWidth = Math.min(safeWidth, mainColW)
-          safeHeight = Math.min(safeHeight, Math.max(1, mainBottom - top))
-          mainColIndex += 1
-          if (mainColIndex % 2 === 0) {
+          if (useTwoColMain) {
+            const colLeft = mainLeft + (mainColIndex % 2) * (mainColW + colGap)
+            left = colLeft
+            top = mainStackY
+            safeWidth = Math.min(safeWidth, mainColW)
+            safeHeight = Math.min(safeHeight, Math.max(1, mainBottom - top))
+            mainColIndex += 1
+            if (mainColIndex % 2 === 0) {
+              mainStackY = top + safeHeight + stackGap
+            }
+          } else {
+            left = mainLeft
+            top = mainStackY
+            safeWidth = Math.min(safeWidth, mainWidth)
+            safeHeight = Math.min(safeHeight, Math.max(1, mainBottom - top))
             mainStackY = top + safeHeight + stackGap
           }
-        } else {
-          left = mainLeft
-          top = mainStackY
-          safeWidth = Math.min(safeWidth, mainWidth)
-          safeHeight = Math.min(safeHeight, Math.max(1, mainBottom - top))
-          mainStackY = top + safeHeight + stackGap
-        }
         }
       }
 
       // Simple collision resolver : prevent overlapping cards
-      if (useAbsolute && placed.length) {
+      if (useAbsolute && placed.length && !usingLayoutTree) {
         const gap = 12
         let adjustedTop = top
         for (const r of placed) {
