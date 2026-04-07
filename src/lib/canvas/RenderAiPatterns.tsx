@@ -195,14 +195,20 @@ export default function renderFromAI(
     if (layoutTree) {
       const BASE_UNIT = 8
       const snap = (v: number) => Math.round(v / BASE_UNIT) * BASE_UNIT
-      const normalizeSpacing = (v: number) => snap(v)
+      const GAP_SCALE = [12, 16, 24]
+      const normalizeSpacing = (v: number) => {
+        const snapped = snap(v)
+        return GAP_SCALE.reduce((best, g) =>
+          Math.abs(g - snapped) < Math.abs(best - snapped) ? g : best
+        , GAP_SCALE[0])
+      }
       const normalizeSizes = (sizes: number[]) => {
         if (!sizes.length) return sizes
         const avg = sizes.reduce((s, v) => s + v, 0) / sizes.length
-        const within = sizes.every((s) => Math.abs(s - avg) / Math.max(1, avg) <= 0.15)
+        const within = sizes.every((s) => Math.abs(s - avg) / Math.max(1, avg) <= 0.2)
         return within ? sizes.map(() => avg) : sizes
       }
-      
+
       const margin = clamp(frame.width * 0.04, 16, 36)
       const container = {
         left: frame.left + margin,
@@ -233,35 +239,57 @@ export default function renderFromAI(
       const DEFAULT_GAP = 16
 
       const layoutNode = (node: any, rect: { left: number; top: number; width: number; height: number }) => {
+        
         if (!node) return
         if (node.type === "element" && node.elementId) {
           layoutPositions.set(node.elementId, rect)
           return
         }
+
         const children = node.children ?? []
         if (!children.length) return
 
         const gap = normalizeSpacing(typeof node.gap === "number" ? node.gap : DEFAULT_GAP)
 
         if (node.type === "row") {
+
+          const elementIds = children.filter((c: any) => c.type === "element" && c.elementId)
+            .map((c: any) => c.elementId)
+
           let desired = children.map((c: any) =>
             c.type === "element" && c.elementId ? desiredSize(c.elementId).w : rect.width / children.length
           )
-          desired = normalizeSizes(desired)
+
+          // enforce strong row intent
+          if (elementIds.length === 1) {
+            desired = [rect.width]
+          } else if (elementIds.length === 2) {
+            desired = [rect.width * 0.7, rect.width * 0.3]
+          } else if (elementIds.length >= 3) {
+            const equal = (rect.width - gap * (elementIds.length - 1)) / elementIds.length
+            desired = desired.map(() => equal)
+          } else {
+            desired = normalizeSizes(desired)
+          }
           const total = desired.reduce((s: any, v: any) => s + v, 0)
           const maxTotal = rect.width - gap * (children.length - 1)
           const scale = total > maxTotal ? maxTotal / total : 1
           const used = desired.reduce((s: any, v: any) => s + v * scale, 0)
           const free = Math.max(0, rect.width - (used + gap * (children.length - 1)))
+          
           let x = rect.left + free / 2
+          
           children.forEach((child: any, idx: number) => {
             const w = Math.max(1, desired[idx] * scale)
             const left = snap(x)
             const width = Math.max(1, snap(w))
+
             layoutNode(child, { left, top: snap(rect.top), width, height: snap(rect.height) })
             x += w + gap
           })
+
           return
+        
         }
 
         // column (default)
@@ -321,7 +349,9 @@ export default function renderFromAI(
         selectable: false,
         evented: false,
       })
+      
       addObj(card)
+
       addText({
         x: rect.left + pad,
         y: rect.top + pad * 0.6,
@@ -332,6 +362,7 @@ export default function renderFromAI(
         fill: preset?.color?.textMuted ?? "#9CA3AF",
         lh: 1.0,
       })
+
       addText({
         x: rect.left + pad,
         y: rect.top + pad * 1.6,
@@ -342,6 +373,7 @@ export default function renderFromAI(
         fill: preset?.color?.textPrimary ?? "#E7EAF0",
         lh: 1.0,
       })
+
       addPill({
         x: rect.left + pad,
         y: rect.top + rect.height - pad * 1.1,
