@@ -193,6 +193,16 @@ export default function renderFromAI(
     const layoutPositions = new Map<string, { left: number; top: number; width: number; height: number }>()
 
     if (layoutTree) {
+      const BASE_UNIT = 8
+      const snap = (v: number) => Math.round(v / BASE_UNIT) * BASE_UNIT
+      const normalizeSpacing = (v: number) => snap(v)
+      const normalizeSizes = (sizes: number[]) => {
+        if (!sizes.length) return sizes
+        const avg = sizes.reduce((s, v) => s + v, 0) / sizes.length
+        const within = sizes.every((s) => Math.abs(s - avg) / Math.max(1, avg) <= 0.15)
+        return within ? sizes.map(() => avg) : sizes
+      }
+      
       const margin = clamp(frame.width * 0.04, 16, 36)
       const container = {
         left: frame.left + margin,
@@ -211,7 +221,7 @@ export default function renderFromAI(
             h: clamp(bbox.h, 0.06, 1) * frame.height,
           }
         }
-        
+
         const span = (el as any)?.span ?? 6
         const rowSpan = (el as any)?.rowSpan ?? 2
         return {
@@ -231,40 +241,58 @@ export default function renderFromAI(
         const children = node.children ?? []
         if (!children.length) return
 
-        const gap = typeof node.gap === "number" ? node.gap : DEFAULT_GAP
+        const gap = normalizeSpacing(typeof node.gap === "number" ? node.gap : DEFAULT_GAP)
 
         if (node.type === "row") {
-          const desired = children.map((c: any) =>
+          let desired = children.map((c: any) =>
             c.type === "element" && c.elementId ? desiredSize(c.elementId).w : rect.width / children.length
           )
+          desired = normalizeSizes(desired)
           const total = desired.reduce((s: any, v: any) => s + v, 0)
           const maxTotal = rect.width - gap * (children.length - 1)
           const scale = total > maxTotal ? maxTotal / total : 1
-          let x = rect.left
+          const used = desired.reduce((s: any, v: any) => s + v * scale, 0)
+          const free = Math.max(0, rect.width - (used + gap * (children.length - 1)))
+          let x = rect.left + free / 2
           children.forEach((child: any, idx: number) => {
             const w = Math.max(1, desired[idx] * scale)
-            layoutNode(child, { left: x, top: rect.top, width: w, height: rect.height })
+            const left = snap(x)
+            const width = Math.max(1, snap(w))
+            layoutNode(child, { left, top: snap(rect.top), width, height: snap(rect.height) })
             x += w + gap
           })
           return
         }
 
         // column (default)
-        const desired = children.map((c: any) =>
-          c.type === "element" && c.elementId ? desiredSize(c.elementId).h : rect.height / children.length
-        )
+        let desired = children.map((c: any) => c.type === "element" && c.elementId
+          ? desiredSize(c.elementId).h
+          : rect.height / children.length)
+
+        desired = normalizeSizes(desired)
         const total = desired.reduce((s: any, v: any) => s + v, 0)
         const maxTotal = rect.height - gap * (children.length - 1)
         const scale = total > maxTotal ? maxTotal / total : 1
-        let y = rect.top
+        const used = desired.reduce((s: any, v: any) => s + v * scale, 0)
+        const free = Math.max(0, rect.height - (used + gap * (children.length - 1)))
+        let y = rect.top + free / 2
+
         children.forEach((child: any, idx: number) => {
           const h = Math.max(1, desired[idx] * scale)
-          layoutNode(child, { left: rect.left, top: y, width: rect.width, height: h })
+          const top = snap(y)
+          const height = Math.max(1, snap(h))
+          layoutNode(child, { left: snap(rect.left), top, width: snap(rect.width), height })
           y += h + gap
         })
       }
 
-      layoutNode(layoutTree, container)
+      layoutNode(layoutTree, {
+        left: snap(container.left),
+        top: snap(container.top),
+        width: snap(container.width),
+        height: snap(container.height),
+      })
+
     }
     const useLayoutTree = Boolean(layoutTree && layoutPositions.size)
 
