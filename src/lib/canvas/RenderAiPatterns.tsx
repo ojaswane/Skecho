@@ -268,6 +268,216 @@ export default function renderFromAI(
     }
     const useLayoutTree = Boolean(layoutTree && layoutPositions.size)
 
+    // Phase 3: render rows based on layoutTree structure (KPI row / chart / table+watchlist)
+    const renderedByTree = new Set<string>()
+    const getRowNodes = (node: any): any[] => {
+      if (!node) return []
+      if (node.type === "row") return [node]
+      const children = node.children ?? []
+      return children.flatMap((c: any) => getRowNodes(c))
+    }
+
+    const renderKpiCard = (rect: { left: number; top: number; width: number; height: number }) => {
+      const pad = clamp(Math.min(rect.width, rect.height) * 0.18, 10, 18)
+      const card = new fabric.Rect({
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        fill: preset?.color?.card ?? "#1D2027",
+        stroke: preset?.color?.border ?? "#2A2D36",
+        strokeWidth: 1,
+        rx: clamp(cardRadius * 0.8, 10, cardRadius),
+        ry: clamp(cardRadius * 0.8, 10, cardRadius),
+        shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+        selectable: false,
+        evented: false,
+      })
+      addObj(card)
+      addText({
+        x: rect.left + pad,
+        y: rect.top + pad * 0.6,
+        w: rect.width - pad * 2,
+        text: "Total Holding",
+        size: clamp(rect.height * 0.18, 10, 13),
+        weight: 600,
+        fill: preset?.color?.textMuted ?? "#9CA3AF",
+        lh: 1.0,
+      })
+      addText({
+        x: rect.left + pad,
+        y: rect.top + pad * 1.6,
+        w: rect.width - pad * 2,
+        text: "$12,304",
+        size: clamp(rect.height * 0.34, 16, 22),
+        weight: 700,
+        fill: preset?.color?.textPrimary ?? "#E7EAF0",
+        lh: 1.0,
+      })
+      addPill({
+        x: rect.left + pad,
+        y: rect.top + rect.height - pad * 1.1,
+        w: rect.width * 0.55,
+        h: clamp(rect.height * 0.12, 10, 14),
+        fill: preset?.color?.primarySoft ?? "#2A2F1D",
+      })
+    }
+
+    const renderChartCard = (rect: { left: number; top: number; width: number; height: number }) => {
+      const pad = clamp(Math.min(rect.width, rect.height) * 0.08, 12, 20)
+      const card = new fabric.Rect({
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        fill: preset?.color?.card ?? "#1D2027",
+        stroke: preset?.color?.border ?? "#2A2D36",
+        strokeWidth: 1,
+        rx: clamp(cardRadius, 12, cardRadius),
+        ry: clamp(cardRadius, 12, cardRadius),
+        shadow: preset?.shadow?.md,
+        selectable: false,
+        evented: false,
+      })
+      addObj(card)
+      addText({
+        x: rect.left + pad,
+        y: rect.top + pad * 0.6,
+        w: rect.width * 0.7,
+        text: "Portfolio Performance",
+        size: clamp(rect.height * 0.12, 12, 16),
+        weight: 600,
+        fill: preset?.color?.textMuted ?? "#9CA3AF",
+        lh: 1.0,
+      })
+      addMiniChart({
+        x: rect.left + pad,
+        y: rect.top + pad * 1.6,
+        w: rect.width - pad * 2,
+        h: rect.height - pad * 2.2,
+      })
+    }
+
+    const renderTableCard = (rect: { left: number; top: number; width: number; height: number }) => {
+      const pad = clamp(Math.min(rect.width, rect.height) * 0.08, 12, 18)
+      const card = new fabric.Rect({
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        fill: preset?.color?.card ?? "#1D2027",
+        stroke: preset?.color?.border ?? "#2A2D36",
+        strokeWidth: 1,
+        rx: clamp(cardRadius, 12, cardRadius),
+        ry: clamp(cardRadius, 12, cardRadius),
+        shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+        selectable: false,
+        evented: false,
+      })
+      addObj(card)
+      addText({
+        x: rect.left + pad,
+        y: rect.top + pad * 0.5,
+        w: rect.width * 0.6,
+        text: "Portfolio Overview",
+        size: clamp(rect.height * 0.12, 12, 15),
+        weight: 600,
+        fill: preset?.color?.textMuted ?? "#9CA3AF",
+        lh: 1.0,
+      })
+      // fake table rows
+      const rowH = clamp(rect.height * 0.12, 16, 22)
+      let y = rect.top + pad * 2
+      for (let i = 0; i < 3; i++) {
+        addPill({
+          x: rect.left + pad,
+          y,
+          w: rect.width - pad * 2,
+          h: clamp(rowH * 0.6, 8, 12),
+          fill: preset?.color?.border ?? "#2A2D36",
+        })
+        y += rowH
+      }
+    }
+
+    const renderWatchlistCard = (rect: { left: number; top: number; width: number; height: number }) => {
+      const pad = clamp(Math.min(rect.width, rect.height) * 0.08, 12, 18)
+      const card = new fabric.Rect({
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        fill: preset?.color?.card ?? "#1D2027",
+        stroke: preset?.color?.border ?? "#2A2D36",
+        strokeWidth: 1,
+        rx: clamp(cardRadius, 12, cardRadius),
+        ry: clamp(cardRadius, 12, cardRadius),
+        shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
+        selectable: false,
+        evented: false,
+      })
+      addObj(card)
+      addText({
+        x: rect.left + pad,
+        y: rect.top + pad * 0.5,
+        w: rect.width * 0.6,
+        text: "Watchlist",
+        size: clamp(rect.height * 0.12, 12, 15),
+        weight: 600,
+        fill: preset?.color?.textMuted ?? "#9CA3AF",
+        lh: 1.0,
+      })
+      let y = rect.top + pad * 2
+      for (let i = 0; i < 3; i++) {
+        addPill({
+          x: rect.left + pad,
+          y,
+          w: rect.width - pad * 2,
+          h: clamp(rect.height * 0.08, 8, 12),
+          fill: preset?.color?.border ?? "#2A2D36",
+        })
+        y += clamp(rect.height * 0.14, 18, 26)
+      }
+    }
+
+    if (useLayoutTree) {
+      const rows = getRowNodes(layoutTree)
+      rows.forEach((row) => {
+        const ids = (row.children ?? [])
+          .filter((c: any) => c.type === "element" && c.elementId)
+          .map((c: any) => c.elementId)
+        const rects = ids.map((id: string) => layoutPositions.get(id)).filter(Boolean) as any[]
+        if (!rects.length) return
+
+        // KPI row: 3+ small cards in one row
+        if (ids.length >= 3) {
+          rects.forEach((r: any) => {
+            renderKpiCard(r)
+            renderedByTree.add(ids[rects.indexOf(r)])
+          })
+          return
+        }
+
+        // Chart row: one large card
+        if (ids.length === 1 && rects[0].height >= frame.height * 0.22) {
+          renderChartCard(rects[0])
+          renderedByTree.add(ids[0])
+          return
+        }
+
+        // Table + watchlist: 2 cards, one wider
+        if (ids.length === 2) {
+          const [a, b] = rects
+          const left = a.left <= b.left ? a : b
+          const right = a.left <= b.left ? b : a
+          renderTableCard(left)
+          renderWatchlistCard(right)
+          renderedByTree.add(ids[rects.indexOf(left)])
+          renderedByTree.add(ids[rects.indexOf(right)])
+        }
+      })
+    }
+
     // Pre-calc nav/sidebar lanes for main content alignment
     const absElements = screen.elements.filter((e) => e.bbox)
     const navEl = absElements.find((e) => String(e.semantic ?? "").toLowerCase() === "nav")
@@ -706,6 +916,7 @@ export default function renderFromAI(
       const usingLayoutTree = Boolean(layoutRect)
       if (useLayoutTree) {
         if (!layoutRect) continue
+        if (renderedByTree.has(el.id)) continue
         left = layoutRect.left
         top = layoutRect.top
         safeWidth = layoutRect.width
