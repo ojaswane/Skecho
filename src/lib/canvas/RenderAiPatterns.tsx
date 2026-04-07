@@ -78,7 +78,11 @@ export default function renderFromAI(
     ) as fabric.Rect
 
     if ((screen as any).layoutTree) {
-      console.log("[layoutTree] screen", screen.id, (screen as any).layoutTree)
+      try {
+        console.log("[layoutTree] screen", screen.id, JSON.stringify((screen as any).layoutTree, null, 2))
+      } catch {
+        console.log("[layoutTree] screen", screen.id, (screen as any).layoutTree)
+      }
     }
 
     if (!frame) {
@@ -262,6 +266,7 @@ export default function renderFromAI(
 
       layoutNode(layoutTree, container)
     }
+    const useLayoutTree = Boolean(layoutTree && layoutPositions.size)
 
     // Pre-calc nav/sidebar lanes for main content alignment
     const absElements = screen.elements.filter((e) => e.bbox)
@@ -314,7 +319,8 @@ export default function renderFromAI(
       containerEl &&
       containerEl.bbox &&
       containerChildren.length >= 2 &&
-      (containerEl.bbox.w ?? 0) * (containerEl.bbox.h ?? 0) >= 0.25
+      (containerEl.bbox.w ?? 0) * (containerEl.bbox.h ?? 0) >= 0.25 &&
+      !useLayoutTree
 
     const skippedIds = new Set<string>()
     if (shouldContainerLayout && containerEl) {
@@ -330,7 +336,8 @@ export default function renderFromAI(
       (hasNav || hasSidebar) &&
       nonLaneCount >= 3 &&
       mainWidth >= frame.width * 0.45 &&
-      mainHeight >= frame.height * 0.4
+      mainHeight >= frame.height * 0.4 &&
+      !useLayoutTree
 
     const renderContainerLayout = () => {
       if (!containerEl?.bbox) return
@@ -694,10 +701,11 @@ export default function renderFromAI(
       let safeWidth = Math.max(1, Math.min(width, maxW))
       let safeHeight = Math.max(1, Math.min(height, maxH))
 
-      // If layoutTree provided a position, use it and bypass bbox/grid heuristics
+      // If layoutTree is active, only render elements that exist in the tree
       const layoutRect = layoutPositions.get(el.id)
       const usingLayoutTree = Boolean(layoutRect)
-      if (usingLayoutTree && layoutRect) {
+      if (useLayoutTree) {
+        if (!layoutRect) continue
         left = layoutRect.left
         top = layoutRect.top
         safeWidth = layoutRect.width
@@ -708,7 +716,7 @@ export default function renderFromAI(
       if (!useAbsolute && top + safeHeight > frame.top + frame.height - padding) continue
 
       // Premium alignment pass (only for strict mode )
-      if (useAbsolute && !usingLayoutTree) {
+      if (useAbsolute && !usingLayoutTree && !useLayoutTree) {
         const grid = 8
         const margin = clamp(frame.width * 0.04, 16, 36)
         const snap = (v: number) => Math.round(v / grid) * grid
@@ -759,6 +767,7 @@ export default function renderFromAI(
         !isLaneElement &&
         !skippedIds.has(el.id) &&
         !usingLayoutTree &&
+        !useLayoutTree &&
         mainStackY < mainBottom - 20
 
       if (shouldStackInMain) {
@@ -798,7 +807,7 @@ export default function renderFromAI(
       }
 
       // Simple collision resolver : prevent overlapping cards
-      if (useAbsolute && placed.length && !usingLayoutTree) {
+      if (useAbsolute && placed.length && !usingLayoutTree && !useLayoutTree) {
         const gap = 12
         let adjustedTop = top
         for (const r of placed) {
