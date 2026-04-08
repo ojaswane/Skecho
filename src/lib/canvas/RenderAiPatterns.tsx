@@ -221,6 +221,7 @@ export default function renderFromAI(
         selectable: false,
         evented: false,
       })
+      
       addObj(shell)
       return shell
     }
