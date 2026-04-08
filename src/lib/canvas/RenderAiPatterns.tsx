@@ -55,9 +55,11 @@ const GRID = {
 }
 
 export default function renderFromAI(
+  
   canvas: fabric.Canvas,
   screens: AIScreen[],
   preset: any // This is the JSON tossed by the gemini to frontend
+
 ) {
   if (!screens.length) return
   const cardRadius = preset?.radius?.xl ?? preset?.radius?.lg ?? 16
@@ -186,6 +188,41 @@ export default function renderFromAI(
         evented: false,
       })
       addObj(line)
+    }
+
+    // Premium outer shell (rounded card with soft gradient + layered shadow)
+    const addPremiumShell = (opts: { x: number; y: number; w: number; h: number; radius?: number }) => {
+      const base = preset?.color?.card ?? "#1D2027"
+      const top = preset?.color?.cardHighlight ?? "#252A35"
+      const border = preset?.color?.border ?? "#2A2D36"
+      const r = opts.radius ?? cardRadius
+
+      const gradient = new fabric.Gradient({
+        type: "linear",
+        gradientUnits: "pixels",
+        coords: { x1: opts.x, y1: opts.y, x2: opts.x, y2: opts.y + opts.h },
+        colorStops: [
+          { offset: 0, color: top },
+          { offset: 1, color: base },
+        ],
+      })
+
+      const shell = new fabric.Rect({
+        left: opts.x,
+        top: opts.y,
+        width: Math.max(1, opts.w),
+        height: Math.max(1, opts.h),
+        fill: gradient,
+        stroke: border,
+        strokeWidth: 1,
+        rx: r,
+        ry: r,
+        shadow: preset?.shadow?.md ?? preset?.shadow?.sm,
+        selectable: false,
+        evented: false,
+      })
+      addObj(shell)
+      return shell
     }
 
     // LayoutTree → absolute positions (flex-like rows/columns)
