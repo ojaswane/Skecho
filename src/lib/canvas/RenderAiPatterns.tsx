@@ -224,6 +224,41 @@ export default function renderFromAI(
       
       addObj(shell)
       return shell
+    
+    }
+
+    // Inner clipped panel (inset surface inside a premium shell)
+    const addInnerPanel = (opts: { x: number; y: number; w: number; h: number; radius?: number }) => {
+      const base = preset?.color?.backgroundMuted ?? "#171A21"
+      const top = preset?.color?.surfaceSoft ?? "#1E232C"
+      const border = preset?.color?.border ?? "#2A2D36"
+      const r = opts.radius ?? Math.max(12, cardRadius - 4)
+
+      const gradient = new fabric.Gradient({
+        type: "linear",
+        gradientUnits: "pixels",
+        coords: { x1: opts.x, y1: opts.y, x2: opts.x, y2: opts.y + opts.h },
+        colorStops: [
+          { offset: 0, color: top },
+          { offset: 1, color: base },
+        ],
+      })
+
+      const panel = new fabric.Rect({
+        left: opts.x,
+        top: opts.y,
+        width: Math.max(1, opts.w),
+        height: Math.max(1, opts.h),
+        fill: gradient,
+        stroke: border,
+        strokeWidth: 1,
+        rx: r,
+        ry: r,
+        selectable: false,
+        evented: false,
+      })
+      addObj(panel)
+      return panel
     }
 
     // LayoutTree → absolute positions (flex-like rows/columns)
@@ -423,21 +458,20 @@ export default function renderFromAI(
 
     const renderChartCard = (rect: { left: number; top: number; width: number; height: number }) => {
       const pad = clamp(Math.min(rect.width, rect.height) * 0.08, 12, 20)
-      const card = new fabric.Rect({
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height,
-        fill: preset?.color?.card ?? "#1D2027",
-        stroke: preset?.color?.border ?? "#2A2D36",
-        strokeWidth: 1,
-        rx: clamp(cardRadius, 12, cardRadius),
-        ry: clamp(cardRadius, 12, cardRadius),
-        shadow: preset?.shadow?.md,
-        selectable: false,
-        evented: false,
+      addPremiumShell({
+        x: rect.left,
+        y: rect.top,
+        w: rect.width,
+        h: rect.height,
+        radius: clamp(cardRadius, 12, cardRadius),
       })
-      addObj(card)
+      addInnerPanel({
+        x: rect.left + pad * 0.6,
+        y: rect.top + pad * 1.4,
+        w: rect.width - pad * 1.2,
+        h: rect.height - pad * 2.2,
+        radius: clamp(cardRadius * 0.9, 10, cardRadius),
+      })
       addText({
         x: rect.left + pad,
         y: rect.top + pad * 0.6,
@@ -449,30 +483,29 @@ export default function renderFromAI(
         lh: 1.0,
       })
       addMiniChart({
-        x: rect.left + pad,
-        y: rect.top + pad * 1.6,
-        w: rect.width - pad * 2,
-        h: rect.height - pad * 2.2,
+        x: rect.left + pad * 1.1,
+        y: rect.top + pad * 1.8,
+        w: rect.width - pad * 2.2,
+        h: rect.height - pad * 2.6,
       })
     }
 
     const renderTableCard = (rect: { left: number; top: number; width: number; height: number }) => {
       const pad = clamp(Math.min(rect.width, rect.height) * 0.08, 12, 18)
-      const card = new fabric.Rect({
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height,
-        fill: preset?.color?.card ?? "#1D2027",
-        stroke: preset?.color?.border ?? "#2A2D36",
-        strokeWidth: 1,
-        rx: clamp(cardRadius, 12, cardRadius),
-        ry: clamp(cardRadius, 12, cardRadius),
-        shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
-        selectable: false,
-        evented: false,
+      addPremiumShell({
+        x: rect.left,
+        y: rect.top,
+        w: rect.width,
+        h: rect.height,
+        radius: clamp(cardRadius, 12, cardRadius),
       })
-      addObj(card)
+      addInnerPanel({
+        x: rect.left + pad * 0.7,
+        y: rect.top + pad * 1.3,
+        w: rect.width - pad * 1.4,
+        h: rect.height - pad * 2.2,
+        radius: clamp(cardRadius * 0.85, 10, cardRadius),
+      })
       addText({
         x: rect.left + pad,
         y: rect.top + pad * 0.5,
@@ -490,7 +523,7 @@ export default function renderFromAI(
         addPill({
           x: rect.left + pad,
           y,
-          w: rect.width - pad * 2,
+          w: rect.width - pad * 2.2,
           h: clamp(rowH * 0.6, 8, 12),
           fill: preset?.color?.border ?? "#2A2D36",
         })
@@ -500,21 +533,20 @@ export default function renderFromAI(
 
     const renderWatchlistCard = (rect: { left: number; top: number; width: number; height: number }) => {
       const pad = clamp(Math.min(rect.width, rect.height) * 0.08, 12, 18)
-      const card = new fabric.Rect({
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height,
-        fill: preset?.color?.card ?? "#1D2027",
-        stroke: preset?.color?.border ?? "#2A2D36",
-        strokeWidth: 1,
-        rx: clamp(cardRadius, 12, cardRadius),
-        ry: clamp(cardRadius, 12, cardRadius),
-        shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
-        selectable: false,
-        evented: false,
+      addPremiumShell({
+        x: rect.left,
+        y: rect.top,
+        w: rect.width,
+        h: rect.height,
+        radius: clamp(cardRadius, 12, cardRadius),
       })
-      addObj(card)
+      addInnerPanel({
+        x: rect.left + pad * 0.7,
+        y: rect.top + pad * 1.3,
+        w: rect.width - pad * 1.4,
+        h: rect.height - pad * 2.2,
+        radius: clamp(cardRadius * 0.85, 10, cardRadius),
+      })
       addText({
         x: rect.left + pad,
         y: rect.top + pad * 0.5,
