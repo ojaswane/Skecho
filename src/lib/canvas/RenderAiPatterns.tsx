@@ -408,22 +408,22 @@ export default function renderFromAI(
 
     const renderKpiCard = (rect: { left: number; top: number; width: number; height: number }) => {
       const pad = clamp(Math.min(rect.width, rect.height) * 0.18, 10, 18)
-      const card = new fabric.Rect({
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height,
-        fill: preset?.color?.card ?? "#1D2027",
-        stroke: preset?.color?.border ?? "#2A2D36",
-        strokeWidth: 1,
-        rx: clamp(cardRadius * 0.8, 10, cardRadius),
-        ry: clamp(cardRadius * 0.8, 10, cardRadius),
-        shadow: preset?.shadow?.sm ?? preset?.shadow?.md,
-        selectable: false,
-        evented: false,
-      })
       
-      addObj(card)
+      addPremiumShell({
+        x: rect.left,
+        y: rect.top,
+        w: rect.width,
+        h: rect.height,
+        radius: clamp(cardRadius * 0.8, 10, cardRadius),
+      })
+
+      addInnerPanel({
+        x: rect.left + pad * 0.6,
+        y: rect.top + pad * 1.2,
+        w: rect.width - pad * 1.2,
+        h: rect.height - pad * 2.0,
+        radius: clamp(cardRadius * 0.75, 8, cardRadius),
+      })
 
       addText({
         x: rect.left + pad,
@@ -434,6 +434,7 @@ export default function renderFromAI(
         weight: 600,
         fill: preset?.color?.textMuted ?? "#9CA3AF",
         lh: 1.0,
+      
       })
 
       addText({
