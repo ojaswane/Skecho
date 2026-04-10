@@ -14,6 +14,7 @@
 import * as fabric from "fabric"
 import { layoutCard } from "../design-systems/cardLayout/CardLayout"
 import { renderSemanticBlock } from "@/lib/render/renderSemanticBlock"
+import { typography } from "@/tokens/typography"
 
 // clamp a number between min and max
 function clamp(n: number, min: number, max: number) {
@@ -140,18 +141,25 @@ export default function renderFromAI(
       return pill
     }
 
+    const textStyle = (key: keyof typeof typography.scale, maxSize?: number) => {
+      const t = typography.scale[key]
+      const size = Math.max(9, maxSize ? Math.min(t.size, maxSize) : t.size)
+      return { size, weight: t.weight, lh: t.lineHeight }
+    }
+
     const addText = (opts: { x: number; y: number; w: number; text: string; size: number; weight?: number; fill?: string; lh?: number }) => {
       const t = new fabric.Textbox(opts.text, {
         left: opts.x,
         top: opts.y,
         width: Math.max(1, opts.w),
-        fontFamily: preset?.typography?.fontFamily ?? "Inter, Arial",
+        fontFamily: preset?.typography?.fontFamily ?? typography.fontFamily,
         fontSize: opts.size,
         fontWeight: (opts.weight ?? 600) as any,
         fill: opts.fill ?? (preset?.color?.textPrimary ?? "#0f172a"),
         lineHeight: opts.lh ?? 1.15,
         selectable: false,
         evented: false,
+
       } as any)
       addObj(t)
       return t
@@ -397,7 +405,7 @@ export default function renderFromAI(
     }
     const useLayoutTree = Boolean(layoutTree && layoutPositions.size)
 
-    // Phase 3: render rows based on layoutTree structure (KPI row / chart / table+watchlist)
+    // render rows based on layoutTree structure (KPI row / chart / table+watchlist)
     const renderedByTree = new Set<string>()
     const getRowNodes = (node: any): any[] => {
       if (!node) return []
@@ -455,10 +463,10 @@ export default function renderFromAI(
         y: badgeY + badgeH * 0.15,
         w: badgeW,
         text: "+3.5%",
-        size: clamp(badgeH * 0.6, 9, 11),
-        weight: 700,
+        size: textStyle("overline", badgeH * 0.7).size,
+        weight: textStyle("overline", badgeH * 0.7).weight,
         fill: preset?.color?.accent ?? "#4C6FFF",
-        lh: 1.0,
+        lh: textStyle("overline", badgeH * 0.7).lh,
       })
 
       addText({
@@ -466,10 +474,10 @@ export default function renderFromAI(
         y: rect.top + pad * 0.6,
         w: rect.width - pad * 2,
         text: "Total Holding",
-        size: clamp(rect.height * 0.18, 10, 13),
-        weight: 600,
+        size: textStyle("caption", rect.height * 0.18).size,
+        weight: textStyle("caption", rect.height * 0.18).weight,
         fill: preset?.color?.textMuted ?? "#9CA3AF",
-        lh: 1.0,
+        lh: textStyle("caption", rect.height * 0.18).lh,
       
       })
 
@@ -478,10 +486,10 @@ export default function renderFromAI(
         y: rect.top + pad * 1.6,
         w: rect.width - pad * 2,
         text: "$12,304",
-        size: clamp(rect.height * 0.34, 16, 22),
-        weight: 700,
+        size: textStyle("h3", rect.height * 0.34).size,
+        weight: textStyle("h3", rect.height * 0.34).weight,
         fill: preset?.color?.textPrimary ?? "#E7EAF0",
-        lh: 1.0,
+        lh: textStyle("h3", rect.height * 0.34).lh,
       })
 
       addPill({
@@ -517,10 +525,10 @@ export default function renderFromAI(
         y: rect.top + pad * 0.6,
         w: rect.width * 0.7,
         text: "Portfolio Performance",
-        size: clamp(rect.height * 0.12, 12, 16),
-        weight: 600,
+        size: textStyle("title", rect.height * 0.12).size,
+        weight: textStyle("title", rect.height * 0.12).weight,
         fill: preset?.color?.textMuted ?? "#9CA3AF",
-        lh: 1.0,
+        lh: textStyle("title", rect.height * 0.12).lh,
       })
 
       // micro-details: range pills + legend dots
@@ -549,10 +557,10 @@ export default function renderFromAI(
           y: pillY + pillH * 0.18,
           w: pillW,
           text: label,
-          size: clamp(pillH * 0.6, 9, 11),
-          weight: 700,
+          size: textStyle("button", pillH * 0.7).size,
+          weight: textStyle("button", pillH * 0.7).weight,
           fill: i === 2 ? (preset?.color?.onPrimary ?? "#ffffff") : (preset?.color?.textMuted ?? "#9CA3AF"),
-          lh: 1.0,
+          lh: textStyle("button", pillH * 0.7).lh,
         })
       })
 
@@ -576,10 +584,10 @@ export default function renderFromAI(
         y: legendY,
         w: rect.width * 0.2,
         text: "Revenue",
-        size: clamp(pillH * 0.55, 9, 11),
-        weight: 600,
+        size: textStyle("bodySm", pillH * 0.6).size,
+        weight: textStyle("bodySm", pillH * 0.6).weight,
         fill: preset?.color?.textMuted ?? "#9CA3AF",
-        lh: 1.0,
+        lh: textStyle("bodySm", pillH * 0.6).lh,
       })
 
       const dot2 = new fabric.Circle({
@@ -598,10 +606,10 @@ export default function renderFromAI(
         y: legendY,
         w: rect.width * 0.2,
         text: "Costs",
-        size: clamp(pillH * 0.55, 9, 11),
-        weight: 600,
+        size: textStyle("bodySm", pillH * 0.6).size,
+        weight: textStyle("bodySm", pillH * 0.6).weight,
         fill: preset?.color?.textMuted ?? "#9CA3AF",
-        lh: 1.0,
+        lh: textStyle("bodySm", pillH * 0.6).lh,
       })
 
       addMiniChart({
@@ -633,10 +641,10 @@ export default function renderFromAI(
         y: rect.top + pad * 0.5,
         w: rect.width * 0.6,
         text: "Portfolio Overview",
-        size: clamp(rect.height * 0.12, 12, 15),
-        weight: 600,
+        size: textStyle("subtitle", rect.height * 0.12).size,
+        weight: textStyle("subtitle", rect.height * 0.12).weight,
         fill: preset?.color?.textMuted ?? "#9CA3AF",
-        lh: 1.0,
+        lh: textStyle("subtitle", rect.height * 0.12).lh,
       })
       // fake table rows
       const rowH = clamp(rect.height * 0.12, 16, 22)
@@ -654,10 +662,10 @@ export default function renderFromAI(
         y: rect.top + pad * 1.2 + rowH * 0.08,
         w: clamp(rect.width * 0.12, 46, 64),
         text: "All",
-        size: clamp(rowH * 0.45, 9, 11),
-        weight: 700,
+        size: textStyle("overline", rowH * 0.6).size,
+        weight: textStyle("overline", rowH * 0.6).weight,
         fill: preset?.color?.accent ?? "#4C6FFF",
-        lh: 1.0,
+        lh: textStyle("overline", rowH * 0.6).lh,
       })
       for (let i = 0; i < 3; i++) {
         const avatarR = clamp(rowH * 0.25, 4, 6)
@@ -702,10 +710,10 @@ export default function renderFromAI(
         y: rect.top + pad * 0.5,
         w: rect.width * 0.6,
         text: "Watchlist",
-        size: clamp(rect.height * 0.12, 12, 15),
-        weight: 600,
+        size: textStyle("subtitle", rect.height * 0.12).size,
+        weight: textStyle("subtitle", rect.height * 0.12).weight,
         fill: preset?.color?.textMuted ?? "#9CA3AF",
-        lh: 1.0,
+        lh: textStyle("subtitle", rect.height * 0.12).lh,
       })
       let y = rect.top + pad * 2
       for (let i = 0; i < 3; i++) {
