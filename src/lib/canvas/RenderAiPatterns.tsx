@@ -425,6 +425,42 @@ export default function renderFromAI(
         radius: clamp(cardRadius * 0.75, 8, cardRadius),
       })
 
+      // micro-details: icon dot + delta badge
+      const iconR = clamp(rect.height * 0.06, 4, 7)
+      const icon = new fabric.Circle({
+        left: rect.left + pad * 0.8,
+        top: rect.top + pad * 0.8,
+        radius: iconR,
+        fill: preset?.color?.accent ?? "#4C6FFF",
+        selectable: false,
+        evented: false,
+      })
+      addObj(icon)
+
+      const badgeW = clamp(rect.width * 0.28, 46, 72)
+      const badgeH = clamp(rect.height * 0.12, 10, 14)
+      const badgeX = rect.left + rect.width - pad - badgeW
+      const badgeY = rect.top + pad * 0.7
+
+      addPill({
+        x: badgeX,
+        y: badgeY,
+        w: badgeW,
+        h: badgeH,
+        fill: preset?.color?.primarySoft ?? "#2A2F1D",
+      })
+      
+      addText({
+        x: badgeX,
+        y: badgeY + badgeH * 0.15,
+        w: badgeW,
+        text: "+3.5%",
+        size: clamp(badgeH * 0.6, 9, 11),
+        weight: 700,
+        fill: preset?.color?.accent ?? "#4C6FFF",
+        lh: 1.0,
+      })
+
       addText({
         x: rect.left + pad,
         y: rect.top + pad * 0.6,
