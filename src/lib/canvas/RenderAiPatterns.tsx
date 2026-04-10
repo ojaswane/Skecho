@@ -449,7 +449,7 @@ export default function renderFromAI(
         h: badgeH,
         fill: preset?.color?.primarySoft ?? "#2A2F1D",
       })
-      
+
       addText({
         x: badgeX,
         y: badgeY + badgeH * 0.15,
@@ -495,6 +495,7 @@ export default function renderFromAI(
 
     const renderChartCard = (rect: { left: number; top: number; width: number; height: number }) => {
       const pad = clamp(Math.min(rect.width, rect.height) * 0.08, 12, 20)
+      
       addPremiumShell({
         x: rect.left,
         y: rect.top,
@@ -502,6 +503,7 @@ export default function renderFromAI(
         h: rect.height,
         radius: clamp(cardRadius, 12, cardRadius),
       })
+
       addInnerPanel({
         x: rect.left + pad * 0.6,
         y: rect.top + pad * 1.4,
@@ -509,6 +511,7 @@ export default function renderFromAI(
         h: rect.height - pad * 2.2,
         radius: clamp(cardRadius * 0.9, 10, cardRadius),
       })
+
       addText({
         x: rect.left + pad,
         y: rect.top + pad * 0.6,
@@ -519,6 +522,88 @@ export default function renderFromAI(
         fill: preset?.color?.textMuted ?? "#9CA3AF",
         lh: 1.0,
       })
+
+      // micro-details: range pills + legend dots
+      const pillH = clamp(rect.height * 0.12, 12, 16)
+      const pillGap = clamp(pillH * 0.4, 6, 10)
+      const pillW = clamp(rect.width * 0.06, 32, 48)
+      const pills = ["1D", "1W", "1M", "1Y"]
+      const pillsW = pills.length * pillW + (pills.length - 1) * pillGap
+
+      let pillX = rect.left + rect.width - pad - pillsW
+
+      const pillY = rect.top + pad * 0.45
+
+      pills.forEach((label, i) => {
+        addPill({
+          x: pillX + i * (pillW + pillGap),
+          y: pillY,
+          w: pillW,
+          h: pillH,
+          fill: i === 2 ? (preset?.color?.primary ?? "#4C6FFF") : (preset?.color?.neutral200 ?? "#1F232B"),
+          stroke: preset?.color?.border ?? "#2A2D36",
+        })
+
+        addText({
+          x: pillX + i * (pillW + pillGap),
+          y: pillY + pillH * 0.18,
+          w: pillW,
+          text: label,
+          size: clamp(pillH * 0.6, 9, 11),
+          weight: 700,
+          fill: i === 2 ? (preset?.color?.onPrimary ?? "#ffffff") : (preset?.color?.textMuted ?? "#9CA3AF"),
+          lh: 1.0,
+        })
+      })
+
+      const legendY = rect.top + pad * 1.15
+      const legendX = rect.left + pad
+      const dotR = clamp(pillH * 0.2, 3, 5)
+
+      const dot1 = new fabric.Circle({
+        left: legendX + dotR,
+        top: legendY + dotR,
+        radius: dotR,
+        fill: preset?.color?.accent ?? "#4C6FFF",
+        selectable: false,
+        evented: false,
+      })
+
+      addObj(dot1)
+
+      addText({
+        x: legendX + dotR * 3,
+        y: legendY,
+        w: rect.width * 0.2,
+        text: "Revenue",
+        size: clamp(pillH * 0.55, 9, 11),
+        weight: 600,
+        fill: preset?.color?.textMuted ?? "#9CA3AF",
+        lh: 1.0,
+      })
+
+      const dot2 = new fabric.Circle({
+        left: legendX + dotR * 3 + rect.width * 0.16,
+        top: legendY + dotR,
+        radius: dotR,
+        fill: preset?.color?.borderStrong ?? "#3A3F4A",
+        selectable: false,
+        evented: false,
+      })
+
+      addObj(dot2)
+      
+      addText({
+        x: legendX + dotR * 5 + rect.width * 0.16,
+        y: legendY,
+        w: rect.width * 0.2,
+        text: "Costs",
+        size: clamp(pillH * 0.55, 9, 11),
+        weight: 600,
+        fill: preset?.color?.textMuted ?? "#9CA3AF",
+        lh: 1.0,
+      })
+
       addMiniChart({
         x: rect.left + pad * 1.1,
         y: rect.top + pad * 1.8,
@@ -556,11 +641,39 @@ export default function renderFromAI(
       // fake table rows
       const rowH = clamp(rect.height * 0.12, 16, 22)
       let y = rect.top + pad * 2
+      // header chips
+      addPill({
+        x: rect.left + pad,
+        y: rect.top + pad * 1.2,
+        w: clamp(rect.width * 0.12, 46, 64),
+        h: clamp(rowH * 0.6, 8, 12),
+        fill: preset?.color?.primarySoft ?? "#2A2F1D",
+      })
+      addText({
+        x: rect.left + pad,
+        y: rect.top + pad * 1.2 + rowH * 0.08,
+        w: clamp(rect.width * 0.12, 46, 64),
+        text: "All",
+        size: clamp(rowH * 0.45, 9, 11),
+        weight: 700,
+        fill: preset?.color?.accent ?? "#4C6FFF",
+        lh: 1.0,
+      })
       for (let i = 0; i < 3; i++) {
+        const avatarR = clamp(rowH * 0.25, 4, 6)
+        const avatar = new fabric.Circle({
+          left: rect.left + pad + avatarR,
+          top: y + rowH * 0.3,
+          radius: avatarR,
+          fill: "#64748b",
+          selectable: false,
+          evented: false,
+        })
+        addObj(avatar)
         addPill({
-          x: rect.left + pad,
+          x: rect.left + pad + avatarR * 2 + 6,
           y,
-          w: rect.width - pad * 2.2,
+          w: rect.width - pad * 2.4 - avatarR * 2,
           h: clamp(rowH * 0.6, 8, 12),
           fill: preset?.color?.border ?? "#2A2D36",
         })
@@ -596,10 +709,20 @@ export default function renderFromAI(
       })
       let y = rect.top + pad * 2
       for (let i = 0; i < 3; i++) {
+        const dotR = clamp(rect.height * 0.015, 3, 4)
+        const dot = new fabric.Circle({
+          left: rect.left + pad + dotR,
+          top: y + dotR,
+          radius: dotR,
+          fill: preset?.color?.accent ?? "#4C6FFF",
+          selectable: false,
+          evented: false,
+        })
+        addObj(dot)
         addPill({
-          x: rect.left + pad,
+          x: rect.left + pad + dotR * 2 + 6,
           y,
-          w: rect.width - pad * 2,
+          w: rect.width - pad * 2.2 - dotR * 2,
           h: clamp(rect.height * 0.08, 8, 12),
           fill: preset?.color?.border ?? "#2A2D36",
         })
