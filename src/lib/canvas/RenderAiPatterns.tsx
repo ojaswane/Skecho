@@ -415,6 +415,7 @@ export default function renderFromAI(
     }
 
     const renderKpiCard = (rect: { left: number; top: number; width: number; height: number }) => {
+      console.log("[render] KPI premium card", rect)
       const pad = clamp(Math.min(rect.width, rect.height) * 0.18, 10, 18)
       
       addPremiumShell({
