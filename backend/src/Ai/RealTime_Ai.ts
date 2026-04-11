@@ -354,20 +354,35 @@ type LayoutNode = {
     children?: LayoutNode[]
 }
 
+
+// Column
+//   Row 1
+//   Row 2
+//   Row 3
 function buildLayoutTreeFromBlocks(blocks: Array<{ id: string; x: number; y: number; w: number; h: number }>): LayoutNode | null {
     if (!blocks.length) return null
-    const ROW_THRESHOLD = 0.07
+    const avgH = blocks.reduce((s, b) => s + b.h, 0) / Math.max(1, blocks.length)
+
+    const ROW_THRESHOLD = Math.max(0.08, avgH * 0.6)
+    
     const sorted = [...blocks].sort((a, b) => (a.y + a.h / 2) - (b.y + b.h / 2))
-    const rows: Array<{ cy: number; items: typeof blocks }> = []
+    const rows: Array<{ cy: number; minY: number; maxY: number; items: typeof blocks }> = []
 
     for (const it of sorted) {
         const cy = it.y + it.h / 2
         const last = rows[rows.length - 1]
-        if (!last || Math.abs(cy - last.cy) > ROW_THRESHOLD) {
-            rows.push({ cy, items: [it] as any })
+
+        const overlapsBand = last
+            ? it.y <= last.maxY + ROW_THRESHOLD && it.y + it.h >= last.minY - ROW_THRESHOLD
+            : false
+        const closeCenter = last ? Math.abs(cy - last.cy) <= ROW_THRESHOLD : false
+        if (!last || (!overlapsBand && !closeCenter)) {
+            rows.push({ cy, minY: it.y, maxY: it.y + it.h, items: [it] as any })
         } else {
             ; (last.items as any).push(it)
             last.cy = (last.cy * (last.items.length - 1) + cy) / last.items.length
+            last.minY = Math.min(last.minY, it.y)
+            last.maxY = Math.max(last.maxY, it.y + it.h)
         }
     }
 

@@ -107,7 +107,7 @@ export default function renderFromAI(
     // Render that container first(rounded, premium card).
     // Lay out children top‑to‑bottom inside it with strict padding + gaps.
     // Skip those child elements in the normal renderer so they don’t overlap.
-    //  frame → card → header → main block → stats.
+    // frame → card → header → main block → stats.
 
     const placed: {
       left: number;
