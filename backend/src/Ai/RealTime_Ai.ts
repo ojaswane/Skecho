@@ -364,7 +364,7 @@ function buildLayoutTreeFromBlocks(blocks: Array<{ id: string; x: number; y: num
     const avgH = blocks.reduce((s, b) => s + b.h, 0) / Math.max(1, blocks.length)
 
     const ROW_THRESHOLD = Math.max(0.08, avgH * 0.6)
-    
+
     const sorted = [...blocks].sort((a, b) => (a.y + a.h / 2) - (b.y + b.h / 2))
     const rows: Array<{ cy: number; minY: number; maxY: number; items: typeof blocks }> = []
 
@@ -468,7 +468,7 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
         const contentRight = 1 - marginX
         const contentW = Math.max(0.1, contentRight - contentLeft)
 
-        const clamp01 = (n: number) => clamp(n, 0, 1)
+        // const clamp01 = (n: number) => clamp(n, 0, 1)
         const clampBBox = (b: any) => {
             const w = clamp(b.w, 0.01, 1)
             const h = clamp(b.h, 0.01, 1)
@@ -657,11 +657,13 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
             last = null
         }
         for (const r of faqRows) {
+
             if (!last) {
                 group = [r]
                 last = r
                 continue
             }
+
             if (closeEnough(last, r)) {
                 group.push(r)
                 last = r
@@ -736,7 +738,8 @@ function framesFromSketchGraphStrict(sketchGraph?: SketchSummary["sketchGraph"])
                     role: "supporting",
                 })
             )
-        } else {
+        }
+        else {
             const gridCandidates = available.filter((b) => b.h >= 0.12 && b.h <= 0.35 && b.w >= 0.12 && b.w <= 0.45)
             const gridTriple = findTriple(gridCandidates, { wTol: 0.3, hTol: 0.28 })
             if (gridTriple) {
