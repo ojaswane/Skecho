@@ -988,6 +988,160 @@ const FramesOverlay = ({ frame }: any) => {
     }
 
     function docToAIScreens(doc: any): AIScreen[] {
+        console.log("[docToAIScreens] Input doc:", { hasFrameId: !!doc?.frameId, sections: typeof doc?.sections, sectionKeys: Object.keys(doc?.sections || {}) })
+
+        // Handle old format: doc.sections is an array
+        if (Array.isArray(doc?.sections)) {
+            return doc.sections.map((section: any) => ({
+                id: section.id ?? crypto.randomUUID(),
+                name: section.name ?? "AI Screen",
+                frameId: doc.frameId,
+                elements: (section.elements || []).map((el: any) => ({
+                    id: el.id ?? crypto.randomUUID(),
+                    role: el.role,
+                    semantic: (el as any).semantic,
+                    bbox: (el as any)?.style?.bbox,
+                    col: el.col ?? 1,
+                    row: el.row ?? 1,
+                    span: el.span ?? 1,
+                    rowSpan: el.rowSpan ?? 1,
+                    blocks: el.blocks ?? [],
+                    type: el.type ?? "block",
+                })),
+            }))
+        }
+
+        // Handle new semantic format: doc.sections is an object with sidebar/header/content
+        if (typeof doc?.sections === 'object' && !Array.isArray(doc.sections)) {
+            console.log("[docToAIScreens] Using new semantic format")
+            const sections = doc.sections
+            const elements: any[] = []
+            let currentRow = 1
+
+            // Sidebar - always on left (col 1-2)
+            if (sections.sidebar?.items && sections.sidebar.items.length > 0) {
+                const navItems = sections.sidebar.items || []
+                const maxNavItems = Math.min(navItems.length, 6)
+                const navRowSpan = Math.max(2, Math.ceil(maxNavItems / 2))
+
+                elements.push({
+                    id: 'sidebar',
+                    type: 'sidebar',
+                    role: 'supporting',
+                    semantic: 'sidebar',
+                    col: 1,
+                    row: 1,
+                    span: 2,
+                    rowSpan: navRowSpan + 2,
+                    blocks: [{ id: 'sidebar-block', kind: 'body_text' }],
+                })
+            }
+
+            // Header - spans content area width
+            const hasLeftSidebar = sections.sidebar?.items && sections.sidebar.items.length > 0
+            const contentColStart = hasLeftSidebar ? 3 : 1
+            const contentSpan = 12 - (hasLeftSidebar ? 2 : 0)
+
+            if (sections.header) {
+                elements.push({
+                    id: 'header',
+                    type: 'header',
+                    role: 'dominant',
+                    semantic: 'header',
+                    col: contentColStart,
+                    row: 1,
+                    span: contentSpan,
+                    rowSpan: 1,
+                    blocks: [
+                        { id: 'header-title', kind: 'title_text' },
+                        { id: 'header-subtitle', kind: 'meta_text' },
+                    ],
+                })
+                currentRow = 2
+            }
+
+            // Content items - arranged in a 2-column grid
+            if (sections.content?.items && sections.content.items.length > 0) {
+                const contentItems = sections.content.items || []
+                const itemsPerRow = 2
+                let gridRow = currentRow
+                let itemInRow = 0
+
+                for (let idx = 0; idx < contentItems.length; idx++) {
+                    const item = contentItems[idx]
+
+                    // Calculate grid position
+                    if (itemInRow >= itemsPerRow) {
+                        gridRow += 3
+                        itemInRow = 0
+                    }
+
+                    const colWidth = Math.floor(contentSpan / itemsPerRow)
+                    const colStart = contentColStart + itemInRow * colWidth
+
+                    // Determine span and row span based on component type
+                    let itemSpan = colWidth
+                    let itemRowSpan = 2
+
+                    if (item.type === 'chart' || item.type === 'table') {
+                        itemSpan = contentSpan // Charts and tables span full width
+                        itemRowSpan = 3
+                        if (itemInRow > 0) {
+                            gridRow += 3
+                            itemInRow = 0
+                        }
+                    }
+
+                    elements.push({
+                        id: item.id || `content-item-${idx}`,
+                        type: item.type || 'card',
+                        role: item.type === 'chart' || item.type === 'table' ? 'dominant' : 'supporting',
+                        semantic: item.type,
+                        col: item.type === 'chart' || item.type === 'table' ? contentColStart : colStart,
+                        row: gridRow,
+                        span: item.type === 'chart' || item.type === 'table' ? contentSpan : itemSpan,
+                        rowSpan: itemRowSpan,
+                        blocks: getBlocksForType(item.type || 'card', item.id || `item-${idx}`),
+                    })
+
+                    itemInRow++
+                }
+            }
+
+            return [{
+                id: doc.id ?? crypto.randomUUID(),
+                name: doc.name ?? "AI Screen",
+                frameId: doc.frameId,
+                elements,
+            }]
+        }
+
+        console.log("[docToAIScreens] No matching format found")
+        return []
+    }
+
+    function getBlocksForType(componentType: string, componentId: string): Array<{ id: string; kind: string }> {
+        const blockMap: Record<string, string[]> = {
+            'metric-card': ['title_text', 'body_text', 'meta_text'],
+            'chart': ['title_text', 'content_image'],
+            'table': ['title_text', 'body_text'],
+            'nav': ['title_text'],
+            'header': ['title_text', 'body_text'],
+            'sidebar': ['title_text'],
+            'card': ['title_text', 'body_text'],
+            'button': ['primary_action'],
+            'list': ['body_text'],
+            'section': ['title_text', 'body_text'],
+        }
+
+        const blockKinds = blockMap[componentType] || ['body_text']
+        return blockKinds.map((kind, idx) => ({
+            id: `${componentId}-block-${idx}`,
+            kind: kind as any,
+        }))
+    }
+
+    function docToAIScreens_OLD(doc: any): AIScreen[] {
         if (!doc?.frameId || !Array.isArray(doc.sections)) return [];
 
         return doc.sections.map((section: any) => ({
@@ -1110,6 +1264,13 @@ const FramesOverlay = ({ frame }: any) => {
                 height: activeGhostZone.getScaledHeight(),
             } : null;
 
+            console.log("[GenerateTypeSketch] Sending to /generate:", {
+                hasImageBase64: !!imageBase64,
+                imageBase64Length: imageBase64?.length,
+                prompt: userPrompt,
+                frameId: frame.id,
+            })
+
             const response = await fetch("http://localhost:4000/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1128,14 +1289,24 @@ const FramesOverlay = ({ frame }: any) => {
                 }),
             })
 
-            if (!response.body) return
+            if (!response.body) {
+                console.error("[GenerateTypeSketch] No response body")
+                return
+            }
+
+            console.log("[GenerateTypeSketch] Reading stream, response status:", response.status)
+
             const reader = response.body.getReader()
             const decoder = new TextDecoder()
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
+                if (done) {
+                    console.log("[streaming] Stream done")
+                    break
+                }
 
                 const chunk = decoder.decode(value, { stream: true });
+                console.log("[streaming] Got chunk, length:", chunk.length)
 
                 // Sometimes multiple JSON objects come in one chunk,
                 // and sometimes one JSON object is split across two chunks.
@@ -1147,15 +1318,19 @@ const FramesOverlay = ({ frame }: any) => {
 
                     try {
                         const rawData = trimmedLine.replace("data: ", "");
+                        console.log("[streaming] Parsing line:", rawData.substring(0, 100))
 
-                        if (rawData === "[DONE]") break;
+                        if (rawData === "[DONE]") {
+                            console.log("[streaming] Got [DONE]")
+                            break
+                        }
 
                         const payload = JSON.parse(rawData);
                         console.log("FULL PAYLOAD RECEIVED:", payload);
 
                         // creation of frame
                         if (payload.type === "PLAN") {
-                            console.log("Creating Ghost Frames:", payload.screens);
+                            console.log("[streaming] PLAN received, screens:", payload.screens)
                             payload.screens.forEach((screenPlan: any) => {
                                 const { frame: newFrame } = createNewFrame({
                                     canvas,
