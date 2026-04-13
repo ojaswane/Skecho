@@ -226,20 +226,25 @@ export async function generatePreviewScreens({
   imageBase64?: string
   density?: DensityLevel
 }) {
+  console.log("[generatePreviewScreens] Starting with prompt:", prompt?.substring(0, 50))
   const raw = await callGeminiLite({
     prompt: prompt || "Design this SaaS page",
     imageBase64,
   })
 
+  console.log("[generatePreviewScreens] Raw Gemini response (first 200 chars):", raw.substring(0, 200))
+
   const parsed = parseGeminiJson(raw)
   if (!parsed?.screens) {
+    console.error("[generatePreviewScreens] Failed to parse or no screens:", parsed)
     throw new Error("AI_INVALID_FORMAT")
   }
 
-  const normalizedScreens = parsed.screens.map((screen: any) => {
-    const withLayout = applyLayout({ screens: [screen] }, density)
-    return normalizeForCanvas(withLayout).screens[0]
+  console.log("[generatePreviewScreens] Parsed screens:", parsed.screens.length)
+  parsed.screens.forEach((s: any, i: number) => {
+    console.log(`  [${i}] id=${s.id}, layout=${s.layout}, sections=${Object.keys(s.sections || {}).join(",")}`)
   })
 
-  return normalizedScreens
+  // Return semantic format directly from Gemini - don't transform to old frames format
+  return parsed.screens
 }

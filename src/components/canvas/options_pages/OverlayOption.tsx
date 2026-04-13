@@ -1170,6 +1170,13 @@ const FramesOverlay = ({ frame }: any) => {
 
                         //Handle the ACTUAL CONTENT
                         if (payload.type === "SCREEN_DONE") {
+                            console.log("[streaming] SCREEN_DONE received:", {
+                                id: payload.data?.id,
+                                hasElements: !!payload.data?.elements,
+                                elementCount: payload.data?.elements?.length,
+                                firstElement: payload.data?.elements?.[0],
+                            })
+
                             const targetFrameId = idMap.current[payload.data.id];
 
                             if (!targetFrameId) {
@@ -1180,12 +1187,16 @@ const FramesOverlay = ({ frame }: any) => {
                                 { screens: [payload.data] },
                                 { ...frame, id: targetFrameId || frame.id }
                             );
+                            console.log("[streaming] aiToScreens result:", rawAiData.length, "screens")
+
                             const aiScreens = screenToAIScreen(rawAiData);
+                            console.log("[streaming] screenToAIScreen result:", aiScreens.length, "screens", aiScreens[0]?.elements?.length, "elements")
 
                             const doc = payload.data;
                             const styleKey = typeof doc?.style === "string" ? doc.style : "";
                             const preset = presetMap[styleKey as keyof typeof presetMap] ?? defaultSaasPreset;
 
+                            console.log("[streaming] Calling renderFromAI with", aiScreens.length, "screens")
                             renderFromAI(canvas, aiScreens, preset);
                             canvas.requestRenderAll();
                         }

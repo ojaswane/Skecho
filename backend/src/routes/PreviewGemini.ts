@@ -26,6 +26,11 @@ router.post("/", async (req, res) => {
       density,
     })
 
+    console.log("[/generate] Got screens from AI:", screens.length, "screens")
+    screens.forEach((s: any, i: number) => {
+      console.log(`  [${i}] id=${s.id}, name=${s.name}, has_sections=${!!s.sections}, keys=${Object.keys(s.sections || {}).join(",")}`)
+    })
+
     res.write(
       `data: ${JSON.stringify({
         type: "PLAN",
@@ -34,7 +39,9 @@ router.post("/", async (req, res) => {
     )
 
     for (const screen of screens) {
+      console.log("[/generate] Converting screen:", screen.id)
       const convertedScreen = convertSemanticScreenToFrontend(screen)
+      console.log("[/generate] Converted screen:", convertedScreen.id, "elements:", convertedScreen.elements.length)
       res.write(`data: ${JSON.stringify({ type: "SCREEN_DONE", data: convertedScreen })}\n\n`)
     }
 

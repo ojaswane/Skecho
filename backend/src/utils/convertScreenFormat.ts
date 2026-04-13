@@ -146,6 +146,13 @@ export function convertSemanticScreenToFrontend(
             itemInRow++
         }
     }
+
+    return {
+        id: screen.id,
+        name: screen.name,
+        frameId,
+        elements,
+    }
 }
 
 export function convertSemanticScreensToFrontend(
