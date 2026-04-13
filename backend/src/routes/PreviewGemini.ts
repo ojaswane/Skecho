@@ -1,6 +1,7 @@
 // ts is how the way we are calling the Ai manually
 import Router from "express"
 import { generatePreviewScreens } from "../Ai/Preview_Ai.js"
+import { convertSemanticScreenToFrontend } from "../utils/convertScreenFormat.js"
 
 const router = Router()
 
@@ -33,7 +34,8 @@ router.post("/", async (req, res) => {
     )
 
     for (const screen of screens) {
-      res.write(`data: ${JSON.stringify({ type: "SCREEN_DONE", data: screen })}\n\n`)
+      const convertedScreen = convertSemanticScreenToFrontend(screen)
+      res.write(`data: ${JSON.stringify({ type: "SCREEN_DONE", data: convertedScreen })}\n\n`)
     }
 
     res.write("data: [DONE]\n\n")

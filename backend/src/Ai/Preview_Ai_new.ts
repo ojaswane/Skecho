@@ -37,7 +37,7 @@ interface AIDesignOutput {
     screens: GeneratedScreen[]
 }
 
-const ENHANCED_SYSTEM_PROMPT = `
+const SYSTEM_PROMPT = `
 You are a WORLD-CLASS SaaS UI/UX DESIGNER creating professional, beautiful dashboards.
 
 YOUR JOB: Convert sketch wireframes into PROFESSIONAL dashboard layouts with:
@@ -158,7 +158,7 @@ async function callGeminiForDesign(
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash-lite",
-        systemInstruction: ENHANCED_SYSTEM_PROMPT,
+        systemInstruction: SYSTEM_PROMPT,
         generationConfig: {
             responseMimeType: "application/json",
             temperature: 0.7,
@@ -206,46 +206,20 @@ async function callGeminiForDesign(
     return parsed;
 }
 
-function convertToCanvasFormat(design: AIDesignOutput) {
-    // Convert the semantic structure into canvas-ready format
-    return {
-        ...design,
-        screens: design.screens.map((screen) => ({
-            id: screen.id,
-            name: screen.name,
-            layout: screen.layout,
-            sections: screen.sections,
-            // Add metadata for rendering
-            metadata: {
-                layout: screen.layout,
-                sidebarWidth: screen.layout === "sidebar" ? 280 : 0,
-                contentGrid: 4, // 4-column grid for content
-            },
-        })),
-    };
-}
-
-export async function GenerateRealTimeAi({
+export async function generatePreviewScreens({
     prompt,
     imageBase64,
-    density = "normal",
-    sketchSummary,
-    layoutMode,
+    density = "airy",
 }: {
     prompt?: string
     imageBase64?: string
     density?: DensityLevel
-    sketchSummary?: any
-    layoutMode?: any
 }) {
-    const fullPrompt =
-        prompt ||
-        "Create a professional SaaS dashboard with metrics, charts, and navigation"
+    const fullPrompt = prompt || "Create a professional SaaS dashboard with metrics, charts, and navigation"
 
     try {
         const design = await callGeminiForDesign(fullPrompt, imageBase64)
-        const canvas = convertToCanvasFormat(design)
-        return canvas.screens // Return just the screens array for compatibility
+        return design.screens
     } catch (error) {
         console.error("Design generation failed:", error)
         throw error

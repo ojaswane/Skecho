@@ -229,14 +229,10 @@ export async function GenerateRealTimeAi({
     prompt,
     imageBase64,
     density = "normal",
-    sketchSummary,
-    layoutMode,
 }: {
     prompt?: string
     imageBase64?: string
     density?: DensityLevel
-    sketchSummary?: any
-    layoutMode?: any
 }) {
     const fullPrompt =
         prompt ||

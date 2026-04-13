@@ -207,7 +207,7 @@ async function callGeminiForDesign(
 }
 
 function convertToCanvasFormat(design: AIDesignOutput) {
-    // Convert the semantic structure into canvas-ready format
+    // Convert the semantic structure into canvas-ready frames
     return {
         ...design,
         screens: design.screens.map((screen) => ({
@@ -229,14 +229,10 @@ export async function GenerateRealTimeAi({
     prompt,
     imageBase64,
     density = "normal",
-    sketchSummary,
-    layoutMode,
 }: {
     prompt?: string
     imageBase64?: string
     density?: DensityLevel
-    sketchSummary?: any
-    layoutMode?: any
 }) {
     const fullPrompt =
         prompt ||
@@ -245,7 +241,7 @@ export async function GenerateRealTimeAi({
     try {
         const design = await callGeminiForDesign(fullPrompt, imageBase64)
         const canvas = convertToCanvasFormat(design)
-        return canvas.screens // Return just the screens array for compatibility
+        return canvas
     } catch (error) {
         console.error("Design generation failed:", error)
         throw error
