@@ -11,6 +11,7 @@ import {
   updateSessionSeq,
   upsertSessionDoc,
 } from "../realtime/sessionStore.js"
+import { normalizeGeneratedScreensToSections } from "../utils/normalizeGeneratedScreen.js"
 
 // Phase 1 realtime HTTP control routes for session/document/patch state.
 const router = Router()
@@ -173,22 +174,7 @@ router.post("/session/:sessionId/patch", async (req: Request, res: Response) => 
         version: session.doc.version + 1,
         status: "ready",
         updatedAt: Date.now(),
-        sections: screens.map((screen: any) => ({
-          id: screen.id,
-          frameId: patch.frameId,
-          name: screen.name,
-          elements: (screen.frames || []).map((f: any) => ({
-            id: f.id,
-            sectionId: screen.id,
-            type: f.type || "card",
-            role: f.role,
-            col: f.col,
-            row: f.row,
-            span: f.span,
-            rowSpan: f.rowSpan,
-            text: f.text,
-          })),
-        })),
+        sections: normalizeGeneratedScreensToSections(screens as any[], patch.frameId),
       }
 
       upsertSessionDoc(sessionId, generatedDoc)

@@ -13,6 +13,7 @@ import {
   upsertSessionDoc,
 } from "./sessionStore.js"
 import type { AiDocument } from "./protocol.js"
+import { normalizeGeneratedScreensToSections } from "../utils/normalizeGeneratedScreen.js"
 
 type ClientMessage =
   | {
@@ -147,25 +148,7 @@ export function attachRealtimeWSServer(server: HttpServer) {
             version: Date.now(),
             status: "ready",
             updatedAt: Date.now(),
-            sections: screens.map((screen: any) => ({
-              id: screen.id,
-              frameId: frameId!,
-              name: screen.name,
-              layoutTree: screen.layoutTree,
-              elements: (screen.frames || []).map((f: any) => ({
-                id: f.id,
-                sectionId: screen.id,
-                type: f.type || "card",
-                semantic: f.semantic,
-                role: f.role,
-                col: f.col,
-                row: f.row,
-                span: f.span,
-                rowSpan: f.rowSpan,
-                text: f.text,
-                style: f.style,
-              })),
-            })),
+            sections: normalizeGeneratedScreensToSections(screens as any[], frameId!),
           }
 
           upsertSessionDoc(sessionId, generatedDoc)

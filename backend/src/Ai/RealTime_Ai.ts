@@ -37,6 +37,22 @@ interface AIDesignOutput {
     screens: GeneratedScreen[]
 }
 
+type SketchBlock = {
+    id?: string
+    x: number
+    y: number
+    w: number
+    h: number
+    shapeType?: string
+    label?: string
+}
+
+type SketchSummaryLike = {
+    sketchGraph?: {
+        blocks?: SketchBlock[]
+    }
+}
+
 const ENHANCED_SYSTEM_PROMPT = `
 You are a WORLD-CLASS SaaS UI/UX DESIGNER creating professional, beautiful dashboards.
 
@@ -133,17 +149,17 @@ RETURN VALID JSON (only JSON, no markdown):
 }
 
 CRITICAL RULES:
-✓ Return ONLY valid JSON (no code blocks, no markdown, no explanations)
-✓ Always include sidebar, header, and content sections
-✓ Sidebar has navigation items with titles
-✓ Header has page title and optional subtitle
-✓ Content has 4-column grid (cols: 1-4)
-✓ Metric cards: use real financial/business metrics
-✓ Charts: use realistic chart types (line, bar, pie, area)
-✓ Tables: use meaningful table titles and columns
-✓ Colors: blue (primary), green (success), red (error), purple (info), orange (warning), amber (neutral)
-✓ Always create 2-4 metric cards + 1-2 charts + optional table
-✓ Keep it professional and minimal
+- Return ONLY valid JSON (no code blocks, no markdown, no explanations)
+- Always include sidebar, header, and content sections
+- Sidebar has navigation items with titles
+- Header has page title and optional subtitle
+- Content has 4-column grid (cols: 1-4)
+- Metric cards: use real financial/business metrics
+- Charts: use realistic chart types (line, bar, pie, area)
+- Tables: use meaningful table titles and columns
+- Colors: blue (primary), green (success), red (error), purple (info), orange (warning), amber (neutral)
+- Always create 2-4 metric cards + 1-2 charts + optional table
+- Keep it professional and minimal
 `
 
 async function callGeminiForDesign(
@@ -225,6 +241,87 @@ function convertToCanvasFormat(design: AIDesignOutput) {
     };
 }
 
+function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n))
+}
+
+function inferSemanticFromBlock(
+    block: SketchBlock,
+    allBlocks: SketchBlock[]
+): "sidebar" | "nav" | "hero_text" | "media" | "card" {
+    const label = String(block.label ?? "").trim().toLowerCase()
+    if (["sidebar", "side", "menu", "nav"].includes(label)) return "sidebar"
+    if (["header", "topbar", "navbar"].includes(label)) return "nav"
+    if (["hero", "title", "copy"].includes(label)) return "hero_text"
+    if (["image", "media", "chart"].includes(label)) return "media"
+
+    const aspect = block.w / Math.max(block.h, 0.001)
+    const topish = block.y < 0.2
+    const edgeish = block.x < 0.12 || block.x + block.w > 0.88
+    const tall = block.h > 0.45
+    const wide = block.w > 0.55
+
+    if (topish && wide && block.h < 0.18) return "nav"
+    if (edgeish && tall && block.w < 0.28) return "sidebar"
+
+    const nonLaneBlocks = allBlocks.filter((candidate) => candidate.id !== block.id)
+    const isTopMainBlock =
+        wide &&
+        aspect > 1.4 &&
+        block.y < 0.45 &&
+        nonLaneBlocks.some((candidate) => candidate.y > block.y + block.h * 0.6)
+
+    if (isTopMainBlock) return "hero_text"
+    if (wide && block.h > 0.18) return "media"
+
+    return "card"
+}
+
+function framesFromSketchGraphStrict(sketchSummary?: SketchSummaryLike) {
+    const rawBlocks = sketchSummary?.sketchGraph?.blocks ?? []
+    const blocks = rawBlocks
+        .filter((block) => block && typeof block.x === "number" && typeof block.y === "number")
+        .filter((block) => String(block.shapeType ?? "").toLowerCase() !== "line")
+        .map((block, index) => ({
+            id: block.id ?? `block-${index + 1}`,
+            x: clamp(block.x, 0, 1),
+            y: clamp(block.y, 0, 1),
+            w: clamp(block.w, 0.04, 1),
+            h: clamp(block.h, 0.04, 1),
+            shapeType: block.shapeType,
+            label: block.label,
+        }))
+
+    if (!blocks.length) return null
+
+    const frames = blocks.map((block, index) => ({
+        id: block.id ?? `frame-${index + 1}`,
+        type: "card",
+        role: index === 0 ? "dominant" : "supporting",
+        semantic: inferSemanticFromBlock(block, blocks),
+        col: 1,
+        row: index + 1,
+        span: 12,
+        rowSpan: 1,
+        style: {
+            bbox: {
+                x: block.x,
+                y: block.y,
+                w: block.w,
+                h: block.h,
+            },
+        },
+    }))
+
+    return [
+        {
+            id: "screen-1",
+            name: "Screen 1",
+            frames,
+        },
+    ]
+}
+
 export async function GenerateRealTimeAi({
     prompt,
     imageBase64,
@@ -235,14 +332,22 @@ export async function GenerateRealTimeAi({
     prompt?: string
     imageBase64?: string
     density?: DensityLevel
-    sketchSummary?: any
-    layoutMode?: any
+    sketchSummary?: SketchSummaryLike
+    layoutMode?: string
 }) {
+    const mode = String(layoutMode ?? "").toLowerCase()
     const fullPrompt =
         prompt ||
         "Create a professional SaaS dashboard with metrics, charts, and navigation"
 
     try {
+        if (mode === "strict") {
+            const strictScreens = framesFromSketchGraphStrict(sketchSummary)
+            if (strictScreens?.length) {
+                return strictScreens
+            }
+        }
+
         const design = await callGeminiForDesign(fullPrompt, imageBase64)
         const canvas = convertToCanvasFormat(design)
         return canvas.screens // Return just the screens array for compatibility

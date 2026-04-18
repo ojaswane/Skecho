@@ -226,25 +226,80 @@ export async function generatePreviewScreens({
   imageBase64?: string
   density?: DensityLevel
 }) {
-  console.log("[generatePreviewScreens] Starting with prompt:", prompt?.substring(0, 50))
-  const raw = await callGeminiLite({
-    prompt: prompt || "Design this SaaS page",
-    imageBase64,
-  })
+  console.log("[generatePreviewScreens] Mock mode - returning test data")
 
-  console.log("[generatePreviewScreens] Raw Gemini response (first 200 chars):", raw.substring(0, 200))
-
-  const parsed = parseGeminiJson(raw)
-  if (!parsed?.screens) {
-    console.error("[generatePreviewScreens] Failed to parse or no screens:", parsed)
-    throw new Error("AI_INVALID_FORMAT")
+  // MOCK DATA for testing - returns semantic format
+  const mockScreen = {
+    id: "dashboard-1",
+    name: "Main Dashboard",
+    layout: "sidebar",
+    sections: {
+      sidebar: {
+        id: "sidebar",
+        type: "sidebar",
+        items: [
+          { id: "nav-1", type: "nav", title: "Dashboard" },
+          { id: "nav-2", type: "nav", title: "Analytics" },
+          { id: "nav-3", type: "nav", title: "Settings" }
+        ]
+      },
+      header: {
+        id: "header",
+        type: "header",
+        title: "Dashboard",
+        subtitle: "Welcome back"
+      },
+      content: {
+        id: "content",
+        type: "content",
+        items: [
+          {
+            id: "metric-1",
+            type: "metric-card",
+            title: "Total Revenue",
+            value: "$45,231.89",
+            change: "+12.5%",
+            color: "blue"
+          },
+          {
+            id: "metric-2",
+            type: "metric-card",
+            title: "Orders",
+            value: "2,847",
+            change: "+23.1%",
+            color: "green"
+          },
+          {
+            id: "metric-3",
+            type: "metric-card",
+            title: "Customers",
+            value: "1,234",
+            change: "+8.2%",
+            color: "purple"
+          },
+          {
+            id: "metric-4",
+            type: "metric-card",
+            title: "Conversion",
+            value: "3.24%",
+            change: "-0.5%",
+            color: "orange"
+          },
+          {
+            id: "chart-1",
+            type: "chart",
+            title: "Revenue Over Time",
+            chartType: "line"
+          },
+          {
+            id: "table-1",
+            type: "table",
+            title: "Recent Transactions"
+          }
+        ]
+      }
+    }
   }
 
-  console.log("[generatePreviewScreens] Parsed screens:", parsed.screens.length)
-  parsed.screens.forEach((s: any, i: number) => {
-    console.log(`  [${i}] id=${s.id}, layout=${s.layout}, sections=${Object.keys(s.sections || {}).join(",")}`)
-  })
-
-  // Return semantic format directly from Gemini - don't transform to old frames format
-  return parsed.screens
+  return [mockScreen]
 }
