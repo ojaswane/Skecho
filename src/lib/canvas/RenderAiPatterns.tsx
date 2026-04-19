@@ -29,6 +29,7 @@ type AIScreen = {
     id: string
     role?: string
     semantic?: string
+    strict?: boolean
     // Normalized bbox (0..1) from sketchGraph strict mode.
     // If present, we render in absolute coordinates (matches sketch more closely).
     bbox?: { x: number; y: number; w: number; h: number }
@@ -824,11 +825,14 @@ export default function renderFromAI(
       )
     }
 
+    const hasStrictElements = absoluteElements.some((e) => Boolean((e as any).strict))
+
     const shouldContainerLayout =
       containerEl &&
       containerEl.bbox &&
       containerChildren.length >= 2 &&
       (containerEl.bbox.w ?? 0) * (containerEl.bbox.h ?? 0) >= 0.25 &&
+      !hasStrictElements &&
       !useLayoutTree
 
     const skippedIds = new Set<string>()
@@ -846,6 +850,7 @@ export default function renderFromAI(
       nonLaneCount >= 3 &&
       mainWidth >= frame.width * 0.45 &&
       mainHeight >= frame.height * 0.4 &&
+      !hasStrictElements &&
       !useLayoutTree
 
     const renderContainerLayout = () => {
@@ -1173,6 +1178,7 @@ export default function renderFromAI(
     for (const el of sortedElements) {
       const semantic = String((el as any).semantic ?? "").toLowerCase()
       const bbox = (el as any).bbox
+      const isStrictElement = Boolean((el as any).strict)
 
       // use absolute coordinates if bbox is present (sketchGraph strict mode), otherwise use grid-based layout
       const useAbsolute =
@@ -1226,7 +1232,7 @@ export default function renderFromAI(
       if (!useAbsolute && top + safeHeight > frame.top + frame.height - padding) continue
 
       // Premium alignment pass (only for strict mode )
-      if (useAbsolute && !usingLayoutTree && !useLayoutTree) {
+      if (useAbsolute && !isStrictElement && !usingLayoutTree && !useLayoutTree) {
         const grid = 8
         const margin = clamp(frame.width * 0.04, 16, 36)
         const snap = (v: number) => Math.round(v / grid) * grid
@@ -1273,6 +1279,7 @@ export default function renderFromAI(
       const isLaneElement = semanticKey === "nav" || semanticKey === "sidebar" || semanticKey === "footer"
       const shouldStackInMain =
         useAbsolute &&
+        !isStrictElement &&
         (hasNav || hasSidebar) &&
         !isLaneElement &&
         !skippedIds.has(el.id) &&
@@ -1317,7 +1324,7 @@ export default function renderFromAI(
       }
 
       // Simple collision resolver : prevent overlapping cards
-      if (useAbsolute && placed.length && !usingLayoutTree && !useLayoutTree) {
+      if (useAbsolute && placed.length && !isStrictElement && !usingLayoutTree && !useLayoutTree) {
         const gap = 12
         let adjustedTop = top
         for (const r of placed) {

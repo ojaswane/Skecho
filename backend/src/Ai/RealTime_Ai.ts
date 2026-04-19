@@ -298,18 +298,23 @@ function framesFromSketchGraphStrict(sketchSummary?: SketchSummaryLike) {
         id: block.id ?? `frame-${index + 1}`,
         type: "card",
         role: index === 0 ? "dominant" : "supporting",
-        semantic: inferSemanticFromBlock(block, blocks),
+        semantic: "card" as const,
         col: 1,
         row: index + 1,
         span: 12,
         rowSpan: 1,
         style: {
+            strict: true,
             bbox: {
                 x: block.x,
                 y: block.y,
                 w: block.w,
                 h: block.h,
             },
+            blocks: [
+                { id: `${block.id ?? `frame-${index + 1}`}-title`, kind: "title_text" },
+                { id: `${block.id ?? `frame-${index + 1}`}-body`, kind: "body_text" },
+            ],
         },
     }))
 

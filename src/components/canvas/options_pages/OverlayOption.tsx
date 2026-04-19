@@ -1000,12 +1000,20 @@ const FramesOverlay = ({ frame }: any) => {
                     id: el.id ?? crypto.randomUUID(),
                     role: el.role,
                     semantic: (el as any).semantic,
+                    strict: Boolean((el as any)?.style?.strict),
                     bbox: (el as any)?.style?.bbox,
                     col: el.col ?? 1,
                     row: el.row ?? 1,
                     span: el.span ?? 1,
                     rowSpan: el.rowSpan ?? 1,
-                    blocks: el.blocks ?? [],
+                    blocks:
+                        el.blocks ??
+                        (Array.isArray((el as any)?.style?.blocks)
+                            ? (el as any).style.blocks
+                            : getBlocksForType(
+                                String((el as any).semantic || el.type || "card"),
+                                String(el.id ?? crypto.randomUUID())
+                            )),
                     type: el.type ?? "block",
                 })),
             }))
