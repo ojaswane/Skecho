@@ -18,6 +18,8 @@ import extractCanvasData from '@/lib/render/extractCanvasData'
 import GenerateButton from '@/components/ui/generateButton'
 import renderFromAI from '@/lib/canvas/RenderAiPatterns'
 import { AIScreen } from '../../../../lib/type'
+import ReactPreview from '@/components/canvas/ReactPreview'
+import type { ReactRenderScreen } from '@/lib/canvas/RenderReact'
 import Grainient from '@/components/ui/Aizone/Grainient'
 import { useRealtimeGeneration } from '@/hooks/useRealtimeGeneration'
 import {
@@ -51,6 +53,8 @@ const FramesOverlay = ({ frame }: any) => {
     const [, forceUpdate] = useState(0)
     const [loader, setloader] = useState(false)
     const [userPrompt, setPrompt] = useState('')
+    const [isReactPreviewOpen, setIsReactPreviewOpen] = useState(false)
+    const [reactPreviewScreens, setReactPreviewScreens] = useState<ReactRenderScreen[]>([])
     const idMap = React.useRef<Record<string, string>>({});
     const [isDrawingZone, setIsDrawingZone] = useState(false);
     const [activeGhostZone, setActiveGhostZone] = useState<fabric.Rect | null>(null);
@@ -827,6 +831,7 @@ const FramesOverlay = ({ frame }: any) => {
 
                     if (aiScreens.length > 0) {
                         console.log("[realtime-ai] rendering screens", aiScreens.length);
+                        setReactPreviewScreens(aiScreens as unknown as ReactRenderScreen[]);
                         const stale = canvas.getObjects().filter((o: any) =>
                             o.get?.("isAiGenerated") && o.get?.("frameId") === realtimeFrameId
                         );
@@ -1374,6 +1379,7 @@ const FramesOverlay = ({ frame }: any) => {
 
                             const aiScreens = screenToAIScreen(rawAiData);
                             console.log("[streaming] screenToAIScreen result:", aiScreens.length, "screens", aiScreens[0]?.elements?.length, "elements")
+                            setReactPreviewScreens(aiScreens as unknown as ReactRenderScreen[]);
 
                             const doc = payload.data;
                             const styleKey = typeof doc?.style === "string" ? doc.style : "";
@@ -1885,6 +1891,15 @@ const FramesOverlay = ({ frame }: any) => {
     return (
 
         <>
+            {isSourceSketchFrame && aiScreenFrame && (
+                <ReactPreview
+                    canvas={canvas}
+                    frame={aiScreenFrame}
+                    screens={reactPreviewScreens}
+                    visible={isReactPreviewOpen}
+                />
+            )}
+
             {isSourceSketchFrame && aiScreenPos && aiScreenFrame && (
                 <div
                     className={`absolute pointer-events-none ${isCanvasEmpty ? 'opacity-100' : 'opacity-0' // Just fade it out instead of deleting it
@@ -1961,16 +1976,29 @@ const FramesOverlay = ({ frame }: any) => {
                             {renderBadge()}
 
                             {isSourceSketchFrame && (
-                                <button
-                                    type="button"
-                                    onClick={() => setShowSketchDebug((v) => !v)}
-                                    className={`px-3 py-1 rounded-full text-xs font-medium border ${showSketchDebug
-                                        ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200"
-                                        : "bg-white/10 border-white/15 text-white/80 hover:text-white"
-                                        }`}
-                                >
-                                    {showSketchDebug ? "Hide Boxes" : "Show Boxes"}
-                                </button>
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsReactPreviewOpen((v) => !v)}
+                                        className={`px-3 py-1 rounded-full text-xs font-medium border ${isReactPreviewOpen
+                                            ? "bg-blue-500/20 border-blue-400/40 text-blue-100"
+                                            : "bg-white/10 border-white/15 text-white/80 hover:text-white"
+                                            }`}
+                                    >
+                                        {isReactPreviewOpen ? "Fabric View" : "Preview"}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowSketchDebug((v) => !v)}
+                                        className={`px-3 py-1 rounded-full text-xs font-medium border ${showSketchDebug
+                                            ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200"
+                                            : "bg-white/10 border-white/15 text-white/80 hover:text-white"
+                                            }`}
+                                    >
+                                        {showSketchDebug ? "Hide Boxes" : "Show Boxes"}
+                                    </button>
+                                </>
                             )}
 
                             {

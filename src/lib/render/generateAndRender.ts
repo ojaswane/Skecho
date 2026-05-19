@@ -4,6 +4,10 @@ import { defaultSaasPreset } from "../design-systems/presets/default-Saas"
 import { glassNeonPreset } from "../design-systems/presets/glass-neon"
 import { darkCinematicPreset } from "../design-systems/presets/dark-cinematic"
 import { softPastelPreset } from "../design-systems/presets/soft-pastel"
+import { brutalistPreset } from "../design-systems/presets/brutalist"
+import { bentoPreset } from "../design-systems/presets/bento"
+import { editorialPreset } from "../design-systems/presets/editorial"
+import { mdiCarBrakeWornLinings } from "@mdi/js"
 
 export async function generateAndRender(canvas: fabric.Canvas, prompt: string) {
     const res = await fetch("/api/generate-wireframe", {
@@ -19,7 +23,10 @@ export async function generateAndRender(canvas: fabric.Canvas, prompt: string) {
         minimal_saas: minimalSaasPreset,
         glass_neon: glassNeonPreset,
         dark_cinematic: darkCinematicPreset,
-        soft_pastel: softPastelPreset
+        soft_pastel: softPastelPreset,
+        brutalist: brutalistPreset,
+        bento: bentoPreset,
+        editorial: editorialPreset
     }
 
     const preset = presetMap[presetId as keyof typeof presetMap] ?? defaultSaasPreset
