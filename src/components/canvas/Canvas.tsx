@@ -244,32 +244,59 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
   useEffect(() => {
     if (!canvas) return
 
-    // Smooth trackpad zoom/pan (rAF-batched) for a Figma-like feel.
+    // Smooth trackpad zoom/pan with eased zoom-to-cursor.
     let rafId: number | null = null
     let pendingPanX = 0
     let pendingPanY = 0
-    let pendingZoomDelta = 0
-    let lastPointer: fabric.Point | null = null
+    let targetZoom = canvas.getZoom()
+    let zoomAnchor: fabric.Point | null = null
 
-    const flush = () => {
+    const clampZoom = (value: number) => Math.min(Math.max(value, 0.1), 6)
+
+    const animateViewport = () => {
       rafId = null
-      const zoom = canvas.getZoom()
 
-      if (pendingZoomDelta !== 0 && lastPointer) {
-        const zoomFactor = Math.exp(-pendingZoomDelta * 0.0015)
-        let newZoom = zoom * zoomFactor
-        newZoom = Math.min(Math.max(newZoom, 0.1), 6)
-        canvas.zoomToPoint(lastPointer, newZoom)
+      let needsNextFrame = false
+
+      if (zoomAnchor) {
+        const currentZoom = canvas.getZoom()
+        const diff = targetZoom - currentZoom
+        const nextZoom = Math.abs(diff) < 0.001
+          ? targetZoom
+          : currentZoom + diff * 0.22
+
+        canvas.zoomToPoint(zoomAnchor, nextZoom)
+        needsNextFrame = Math.abs(targetZoom - nextZoom) >= 0.001
+
+        if (!needsNextFrame) {
+          zoomAnchor = null
+        }
       }
 
-      if (pendingPanX !== 0 || pendingPanY !== 0) {
-        canvas.relativePan(new fabric.Point(-pendingPanX, -pendingPanY))
+      if (Math.abs(pendingPanX) > 0.01 || Math.abs(pendingPanY) > 0.01) {
+        const easedPanX = pendingPanX * 0.32
+        const easedPanY = pendingPanY * 0.32
+
+        canvas.relativePan(new fabric.Point(-easedPanX, -easedPanY))
+        pendingPanX -= easedPanX
+        pendingPanY -= easedPanY
+        needsNextFrame = true
+      } else {
+        pendingPanX = 0
+        pendingPanY = 0
       }
 
-      pendingPanX = 0
-      pendingPanY = 0
-      pendingZoomDelta = 0
       canvas.requestRenderAll()
+
+      if (needsNextFrame && rafId == null) {
+        rafId = requestAnimationFrame(animateViewport)
+      }
+    }
+
+    const scheduleViewportAnimation = () => {
+      if (rafId == null) {
+        rafId = requestAnimationFrame(animateViewport)
+      }
     }
 
     const onWheel = (opt: any) => {
@@ -281,8 +308,8 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
 
       if (e.ctrlKey || e.metaKey) {
         const p = canvas.getPointer(e)
-        lastPointer = new fabric.Point(p.x, p.y)
-        pendingZoomDelta += dy
+        zoomAnchor = new fabric.Point(p.x, p.y)
+        targetZoom = clampZoom(targetZoom * Math.exp(-dy * 0.0015))
       } else {
         const panSpeed = 0.7
         if (e.shiftKey) {
@@ -293,9 +320,7 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
         }
       }
 
-      if (rafId == null) {
-        rafId = requestAnimationFrame(flush)
-      }
+      scheduleViewportAnimation()
 
       e.preventDefault()
       e.stopPropagation()
