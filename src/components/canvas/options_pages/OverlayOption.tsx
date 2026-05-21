@@ -1893,7 +1893,7 @@ const FramesOverlay = ({ frame }: any) => {
                     canvas={canvas}
                     frame={aiScreenFrame}
                     screens={reactPreviewScreens}
-                    visible={isReactPreviewOpen}
+                    visible={isReactPreviewOpen && reactPreviewScreens.length > 0}
                 />
             )}
 
