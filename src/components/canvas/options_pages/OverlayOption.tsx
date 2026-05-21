@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/select'
 import extractCanvasData from '@/lib/render/extractCanvasData'
 import GenerateButton from '@/components/ui/generateButton'
-import renderFromAI from '@/lib/canvas/RenderAiPatterns'
 import { AIScreen } from '../../../../lib/type'
 import ReactPreview from '@/components/canvas/ReactPreview'
 import type { ReactRenderScreen } from '@/lib/canvas/RenderReact'
@@ -53,7 +52,7 @@ const FramesOverlay = ({ frame }: any) => {
     const [, forceUpdate] = useState(0)
     const [loader, setloader] = useState(false)
     const [userPrompt, setPrompt] = useState('')
-    const [isReactPreviewOpen, setIsReactPreviewOpen] = useState(false)
+    const [isReactPreviewOpen, setIsReactPreviewOpen] = useState(true)
     const [reactPreviewScreens, setReactPreviewScreens] = useState<ReactRenderScreen[]>([])
     const idMap = React.useRef<Record<string, string>>({});
     const [isDrawingZone, setIsDrawingZone] = useState(false);
@@ -830,13 +829,13 @@ const FramesOverlay = ({ frame }: any) => {
                     } catch { }
 
                     if (aiScreens.length > 0) {
-                        console.log("[realtime-ai] rendering screens", aiScreens.length);
+                        console.log("[realtime-ai] rendering React preview screens", aiScreens.length);
                         setReactPreviewScreens(aiScreens as unknown as ReactRenderScreen[]);
                         const stale = canvas.getObjects().filter((o: any) =>
                             o.get?.("isAiGenerated") && o.get?.("frameId") === realtimeFrameId
                         );
                         stale.forEach((o) => canvas.remove(o));
-                        renderFromAI(canvas, aiScreens, preset);
+                        canvas.requestRenderAll();
                     } else {
                         console.warn("[realtime-ai] docToAIScreens produced 0 screens");
                     }
@@ -1381,12 +1380,10 @@ const FramesOverlay = ({ frame }: any) => {
                             console.log("[streaming] screenToAIScreen result:", aiScreens.length, "screens", aiScreens[0]?.elements?.length, "elements")
                             setReactPreviewScreens(aiScreens as unknown as ReactRenderScreen[]);
 
-                            const doc = payload.data;
-                            const styleKey = typeof doc?.style === "string" ? doc.style : "";
-                            const preset = presetMap[styleKey as keyof typeof presetMap] ?? defaultSaasPreset;
-
-                            console.log("[streaming] Calling renderFromAI with", aiScreens.length, "screens")
-                            renderFromAI(canvas, aiScreens, preset);
+                            const stale = canvas.getObjects().filter((o: any) =>
+                                o.get?.("isAiGenerated") && o.get?.("frameId") === (targetFrameId || frame.id)
+                            );
+                            stale.forEach((o) => canvas.remove(o));
                             canvas.requestRenderAll();
                         }
                     } catch (e) {
@@ -1985,7 +1982,7 @@ const FramesOverlay = ({ frame }: any) => {
                                             : "bg-white/10 border-white/15 text-white/80 hover:text-white"
                                             }`}
                                     >
-                                        {isReactPreviewOpen ? "Fabric View" : "Preview"}
+                                        {isReactPreviewOpen ? "Hide View" : "React View"}
                                     </button>
 
                                     <button
