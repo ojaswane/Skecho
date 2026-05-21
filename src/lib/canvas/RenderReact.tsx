@@ -15,6 +15,7 @@ export type ReactRenderElement = {
   type?: string
   semantic?: string
   role?: string
+  bbox?: { x: number; y: number; w: number; h: number }
   col?: number
   row?: number
   span?: number
@@ -115,6 +116,10 @@ function elementsFromScreen(screen: ReactRenderScreen) {
   if (sections?.content?.items?.length) return sections.content.items
   if (sections?.content?.elements?.length) return sections.content.elements
   return screen.elements ?? []
+}
+
+function hasSketchGeometry(elements: ReactRenderElement[]) {
+  return elements.some((element) => element.bbox || typeof element.col === 'number' || typeof element.row === 'number')
 }
 
 function navItems(screen: ReactRenderScreen) {
@@ -259,7 +264,7 @@ function GenericCard({ element, index }: { element: ReactRenderElement; index: n
 }
 
 function ContentItem({ element, index }: { element: ReactRenderElement; index: number }) {
-  const semantic = semanticOf(element)
+  const semantic = inferVisualKind(element, index)
 
   if (semantic === 'metric-card' || semantic === 'widget_timer' || semantic === 'card') {
     return <MetricCard element={element} index={index} />
@@ -276,9 +281,199 @@ function ContentItem({ element, index }: { element: ReactRenderElement; index: n
   return <GenericCard element={element} index={index} />
 }
 
+function inferVisualKind(element: ReactRenderElement, index: number) {
+  const semantic = semanticOf(element)
+  const id = element.id.toLowerCase()
+  const bbox = element.bbox
+  const w = bbox?.w ?? ((element.span ?? 3) / 12)
+  const h = bbox?.h ?? ((element.rowSpan ?? 2) / 8)
+
+  if (semantic !== 'block' && semantic !== 'unknown') return semantic
+  if (id.includes('sidebar') || (w <= 0.24 && h >= 0.45) || element.span === 2) return 'sidebar'
+  if (id.includes('header') || (w >= 0.45 && h <= 0.18) || element.rowSpan === 1) return 'header'
+  if (id.includes('chart') || (w >= 0.48 && h >= 0.28) || (element.span ?? 1) >= 8) return 'chart'
+  if (id.includes('table') || (w >= 0.55 && h >= 0.22) || (element.rowSpan ?? 1) >= 3) return 'table'
+  if (index < 4) return 'metric-card'
+  return 'card'
+}
+
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(1, value))
+}
+
+function elementLayoutStyle(element: ReactRenderElement): React.CSSProperties {
+  if (element.bbox) {
+    const x = clampPercent(element.bbox.x)
+    const y = clampPercent(element.bbox.y)
+    const width = Math.max(0.04, Math.min(element.bbox.w, 1 - x))
+    const height = Math.max(0.04, Math.min(element.bbox.h, 1 - y))
+
+    return {
+      position: 'absolute',
+      left: `${x * 100}%`,
+      top: `${y * 100}%`,
+      width: `${width * 100}%`,
+      height: `${height * 100}%`,
+    }
+  }
+
+  return {
+    gridColumn: `${Math.max(1, element.col ?? 1)} / span ${Math.max(1, Math.min(12, element.span ?? 3))}`,
+    gridRow: `${Math.max(1, element.row ?? 1)} / span ${Math.max(1, element.rowSpan ?? 2)}`,
+  }
+}
+
+function HeaderPanel({ element }: { element: ReactRenderElement }) {
+  return (
+    <section className="flex h-full min-h-0 items-center justify-between overflow-hidden rounded-lg border border-slate-200 bg-white px-5 py-3 shadow-sm">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-normal text-blue-600">Generated screen</p>
+        <h1 className="mt-1 text-xl font-semibold text-slate-950">{element.title ?? 'Screen Overview'}</h1>
+      </div>
+      <button className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm">Share</button>
+    </section>
+  )
+}
+
+function SidebarPanel() {
+  return (
+    <aside className="flex h-full min-h-0 flex-col rounded-lg bg-slate-950 p-4 text-white shadow-sm">
+      <div className="mb-6 flex items-center gap-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-white text-sm font-black text-slate-950">S</div>
+        <div>
+          <p className="text-sm font-semibold">Sketcho</p>
+          <p className="text-xs text-slate-400">AI workspace</p>
+        </div>
+      </div>
+      {['Dashboard', 'Analytics', 'Customers', 'Settings'].map((item, index) => (
+        <div
+          key={item}
+          className={`mb-1 rounded-md px-3 py-2 text-sm font-medium ${index === 0 ? 'bg-white text-slate-950' : 'text-slate-300'}`}
+        >
+          {item}
+        </div>
+      ))}
+      <div className="mt-auto rounded-lg border border-white/10 bg-white/5 p-3">
+        <p className="text-sm font-semibold">Design Health</p>
+        <p className="mt-1 text-xs leading-5 text-slate-400">Layout follows the sketch structure.</p>
+      </div>
+    </aside>
+  )
+}
+
+function SketchElementCard({ element, index }: { element: ReactRenderElement; index: number }) {
+  const kind = inferVisualKind(element, index)
+
+  if (kind === 'sidebar') return <SidebarPanel />
+  if (kind === 'header' || kind === 'nav') return <HeaderPanel element={element} />
+  if (kind === 'chart' || kind === 'media' || kind === 'content_image') return <SketchChartPanel title={element.title} />
+  if (kind === 'table' || kind === 'widget_tasks') return <SketchTablePanel title={element.title} />
+  if (kind === 'metric-card' || kind === 'widget_timer') return <SketchMetricPanel element={element} index={index} />
+
+  return <SketchGenericPanel element={element} index={index} />
+}
+
+function SketchMetricPanel({ element, index }: { element: ReactRenderElement; index: number }) {
+  const metric = metricData(element, index)
+  const colors = colorClasses(metric.color)
+
+  return (
+    <article className="flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-semibold text-slate-500">{metric.title}</p>
+          <p className="mt-1 truncate text-2xl font-semibold text-slate-950">{metric.value}</p>
+        </div>
+        <span className={`h-8 w-8 shrink-0 rounded-md ${colors.soft} ${colors.text} ring-4 ${colors.ring}`} />
+      </div>
+      <span className={`mt-3 w-fit rounded-full px-2 py-1 text-xs font-semibold ${colors.soft} ${colors.text}`}>
+        {metric.change}
+      </span>
+    </article>
+  )
+}
+
+function SketchChartPanel({ title }: { title?: string }) {
+  return (
+    <article className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold text-slate-950">{title ?? 'Performance'}</h3>
+          <p className="truncate text-xs text-slate-500">Trend from the sketched region</p>
+        </div>
+        <span className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500">Live</span>
+      </div>
+      <div className="flex min-h-0 flex-1 items-end gap-2 border-b border-l border-slate-200 px-3 pb-3">
+        {chartBars.map((height, index) => (
+          <div
+            key={index}
+            className="flex-1 rounded-t bg-gradient-to-t from-blue-600 to-cyan-400"
+            style={{ height: `${height}%` }}
+          />
+        ))}
+      </div>
+    </article>
+  )
+}
+
+function SketchTablePanel({ title }: { title?: string }) {
+  return (
+    <article className="h-full min-h-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <h3 className="truncate text-sm font-semibold text-slate-950">{title ?? 'Recent Activity'}</h3>
+      <div className="mt-3 space-y-2">
+        {[0, 1, 2, 3].map((row) => (
+          <div key={row} className="grid grid-cols-[1fr_80px_64px] gap-3 rounded-md bg-slate-50 px-3 py-2 text-xs">
+            <span className="truncate font-medium text-slate-700">Account {row + 1}</span>
+            <span className="truncate text-slate-500">${[1240, 892, 318, 1875][row]}</span>
+            <span className="truncate text-emerald-700">Active</span>
+          </div>
+        ))}
+      </div>
+    </article>
+  )
+}
+
+function SketchGenericPanel({ element, index }: { element: ReactRenderElement; index: number }) {
+  const colors = colorClasses(element.color)
+
+  return (
+    <article className="h-full min-h-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className={`mb-3 h-8 w-8 rounded-md ${colors.bg}`} />
+      <h3 className="truncate text-sm font-semibold text-slate-950">
+        {element.title ?? fallbackMetrics[index % fallbackMetrics.length].title}
+      </h3>
+      <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-500">
+        Generated content sized to match this part of your sketch.
+      </p>
+    </article>
+  )
+}
+
+function SketchDrivenScreen({ screen, elements }: { screen: ReactRenderScreen; elements: ReactRenderElement[] }) {
+  const usesAbsolute = elements.some((element) => element.bbox)
+
+  return (
+    <main className="h-full overflow-hidden bg-slate-100 p-5 text-slate-950">
+      <div
+        className={usesAbsolute ? 'relative h-full w-full' : 'grid h-full w-full grid-cols-12 grid-rows-8 gap-4'}
+      >
+        {elements.map((element, index) => (
+          <div key={element.id} className="min-h-0 overflow-hidden" style={elementLayoutStyle(element)}>
+            <SketchElementCard element={element} index={index} />
+          </div>
+        ))}
+      </div>
+    </main>
+  )
+}
+
 function DashboardScreen({ screen }: { screen: ReactRenderScreen }) {
   const header = headerCopy(screen)
   const elements = elementsFromScreen(screen)
+  if (elements.length > 0 && hasSketchGeometry(elements)) {
+    return <SketchDrivenScreen screen={screen} elements={elements} />
+  }
+
   const contentElements = elements.length ? elements : fallbackMetrics.map((metric, index) => ({
     id: `fallback-${index}`,
     type: index === 3 ? 'chart' : 'metric-card',

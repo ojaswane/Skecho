@@ -959,6 +959,9 @@ const FramesOverlay = ({ frame }: any) => {
             elements: (s.elements || s.frames || []).map((el: any) => ({
                 id: el.id ?? crypto.randomUUID(),
                 role: el.role,
+                semantic: el.semantic,
+                type: el.type,
+                bbox: el.bbox ?? el.style?.bbox,
                 col: el.col ?? 1,
                 row: el.row ?? 1,
                 span: el.span ?? 1,
@@ -976,6 +979,8 @@ const FramesOverlay = ({ frame }: any) => {
             elements: s.elements.map((el) => ({
                 id: el.id,
                 role: el.role,
+                semantic: (el as any).semantic,
+                bbox: (el as any).bbox,
                 col: el.col,
                 row: el.row,
                 span: el.span,
