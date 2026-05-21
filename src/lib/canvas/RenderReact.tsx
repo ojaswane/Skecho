@@ -343,14 +343,9 @@ function DashboardScreen({ screen }: { screen: ReactRenderScreen }) {
 }
 
 export default function RenderReact({ screens }: RenderReactProps) {
-  const screen = screens[0]
-
-  if (!screen) {
-    return (
-      <div className="flex h-full items-center justify-center bg-slate-100 text-sm font-medium text-slate-500">
-        Generate a design to preview it in React.
-      </div>
-    )
+  const screen = screens[0] ?? {
+    id: 'preview-fallback',
+    name: 'Generated Dashboard',
   }
 
   return <DashboardScreen screen={screen} />

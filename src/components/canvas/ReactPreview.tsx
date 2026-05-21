@@ -31,7 +31,7 @@ function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
 
 export default function ReactPreview({ canvas, frame, screens, visible }: ReactPreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
-  const [iframeBody, setIframeBody] = useState<HTMLElement | null>(null)
+  const [previewRoot, setPreviewRoot] = useState<HTMLElement | null>(null)
   const [, forceUpdate] = useState(0)
 
   useEffect(() => {
@@ -51,26 +51,39 @@ export default function ReactPreview({ canvas, frame, screens, visible }: ReactP
     }
   }, [canvas])
 
-  useEffect(() => {
+  const mountIframeDocument = React.useCallback(() => {
     const iframe = iframeRef.current
     const doc = iframe?.contentDocument
     if (!iframe || !doc) return
 
-    doc.open()
-    doc.write('<!doctype html><html><head></head><body><div id="react-preview-root"></div></body></html>')
-    doc.close()
-
     const head = doc.head
+    head.innerHTML = ''
+    const baseStyle = doc.createElement('style')
+    baseStyle.textContent = `
+      html, body, #react-preview-root { height: 100%; margin: 0; }
+      body { overflow: hidden; background: #f1f5f9; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; }
+    `
+    head.appendChild(baseStyle)
+
     document.querySelectorAll('link[rel="stylesheet"], style').forEach((node) => {
       head.appendChild(node.cloneNode(true))
     })
 
     const body = doc.body
-    body.className = 'm-0 h-full overflow-hidden bg-slate-100 antialiased'
-    doc.documentElement.className = 'h-full'
-    doc.getElementById('react-preview-root')?.classList.add('h-full')
-    setIframeBody(doc.getElementById('react-preview-root'))
+    body.innerHTML = ''
+    const root = doc.createElement('div')
+    root.id = 'react-preview-root'
+    root.className = 'h-full'
+    body.appendChild(root)
+    setPreviewRoot(root)
   }, [])
+
+  useEffect(() => {
+    if (!visible) return
+    const id = window.setTimeout(mountIframeDocument, 0)
+    return () => window.clearTimeout(id)
+  }, [mountIframeDocument, visible])
 
   if (!visible) return null
 
@@ -94,14 +107,19 @@ export default function ReactPreview({ canvas, frame, screens, visible }: ReactP
         ref={iframeRef}
         title="Sketcho React preview"
         className="h-full w-full border-0 bg-white"
-        sandbox="allow-same-origin"
+        onLoad={mountIframeDocument}
       />
-      {iframeBody
+      {!previewRoot && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-100 text-sm font-medium text-slate-500">
+          Loading React preview...
+        </div>
+      )}
+      {previewRoot
         ? createPortal(
             <div className="h-full w-full overflow-hidden">
               <RenderReact screens={screens} />
             </div>,
-            iframeBody
+            previewRoot
           )
         : null}
     </div>
