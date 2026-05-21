@@ -68,21 +68,26 @@ const CanvasRender = ({ theme }: { theme: 'light' | 'dark' }) => {
       setSelectedObject(null)
     })
 
-    window.addEventListener('keydown', onKeyDown)
-
-    window.addEventListener('wheel', function (e) {
-      if (e.ctrlKey) {
-        e.preventDefault();
+    const preventBrowserZoomWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
       }
-    }, { passive: false });
+    }
 
-    window.addEventListener('keydown', function (e) {
+    const preventBrowserZoomKeys = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=')) {
-        e.preventDefault();
+        e.preventDefault()
       }
-    });
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('wheel', preventBrowserZoomWheel, { capture: true, passive: false })
+    window.addEventListener('keydown', preventBrowserZoomKeys, { capture: true })
+
     return () => {
       window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('wheel', preventBrowserZoomWheel, { capture: true } as AddEventListenerOptions)
+      window.removeEventListener('keydown', preventBrowserZoomKeys, { capture: true } as AddEventListenerOptions)
       c.dispose()
     }
   }, [])

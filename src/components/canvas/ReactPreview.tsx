@@ -31,6 +31,7 @@ function canvasToScreen(canvas: fabric.Canvas, x: number, y: number) {
 
 export default function ReactPreview({ canvas, frame, screens, visible }: ReactPreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
+  const iframeInputCleanupRef = useRef<(() => void) | null>(null)
   const [previewRoot, setPreviewRoot] = useState<HTMLElement | null>(null)
   const [, forceUpdate] = useState(0)
 
@@ -56,6 +57,9 @@ export default function ReactPreview({ canvas, frame, screens, visible }: ReactP
     const doc = iframe?.contentDocument
     if (!iframe || !doc) return
 
+    iframeInputCleanupRef.current?.()
+    iframeInputCleanupRef.current = null
+
     const head = doc.head
     head.innerHTML = ''
     const baseStyle = doc.createElement('style')
@@ -76,7 +80,34 @@ export default function ReactPreview({ canvas, frame, screens, visible }: ReactP
     root.id = 'react-preview-root'
     root.className = 'h-full'
     body.appendChild(root)
+
+    const preventBrowserZoomWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault()
+      }
+    }
+
+    const preventBrowserZoomKeys = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && (event.key === '+' || event.key === '-' || event.key === '=')) {
+        event.preventDefault()
+      }
+    }
+
+    doc.addEventListener('wheel', preventBrowserZoomWheel, { capture: true, passive: false })
+    doc.addEventListener('keydown', preventBrowserZoomKeys, { capture: true })
+    iframeInputCleanupRef.current = () => {
+      doc.removeEventListener('wheel', preventBrowserZoomWheel, { capture: true } as AddEventListenerOptions)
+      doc.removeEventListener('keydown', preventBrowserZoomKeys, { capture: true } as AddEventListenerOptions)
+    }
+
     setPreviewRoot(root)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      iframeInputCleanupRef.current?.()
+      iframeInputCleanupRef.current = null
+    }
   }, [])
 
   useEffect(() => {
