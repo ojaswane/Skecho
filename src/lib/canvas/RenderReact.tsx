@@ -287,8 +287,9 @@ function inferVisualKind(element: ReactRenderElement, index: number) {
   const bbox = element.bbox
   const w = bbox?.w ?? ((element.span ?? 3) / 12)
   const h = bbox?.h ?? ((element.rowSpan ?? 2) / 8)
+  const isGenericSemantic = semantic === 'block' || semantic === 'unknown' || semantic === 'card' || semantic === 'section'
 
-  if (semantic !== 'block' && semantic !== 'unknown') return semantic
+  if (!isGenericSemantic) return semantic
   if (id.includes('sidebar') || (w <= 0.24 && h >= 0.45) || element.span === 2) return 'sidebar'
   if (id.includes('header') || (w >= 0.45 && h <= 0.18) || element.rowSpan === 1) return 'header'
   if (id.includes('chart') || (w >= 0.48 && h >= 0.28) || (element.span ?? 1) >= 8) return 'chart'
@@ -325,21 +326,25 @@ function elementLayoutStyle(element: ReactRenderElement): React.CSSProperties {
 
 function HeaderPanel({ element }: { element: ReactRenderElement }) {
   return (
-    <section className="flex h-full min-h-0 items-center justify-between overflow-hidden rounded-lg border border-slate-200 bg-white px-5 py-3 shadow-sm">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-normal text-blue-600">Generated screen</p>
-        <h1 className="mt-1 text-xl font-semibold text-slate-950">{element.title ?? 'Screen Overview'}</h1>
+    <section className="flex h-full min-h-0 items-center justify-between overflow-hidden rounded-lg border border-white/70 bg-white/95 px-6 py-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.03]">
+      <div className="min-w-0">
+        <p className="text-xs font-semibold uppercase tracking-normal text-blue-600">Workspace overview</p>
+        <h1 className="mt-1 truncate text-2xl font-semibold text-slate-950">{element.title ?? 'Executive Dashboard'}</h1>
+        <p className="mt-1 truncate text-xs text-slate-500">Live product, revenue, and customer signals.</p>
       </div>
-      <button className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm">Share</button>
+      <div className="flex shrink-0 items-center gap-2">
+        <button className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700">Export</button>
+        <button className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-blue-600/20">Share</button>
+      </div>
     </section>
   )
 }
 
 function SidebarPanel() {
   return (
-    <aside className="flex h-full min-h-0 flex-col rounded-lg bg-slate-950 p-4 text-white shadow-sm">
+    <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-800 bg-slate-950 p-4 text-white shadow-[0_22px_55px_rgba(2,6,23,0.22)]">
       <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-white text-sm font-black text-slate-950">S</div>
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-white text-sm font-black text-slate-950 shadow-sm">S</div>
         <div>
           <p className="text-sm font-semibold">Sketcho</p>
           <p className="text-xs text-slate-400">AI workspace</p>
@@ -348,14 +353,15 @@ function SidebarPanel() {
       {['Dashboard', 'Analytics', 'Customers', 'Settings'].map((item, index) => (
         <div
           key={item}
-          className={`mb-1 rounded-md px-3 py-2 text-sm font-medium ${index === 0 ? 'bg-white text-slate-950' : 'text-slate-300'}`}
+          className={`mb-1 flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${index === 0 ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300'}`}
         >
+          <span className={`h-1.5 w-1.5 rounded-full ${index === 0 ? 'bg-blue-600' : 'bg-slate-600'}`} />
           {item}
         </div>
       ))}
-      <div className="mt-auto rounded-lg border border-white/10 bg-white/5 p-3">
+      <div className="mt-auto rounded-lg border border-white/10 bg-white/[0.06] p-3">
         <p className="text-sm font-semibold">Design Health</p>
-        <p className="mt-1 text-xs leading-5 text-slate-400">Layout follows the sketch structure.</p>
+        <p className="mt-1 text-xs leading-5 text-slate-400">Spacing, hierarchy, and component structure are ready for review.</p>
       </div>
     </aside>
   )
@@ -378,36 +384,55 @@ function SketchMetricPanel({ element, index }: { element: ReactRenderElement; in
   const colors = colorClasses(metric.color)
 
   return (
-    <article className="flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-lg border border-white/80 bg-white p-4 shadow-[0_16px_38px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-xs font-semibold text-slate-500">{metric.title}</p>
           <p className="mt-1 truncate text-2xl font-semibold text-slate-950">{metric.value}</p>
         </div>
-        <span className={`h-8 w-8 shrink-0 rounded-md ${colors.soft} ${colors.text} ring-4 ${colors.ring}`} />
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${colors.soft} ${colors.text} ring-4 ${colors.ring}`}>
+          <span className="h-2.5 w-2.5 rounded-full bg-current" />
+        </span>
       </div>
-      <span className={`mt-3 w-fit rounded-full px-2 py-1 text-xs font-semibold ${colors.soft} ${colors.text}`}>
-        {metric.change}
-      </span>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <span className={`w-fit rounded-full px-2 py-1 text-xs font-semibold ${colors.soft} ${colors.text}`}>
+          {metric.change}
+        </span>
+        <div className="flex h-8 flex-1 items-end justify-end gap-1">
+          {[32, 52, 41, 66, 58, 74].map((height, barIndex) => (
+            <span
+              key={barIndex}
+              className="w-1.5 rounded-t bg-slate-200"
+              style={{ height: `${height}%` }}
+            />
+          ))}
+        </div>
+      </div>
     </article>
   )
 }
 
 function SketchChartPanel({ title }: { title?: string }) {
   return (
-    <article className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-white/80 bg-white p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.03]">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-semibold text-slate-950">{title ?? 'Performance'}</h3>
-          <p className="truncate text-xs text-slate-500">Trend from the sketched region</p>
+          <h3 className="truncate text-base font-semibold text-slate-950">{title ?? 'Performance'}</h3>
+          <p className="truncate text-xs text-slate-500">Trend generated from this region of the sketch</p>
         </div>
-        <span className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500">Live</span>
+        <div className="flex rounded-md border border-slate-200 bg-slate-50 p-1 text-xs font-semibold text-slate-500">
+          <span className="rounded bg-white px-2 py-1 text-slate-900 shadow-sm">Month</span>
+          <span className="px-2 py-1">Year</span>
+        </div>
       </div>
-      <div className="flex min-h-0 flex-1 items-end gap-2 border-b border-l border-slate-200 px-3 pb-3">
+      <div className="relative flex min-h-0 flex-1 items-end gap-3 rounded-md border border-slate-200 bg-gradient-to-b from-slate-50 to-white px-4 pb-4 pt-6">
+        <div className="absolute inset-x-4 top-1/4 border-t border-dashed border-slate-200" />
+        <div className="absolute inset-x-4 top-1/2 border-t border-dashed border-slate-200" />
+        <div className="absolute inset-x-4 top-3/4 border-t border-dashed border-slate-200" />
         {chartBars.map((height, index) => (
           <div
             key={index}
-            className="flex-1 rounded-t bg-gradient-to-t from-blue-600 to-cyan-400"
+            className="relative z-10 flex-1 rounded-t-md bg-gradient-to-t from-blue-600 to-cyan-400 shadow-sm"
             style={{ height: `${height}%` }}
           />
         ))}
@@ -418,14 +443,17 @@ function SketchChartPanel({ title }: { title?: string }) {
 
 function SketchTablePanel({ title }: { title?: string }) {
   return (
-    <article className="h-full min-h-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <h3 className="truncate text-sm font-semibold text-slate-950">{title ?? 'Recent Activity'}</h3>
-      <div className="mt-3 space-y-2">
+    <article className="h-full min-h-0 overflow-hidden rounded-lg border border-white/80 bg-white p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.03]">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="truncate text-base font-semibold text-slate-950">{title ?? 'Recent Activity'}</h3>
+        <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-500">Live</span>
+      </div>
+      <div className="mt-4 space-y-2">
         {[0, 1, 2, 3].map((row) => (
-          <div key={row} className="grid grid-cols-[1fr_80px_64px] gap-3 rounded-md bg-slate-50 px-3 py-2 text-xs">
+          <div key={row} className="grid grid-cols-[1fr_80px_64px] gap-3 rounded-md border border-slate-100 bg-slate-50 px-3 py-2 text-xs">
             <span className="truncate font-medium text-slate-700">Account {row + 1}</span>
             <span className="truncate text-slate-500">${[1240, 892, 318, 1875][row]}</span>
-            <span className="truncate text-emerald-700">Active</span>
+            <span className="truncate font-semibold text-emerald-700">Active</span>
           </div>
         ))}
       </div>
@@ -437,14 +465,20 @@ function SketchGenericPanel({ element, index }: { element: ReactRenderElement; i
   const colors = colorClasses(element.color)
 
   return (
-    <article className="h-full min-h-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <div className={`mb-3 h-8 w-8 rounded-md ${colors.bg}`} />
+    <article className="h-full min-h-0 overflow-hidden rounded-lg border border-white/80 bg-white p-4 shadow-[0_16px_38px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03]">
+      <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-md ${colors.bg} shadow-sm`}>
+        <span className="h-2.5 w-2.5 rounded-full bg-white/90" />
+      </div>
       <h3 className="truncate text-sm font-semibold text-slate-950">
         {element.title ?? fallbackMetrics[index % fallbackMetrics.length].title}
       </h3>
       <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-500">
         Generated content sized to match this part of your sketch.
       </p>
+      <div className="mt-4 space-y-2">
+        <div className="h-2 rounded-full bg-slate-100" />
+        <div className="h-2 w-3/4 rounded-full bg-slate-100" />
+      </div>
     </article>
   )
 }
@@ -453,7 +487,7 @@ function SketchDrivenScreen({ screen, elements }: { screen: ReactRenderScreen; e
   const usesAbsolute = elements.some((element) => element.bbox)
 
   return (
-    <main className="h-full overflow-hidden bg-slate-100 p-5 text-slate-950">
+    <main className="h-full overflow-hidden bg-[radial-gradient(circle_at_top_left,#f8fbff,#eef4fb_44%,#e9f0f8)] p-6 text-slate-950">
       <div
         className={usesAbsolute ? 'relative h-full w-full' : 'grid h-full w-full grid-cols-12 grid-rows-8 gap-4'}
       >
